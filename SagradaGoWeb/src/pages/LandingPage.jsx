@@ -1,10 +1,7 @@
-
-export default function LandingPage(){
-    return(
-
-        <>
-        
-            <h1>This is landing page</h1>
-        </>
-    )
+export default function LandingPage() {
+  return (
+    <div style={{ backgroundColor: "red", height: "100vh" }}>
+      Landing Page
+    </div>
+  )
 }
