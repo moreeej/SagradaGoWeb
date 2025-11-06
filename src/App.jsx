@@ -5,22 +5,32 @@ import LandingPage from './pages/LandingPage'
 import BookingPage from './pages/BookingPage'
 import SignUpPage from './pages/SignUpPage'
 import SignInPage from './pages/SignInPage'
+import { NavbarContext } from './context/AllContext'
+import { useState } from 'react'
 
 
 
 function App() {
 
-
+  const [selectedNavbar, setSelectedNavbar] = useState("Home")
   return (
     <>
-      <BrowserRouter>
-        <Routes>
-          <Route path='/' element={<LandingPage />} />
-          <Route path='/booking' element={<BookingPage />} />
-          <Route path='/sign-up' element={<SignUpPage />} />
-          <Route path='/sign-in' element={<SignInPage />} />
-        </Routes>
-      </BrowserRouter>
+      <NavbarContext.Provider
+        value={{
+          selectedNavbar,
+          setSelectedNavbar
+        }}
+      >
+          <BrowserRouter>
+            <Routes>
+              <Route path='/' element={<LandingPage />} />
+              <Route path='/booking' element={<BookingPage />} />
+              <Route path='/sign-up' element={<SignUpPage />} />
+              <Route path='/sign-in' element={<SignInPage />} />
+            </Routes>
+          </BrowserRouter>
+      </NavbarContext.Provider>
+
     </>
   )
 }

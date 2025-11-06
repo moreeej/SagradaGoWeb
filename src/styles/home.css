@@ -1,0 +1,20 @@
+@import "tailwindcss";
+
+.home-main-container {
+  @apply w-svw h-svh overflow-y-scroll;
+  scrollbar-width: thin;
+  scrollbar-color: black transparent;
+}
+
+.home-main-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.home-main-container::-webkit-scrollbar-thumb {
+  background: black;
+  border-radius: 8px;
+}
+
+.home-main-container::-webkit-scrollbar-track {
+  background: transparent;
+}

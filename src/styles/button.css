@@ -1,0 +1,5 @@
+@import "tailwindcss";
+
+.main-button{
+    @apply px-10! py-3! rounded-2xl text-xl;
+}

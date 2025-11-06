@@ -1,0 +1,5 @@
+@import "tailwindcss";
+
+.nav-button{
+    @apply w-40 h-auto flex py-4! justify-center items-center text-xl;
+}

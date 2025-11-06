@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+.header-main-container{
+    @apply w-full h-20 flex justify-evenly top-0 z-50 sticky bg-white;
+}
+
+.header-logo{
+    @apply w-80 h-full bg-amber-400;
+}
+
+.navbar-container{
+    @apply w-7/12 h-full flex justify-evenly items-center;
+}
+
+.signin-container{
+    @apply w-auto h-full flex gap-5 justify-center items-center;
+}
