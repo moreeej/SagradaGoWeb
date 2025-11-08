@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import { useContext, useState } from "react";
 import Button from "../components/Button";
 import { NavbarContext } from "../context/AllContext";
 import SignUpPage from "./SignUpPage";
@@ -54,7 +54,7 @@ export default function SignInPage() {
           />
           <button
             onClick={() => setShowSignup(true)}
-            className="cursor-pointer"
+            className="cursor-pointer hover:underline"
           >
             No account yet?
           </button>
