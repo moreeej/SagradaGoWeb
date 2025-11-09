@@ -1,0 +1,28 @@
+@import "tailwindcss";
+
+.input-properties{
+    @apply bg-white! border border-black outline-none w-80;
+}
+
+input[type="radio"] {
+  appearance: none;
+  width: 20px; 
+  height: 20px; 
+  border: 2px solid #ccc; 
+  border-radius: 50%; 
+  background-color: #f0f0f0; 
+  cursor: pointer;
+}
+
+input[type="radio"]:checked {
+  background-color: #007bff;
+  border-color: #ffffff;
+}
+
+input[type="radio"]:checked::before {
+  content: '';
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
