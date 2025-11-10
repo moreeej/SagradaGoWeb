@@ -6,11 +6,12 @@ import { NavbarContext } from "../context/AllContext";
 import SignUpPage from "./SignUpPage";
 import { useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
-
+import axios from "axios";
+import { API_URL } from "../Constants";
 
 export default function SignInPage() {
-  const navigate = useNavigate()
-  const { setShowSignin, showSignup, setShowSignup } = useContext(NavbarContext);
+  const navigate = useNavigate();
+  const { setShowSignin, showSignup, setShowSignup, setCurrentUser } = useContext(NavbarContext);
   const [inputEmail, setInputEmail] = useState("");
   const [inputPassword, setInputPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
@@ -22,11 +23,21 @@ export default function SignInPage() {
     setLoading(true);
 
     try {
-      await signInWithEmailAndPassword(auth, inputEmail, inputPassword);
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        inputEmail,
+        inputPassword
+      );
+      const user = userCredential.user;
+      const uid = user.uid;
+
+      const response = await axios.post(`${API_URL}/findUser`, { uid });
+      const data = response.data.user
+      setCurrentUser({data})
 
       Cookies.set("email", inputEmail, { expires: 7 });
       setShowSignin(false);
-      navigate("/")
+      navigate("/");
     } catch (err) {
       console.error(err);
       if (err.code === "auth/user-not-found") {
@@ -36,9 +47,9 @@ export default function SignInPage() {
       } else {
         setError("Failed to sign in. Please try again.");
       }
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   }
 
   return (

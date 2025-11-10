@@ -7,7 +7,8 @@ import SignInPage from "./SignInPage";
 
 
 export default function LandingPage() {
-  const { setShowSignin, showSignin } = useContext(NavbarContext);
+  const { showSignin } = useContext(NavbarContext);
+  
 
   return (
     <>

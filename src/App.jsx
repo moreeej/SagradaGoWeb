@@ -15,6 +15,7 @@ function App() {
   const [selectedNavbar, setSelectedNavbar] = useState("Home")
   const [showSignin, setShowSignin] = useState(false)
   const [showSignup, setShowSignup] = useState(false)
+  const [currentUser, setCurrentUser] = useState({})
   return (
     <>
       <NavbarContext.Provider
@@ -24,7 +25,9 @@ function App() {
           showSignin,
           setShowSignin,
           showSignup,
-          setShowSignup
+          setShowSignup,
+          currentUser,
+          setCurrentUser
         }}
       >
           <BrowserRouter>

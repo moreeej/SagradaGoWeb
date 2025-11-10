@@ -8,9 +8,10 @@ import { useNavigate } from "react-router-dom";
 
 
 export default function Header() {
-  const { setSelectedNavbar, setShowSignin } = useContext(NavbarContext);
+  const { setSelectedNavbar, setShowSignin, currentUser } = useContext(NavbarContext);
   const navigate = useNavigate()
   const email = Cookies.get("email");
+
   
   const navbar = [
     { text: "Home" },
@@ -40,7 +41,7 @@ export default function Header() {
         {email ? (
           <div className="flex items-center gap-3">
             <span className="text-sm text-black">
-              Welcome, <strong>{email}</strong>
+              Welcome, <strong>{currentUser.data.first_name}</strong>
             </span>
             <Button
               text={"Logout"}
