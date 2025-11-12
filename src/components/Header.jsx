@@ -16,9 +16,10 @@ export default function Header() {
   const navbar = [
     { text: "Home" },
     { text: "Book A Service" },
+    { text: "Donate" },
     { text: "Events" },
     { text: "Be a Volunteer" },
-    { text: "Donate" },
+    { text: "Virtual Tour" },
   ];
 
   
