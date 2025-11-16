@@ -47,8 +47,9 @@ function App() {
           <Route
             path="*"
             element={
-              <div className="w-svw bg-amber-900 flex flex-col">
+              <div className="main-container">
                 <Header />
+                <div className="body-container">
                 <Routes>
                   <Route path="/" element={<LandingPage />} />
                   <Route path="/sign-up" element={<SignUpPage />} />
@@ -59,10 +60,10 @@ function App() {
                   <Route path="/be-volunteer" element={<BeVolunteer />} />
                   <Route path="/donate" element={<Donate />} />
                 </Routes>
+                </div>
               </div>
             }
           />
-
         </Routes>
       </BrowserRouter>
     </NavbarContext.Provider>
