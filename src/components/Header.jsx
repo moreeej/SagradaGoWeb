@@ -5,6 +5,7 @@ import { NavbarContext } from "../context/AllContext";
 import "../styles/header.css";
 import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
+import Logo from "../assets/sagrada.png";
 
 
 export default function Header() {
@@ -25,7 +26,7 @@ export default function Header() {
 
   return (
     <div className="header-main-container">
-      <div className="header-logo"></div>
+      <img src={Logo} alt="Logo" className="header-logo" onClick={() => navigate("/")} />
 
       <div className="navbar-container">
         {navbar.map((elem) => (

@@ -1,11 +1,11 @@
 @import "tailwindcss";
 
 .header-main-container{
-    @apply w-full h-20 flex justify-evenly top-0 z-50 sticky bg-white;
+    @apply w-full h-20 flex justify-evenly top-0 z-50 sticky bg-white shadow-md;
 }
 
 .header-logo{
-    @apply w-80 h-full bg-amber-400;
+    @apply w-20 h-full drop-shadow-xl;
 }
 
 .navbar-container{
