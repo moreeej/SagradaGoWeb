@@ -14,12 +14,11 @@ export default function Header() {
 
   
   const navbar = [
-    { text: "Home" },
-    { text: "Book A Service" },
-    { text: "Donate" },
-    { text: "Events" },
-    { text: "Be a Volunteer" },
-    { text: "Virtual Tour" },
+    { text: "Home", path: "/" },
+    { text: "Book A Service", path: "/book-service" },
+    { text: "Events", path: "/events" },
+    { text: "Be a Volunteer", path: "/be-volunteer" },
+    { text: "Donate", path: "/donate" },
   ];
 
   
@@ -33,7 +32,11 @@ export default function Header() {
           <NavButton
             key={elem.text}
             text={elem.text}
-            onClick={() => setSelectedNavbar(elem.text)}
+            onClick={() => {
+              setSelectedNavbar(elem.text)
+              navigate(elem.path)
+            }}
+
           />
         ))}
       </div>

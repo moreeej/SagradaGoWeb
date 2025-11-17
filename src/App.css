@@ -13,3 +13,27 @@ body {
 }
 
 
+.main-container{
+  @apply w-svw h-svh bg-white flex flex-col overflow-y-auto overflow-x-hidden ;
+    scrollbar-width: thin;
+  scrollbar-color: black transparent;
+}
+
+.main-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.main-container::-webkit-scrollbar-thumb {
+  background: black;
+  border-radius: 8px;
+}
+
+.main-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.body-container{
+  @apply w-svw h-auto bg-green-400;
+}
+
+
