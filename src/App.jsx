@@ -23,6 +23,8 @@ function App() {
   const [showSignin, setShowSignin] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
   const [currentUser, setCurrentUser] = useState({});
+  const [activeDropdown, setActiveDropdown] = useState(false);
+  const [bookingSelected, setBookingSelected] = useState(false);
 
   return (
     <NavbarContext.Provider
@@ -35,6 +37,10 @@ function App() {
         setShowSignup,
         currentUser,
         setCurrentUser,
+        activeDropdown,
+        setActiveDropdown,
+        bookingSelected,
+        setBookingSelected
       }}
     >
       <BrowserRouter>

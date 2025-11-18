@@ -33,7 +33,7 @@ body {
 }
 
 .body-container{
-  @apply w-svw h-auto bg-green-400;
+  @apply w-svw h-auto bg-blue-300;
 }
 
 

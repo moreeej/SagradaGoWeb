@@ -4,10 +4,63 @@ import SignInPage from "./SignInPage";
 
 
 export default function BookService() {
-  const { showSignin } = useContext(NavbarContext);
+  const { showSignin, bookingSelected } = useContext(NavbarContext);
   return (
     <>
-      <h1>Book service</h1>
+      <div className="w-svw">
+        {
+          bookingSelected === "wedding" && 
+          <div>
+            <h1 className="text-black">wedding</h1>
+          </div>
+        }
+
+
+
+        {
+          bookingSelected === "baptism" && 
+          <div>
+            <h1 className="text-black">baptism</h1>
+          </div>
+        }
+
+
+
+
+        {
+          bookingSelected === "confession" && 
+          <div>
+            <h1 className="text-black">confession</h1>
+          </div>
+        }
+
+
+        {
+          bookingSelected === "anointing" && 
+          <div>
+            <h1 className="text-black">anointing</h1>
+          </div>
+        }
+
+
+        {
+          bookingSelected === "communion" && 
+          <div>
+            <h1 className="text-black">communion</h1>
+          </div>
+        }
+
+        {
+          bookingSelected === "burial" && 
+          <div>
+            <h1 className="text-black">burial</h1>
+          </div>
+        }
+
+
+
+
+      </div>
 
       {showSignin && <SignInPage />}
     </>

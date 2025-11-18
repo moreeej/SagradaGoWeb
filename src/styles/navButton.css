@@ -1,5 +1,21 @@
 @import "tailwindcss";
 
+
+.nav-container{
+    @apply w-full h-full;
+}
 .nav-button{
-    @apply w-40 h-auto flex py-4! justify-center items-center text-xl cursor-pointer;
+    @apply w-40 h-full flex py-4! justify-center items-center text-xl cursor-pointer;
+}
+
+.dropdown-container{
+    @apply absolute top-full z-10 w-max bg-white flex flex-col shadow-lg text-xl gap-4;
+}
+
+.dropdown-container a{
+    @apply px-4! py-2!;
+}
+
+.dropdown-container a:hover{
+    @apply bg-gray-400;
 }
