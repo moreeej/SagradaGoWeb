@@ -23,6 +23,7 @@ export default function Header() {
     { id: "donate", text: "Donate", path: "/donate" },
   ];
 
+  
   useEffect(() => {
     const currentNavItem = navbar.find(
       (elem) =>
