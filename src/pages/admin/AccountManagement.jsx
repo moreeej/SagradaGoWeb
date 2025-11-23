@@ -207,12 +207,6 @@ export default function AccountManagement() {
           </div>
           <div className="flex gap-3">
             <button
-              onClick={() => navigate("/admin")}
-              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition"
-            >
-              Back to Dashboard
-            </button>
-            <button
               onClick={() => {
                 resetForm();
                 setShowAddModal(true);

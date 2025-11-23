@@ -37,7 +37,7 @@ export default function AdminLogin() {
     const data = response.data.user;
     setCurrentUser(data);
     Cookies.set("email", inputEmail, { expires: 7 });
-    navigate("/admin");
+    navigate("/admin/dashboard");
 
   } catch (err) {
     console.error(err);

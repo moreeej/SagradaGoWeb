@@ -15,8 +15,11 @@ import Donate from "./pages/Donate";
 import AdminLogin from "./pages/admin/AdminLogin";
 import AddAdmin from "./pages/admin/AddAdmin";
 import AdminLandingPage from "./pages/admin/AdminLandingPage";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AccountManagement from "./pages/admin/AccountManagement";
 
 import Header from "./components/Header";
+import AdminLayout from "./components/AdminLayout";
 
 function App() {
   const [selectedNavbar, setSelectedNavbar] = useState("Home");
@@ -47,8 +50,13 @@ function App() {
         <Routes>
 
           <Route path="/admin/login" element={<AdminLogin />} />
-          <Route path="/admin" element={<AdminLandingPage />} />
-          <Route path="/admin/create" element={<AddAdmin />} />
+
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route path="dashboard" element={<AdminDashboard />} />
+            <Route path="account-management" element={<AccountManagement />} />
+            <Route path="" element={<AdminDashboard />} />
+            <Route path="create" element={<AddAdmin />} />
+          </Route>
 
           <Route
             path="*"
