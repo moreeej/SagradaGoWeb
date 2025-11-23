@@ -25,6 +25,7 @@ export default function AdminDashboard() {
     totalPriests: 0,
     pendingBookings: 0,
     totalDonations: 0,
+    monthlyDonations: 0,
     totalVolunteers: 0,
     recentUsers: [],
   });
@@ -36,28 +37,29 @@ export default function AdminDashboard() {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const [usersResponse] = await Promise.all([
+
+      const [usersResponse, allDonationsRes, monthlyDonationRes] = await Promise.all([
         axios.get(`${API_URL}/getAllUsers`),
+        axios.get(`${API_URL}/admin/getDonationStatistics`),  // all-time donations
+        axios.get(`${API_URL}/admin/getMonthlyDonations`),    // monthly donations
       ]);
 
       const users = usersResponse.data || [];
       const priests = users.filter((user) => user.is_priest === true);
       const regularUsers = users.filter((user) => user.is_priest === false);
 
-      // Get recent users (last 5) - sort by any available date field or just take last 5
-      const recentUsers = users
-        .slice()
-        .reverse()
-        .slice(0, 5);
+      const recentUsers = users.slice().reverse().slice(0, 5);
 
       setStats({
         totalUsers: users.length,
         totalPriests: priests.length,
-        pendingBookings: 0, // You can fetch this from your bookings API
-        totalDonations: 0, // You can fetch this from your donations API
-        totalVolunteers: 0, // You can fetch this from your volunteers API
+        pendingBookings: 0,
+        totalDonations: allDonationsRes.data.stats.amounts.total || 0,
+        monthlyDonations: monthlyDonationRes.data.totalAmount || 0,
+        totalVolunteers: 0,
         recentUsers: recentUsers,
       });
+
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
     } finally {
@@ -208,6 +210,7 @@ export default function AdminDashboard() {
               </div>
             </Card>
           </Col>
+          {/* All-time Donations */}
           <Col xs={24} sm={12} lg={6}>
             <Card className="dashboard-stat-card">
               <Statistic
@@ -219,7 +222,24 @@ export default function AdminDashboard() {
               />
               <div className="dashboard-stat-title">
                 <Text type="secondary" className="dashboard-stat-text">
-                  All time donations
+                  All-time donations
+                </Text>
+              </div>
+            </Card>
+          </Col>
+          {/* Monthly Donations */}
+          <Col xs={24} sm={12} lg={6}>
+            <Card className="dashboard-stat-card">
+              <Statistic
+                title="Donations This Month"
+                value={stats.monthlyDonations}
+                prefix={<DollarOutlined />}
+                precision={2}
+                valueStyle={{ color: "#13c2c2" }}
+              />
+              <div className="dashboard-stat-title">
+                <Text type="secondary" className="dashboard-stat-text">
+                  Current month
                 </Text>
               </div>
             </Card>
