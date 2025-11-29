@@ -15,6 +15,7 @@ import {
   Tag,
   Popconfirm,
   Image,
+  Select,
 } from "antd";
 import {
   PlusOutlined,
@@ -39,10 +40,23 @@ export default function AddEvents() {
   const [editingEvent, setEditingEvent] = useState(null);
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  const [locations, setLocations] = useState([]);
 
   useEffect(() => {
     fetchEvents();
+    fetchLocations();
   }, []);
+
+  const fetchLocations = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/admin/getAllLocations`);
+      setLocations(response.data.locations || []);
+
+    } catch (error) {
+      console.error("Error fetching locations:", error);
+      message.error("Failed to fetch locations");
+    }
+  };
 
   const fetchEvents = async () => {
     try {
@@ -271,30 +285,37 @@ export default function AddEvents() {
                 <Form.Item
                   name="date"
                   label="Event Date"
-                  rules={[
-                    { required: true, message: "Please select event date" },
-                  ]}
+                  rules={[{ required: true, message: "Please select event date" }]}
                 >
                   <DatePicker
                     style={{ width: "100%" }}
                     size="large"
                     format="YYYY-MM-DD"
                     placeholder="Select date"
+                    disabledDate={(current) => {
+                      return current && current < dayjs().startOf("day");
+                    }}
                   />
                 </Form.Item>
 
                 <Form.Item
                   name="location"
                   label="Location"
-                  rules={[
-                    { required: true, message: "Please enter event location" },
-                  ]}
+                  rules={[{ required: true, message: "Please select event location" }]}
                 >
-                  <Input
-                    placeholder="e.g., Tagaytay City"
+                  <Select
                     size="large"
-                    prefix={<EnvironmentOutlined />}
-                  />
+                    placeholder="Select location"
+                    showSearch
+                    optionFilterProp="children"
+                    allowClear
+                  >
+                    {locations.map((loc) => (
+                      <Select.Option key={loc} value={loc}>
+                        {loc}
+                      </Select.Option>
+                    ))}
+                  </Select>
                 </Form.Item>
 
                 <Form.Item name="description" label="Description">
