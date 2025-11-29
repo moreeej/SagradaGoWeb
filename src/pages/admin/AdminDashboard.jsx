@@ -38,30 +38,50 @@ export default function AdminDashboard() {
     try {
       setLoading(true);
 
-      const [usersResponse, allDonationsRes, monthlyDonationRes] = await Promise.all([
+      const [usersResponse, allDonationsRes, monthlyDonationRes, bookingsRes] = await Promise.all([
         axios.get(`${API_URL}/getAllUsers`),
-        axios.get(`${API_URL}/admin/getDonationStatistics`),  // all-time donations
-        axios.get(`${API_URL}/admin/getMonthlyDonations`),    // monthly donations
+        axios.get(`${API_URL}/admin/getDonationStatistics`),
+        axios.get(`${API_URL}/admin/getMonthlyDonations`),
+        axios.all([
+          axios.get(`${API_URL}/admin/getAllWeddings`).catch(() => ({ data: { weddings: [] } })),
+          axios.get(`${API_URL}/admin/getAllBaptisms`).catch(() => ({ data: { baptisms: [] } })),
+          axios.get(`${API_URL}/admin/getAllBurials`).catch(() => ({ data: { burials: [] } })),
+          axios.get(`${API_URL}/admin/getAllCommunions`).catch(() => ({ data: { communions: [] } })),
+          axios.get(`${API_URL}/admin/getAllConfirmations`).catch(() => ({ data: { confirmations: [] } })),
+          axios.get(`${API_URL}/admin/getAllAnointings`).catch(() => ({ data: { anointings: [] } })),
+        ]),
       ]);
 
       const users = usersResponse.data || [];
       const priests = users.filter((user) => user.is_priest === true);
-      const regularUsers = users.filter((user) => user.is_priest === false);
+
+      const [weddings, baptisms, burials, communions, confirmations, anointings] = bookingsRes;
+      const allBookings = [
+        ...(weddings.data.weddings || []),
+        ...(baptisms.data.baptisms || []),
+        ...(burials.data.burials || []),
+        ...(communions.data.communions || []),
+        ...(confirmations.data.confirmations || []),
+        ...(anointings.data.anointings || []),
+      ];
+
+      const pendingBookingsCount = allBookings.filter((b) => b.status === "pending").length;
 
       const recentUsers = users.slice().reverse().slice(0, 5);
 
       setStats({
         totalUsers: users.length,
         totalPriests: priests.length,
-        pendingBookings: 0,
+        pendingBookings: pendingBookingsCount,
         totalDonations: allDonationsRes.data.stats.amounts.total || 0,
         monthlyDonations: monthlyDonationRes.data.totalAmount || 0,
-        totalVolunteers: 0,
+        totalVolunteers: 0, // Update if you have volunteers endpoint
         recentUsers: recentUsers,
       });
 
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
+      
     } finally {
       setLoading(false);
     }
@@ -196,7 +216,12 @@ export default function AdminDashboard() {
             </Card>
           </Col>
           <Col xs={24} sm={12} lg={6}>
-            <Card className="dashboard-stat-card">
+            <Card
+              className="dashboard-stat-card"
+              hoverable
+              onClick={() => navigate("/admin/bookings?status=pending")}
+              style={{ cursor: "pointer" }}
+            >
               <Statistic
                 title="Pending Bookings"
                 value={stats.pendingBookings}
@@ -205,12 +230,11 @@ export default function AdminDashboard() {
               />
               <div className="dashboard-stat-title">
                 <Text type="secondary" className="dashboard-stat-text">
-                  Awaiting approval
+                  Awaiting approval (click to view)
                 </Text>
               </div>
             </Card>
           </Col>
-          {/* All-time Donations */}
           <Col xs={24} sm={12} lg={6}>
             <Card className="dashboard-stat-card">
               <Statistic
@@ -227,7 +251,6 @@ export default function AdminDashboard() {
               </div>
             </Card>
           </Col>
-          {/* Monthly Donations */}
           <Col xs={24} sm={12} lg={6}>
             <Card className="dashboard-stat-card">
               <Statistic
@@ -253,12 +276,12 @@ export default function AdminDashboard() {
         >
           <Row gutter={[16, 16]}>
             {quickActions.map((action, index) => {
-              const cardClass = 
+              const cardClass =
                 action.path.includes("account") ? "dashboard-quick-action-card-users" :
                 action.path.includes("bookings") ? "dashboard-quick-action-card-bookings" :
                 action.path.includes("donations") ? "dashboard-quick-action-card-donations" :
                 "dashboard-quick-action-card-volunteers";
-              
+
               return (
                 <Col xs={24} sm={12} lg={6} key={index}>
                   <Card
