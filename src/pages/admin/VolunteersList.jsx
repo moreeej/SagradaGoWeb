@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Card, Typography, Table, message, Button, Spin } from "antd";
+import { Card, Typography, Table, message, Button, Spin, Popconfirm } from "antd";
 import axios from "axios";
 import { API_URL } from "../../Constants";
 
@@ -8,12 +8,12 @@ const { Title } = Typography;
 export default function VolunteersList() {
   const [volunteers, setVolunteers] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [updating, setUpdating] = useState(false);
 
   const fetchVolunteers = async () => {
     setLoading(true);
     try {
-      const response = await axios.post(`${API_URL}/getAllVolunteers`); // call new endpoint
-
+      const response = await axios.post(`${API_URL}/getAllVolunteers`);
       const fetchedVolunteers = response?.data?.volunteers || [];
 
       const formattedVolunteers = fetchedVolunteers.map((v) => ({
@@ -25,11 +25,29 @@ export default function VolunteersList() {
       }));
 
       setVolunteers(formattedVolunteers);
+
     } catch (err) {
       console.error("Error fetching volunteers:", err);
       message.error("Failed to fetch volunteers. Please try again.");
+
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleStatusUpdate = async (volunteer_id, newStatus) => {
+    setUpdating(true);
+    try {
+      await axios.post(`${API_URL}/updateVolunteerStatus`, { volunteer_id, status: newStatus });
+      message.success(`Volunteer ${newStatus} successfully.`);
+      fetchVolunteers(); 
+
+    } catch (err) {
+      console.error("Error updating volunteer:", err);
+      message.error("Failed to update volunteer status.");
+
+    } finally {
+      setUpdating(false);
     }
   };
 
@@ -55,6 +73,38 @@ export default function VolunteersList() {
     },
     { title: "Event", dataIndex: "eventTitle", key: "eventTitle" },
     { title: "Signed Up", dataIndex: "createdAtFormatted", key: "createdAt" },
+    {
+      title: "Actions",
+      key: "actions",
+      render: (_, record) => (
+        <div style={{ display: "flex", gap: "8px" }}>
+          {record.status !== "confirmed" && (
+            <Popconfirm
+              title="Confirm this volunteer?"
+              onConfirm={() => handleStatusUpdate(record._id, "confirmed")}
+              okText="Yes"
+              cancelText="No"
+            >
+              <Button type="primary" size="small" loading={updating}>
+                Approve
+              </Button>
+            </Popconfirm>
+          )}
+          {record.status !== "cancelled" && (
+            <Popconfirm
+              title="Cancel this volunteer?"
+              onConfirm={() => handleStatusUpdate(record._id, "cancelled")}
+              okText="Yes"
+              cancelText="No"
+            >
+              <Button type="danger" size="small" loading={updating}>
+                Reject
+              </Button>
+            </Popconfirm>
+          )}
+        </div>
+      ),
+    },
   ];
 
   return (
@@ -66,6 +116,7 @@ export default function VolunteersList() {
           onClick={() => fetchVolunteers()}
           type="primary"
           style={{ marginBottom: 16 }}
+          loading={loading}
         >
           Refresh
         </Button>
@@ -79,6 +130,7 @@ export default function VolunteersList() {
             columns={columns}
             dataSource={volunteers}
             pagination={{ pageSize: 10 }}
+            rowKey="_id"
           />
         )}
       </Card>
