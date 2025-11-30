@@ -62,14 +62,26 @@ export default function BookingPendingRequests() {
   const fetchAllBookings = async () => {
     try {
       setLoading(true);
-      const [weddings, baptisms, burials, communions, confirmations, anointings] = await Promise.all([
+      const [weddings, baptisms, burials, communions, confirmations, anointings, confessions] = await Promise.all([
         axios.get(`${API_URL}/admin/getAllWeddings`).catch(() => ({ data: { weddings: [] } })),
         axios.get(`${API_URL}/admin/getAllBaptisms`).catch(() => ({ data: { baptisms: [] } })),
         axios.get(`${API_URL}/admin/getAllBurials`).catch(() => ({ data: { burials: [] } })),
         axios.get(`${API_URL}/admin/getAllCommunions`).catch(() => ({ data: { communions: [] } })),
         axios.get(`${API_URL}/admin/getAllConfirmations`).catch(() => ({ data: { confirmations: [] } })),
         axios.get(`${API_URL}/admin/getAllAnointings`).catch(() => ({ data: { anointings: [] } })),
+        axios.get(`${API_URL}/admin/getAllConfessions`).catch(() => ({ data: { bookings: [] } })),
       ]);
+
+      const normalizedConfessions = (confessions.data.bookings || []).map((b) => ({
+        ...b,
+        bookingType: "Confession",
+        typeLabel: "Confession",
+        date: b.date ? new Date(b.date).toISOString() : null,
+        createdAt: b.createdAt ? new Date(b.createdAt).toISOString() : null,
+        status: b.status || "pending",
+        full_name: b.full_name || "N/A",
+        transaction_id: b.transaction_id || `CONF-${Date.now()}`, 
+      }));
 
       const allBookings = [
         ...(weddings.data.weddings || []).map((b) => ({ ...b, bookingType: "Wedding", typeLabel: "Wedding" })),
@@ -78,6 +90,7 @@ export default function BookingPendingRequests() {
         ...(communions.data.communions || []).map((b) => ({ ...b, bookingType: "Communion", typeLabel: "Communion" })),
         ...(confirmations.data.confirmations || []).map((b) => ({ ...b, bookingType: "Confirmation", typeLabel: "Confirmation" })),
         ...(anointings.data.anointings || []).map((b) => ({ ...b, bookingType: "Anointing", typeLabel: "Anointing of the Sick" })),
+        ...normalizedConfessions
       ];
 
       let filtered = allBookings;
@@ -146,6 +159,7 @@ export default function BookingPendingRequests() {
         Communion: "updateCommunionStatus",
         Confirmation: "updateConfirmationStatus",
         Anointing: "updateAnointingStatus",
+        Confession: "updateConfessionStatus",
       };
 
       const endpoint = endpointMap[bookingType];
@@ -207,6 +221,7 @@ export default function BookingPendingRequests() {
       Communion: "cyan",
       Confirmation: "geekblue",
       Anointing: "orange",
+      Confession: "magenta",
     };
 
     return <Tag color={colorMap[type] || "default"}>{type}</Tag>;
@@ -223,7 +238,7 @@ export default function BookingPendingRequests() {
         `${booking.first_name || ""} ${booking.last_name || ""}`.trim() ||
         "N/A"
       );
-      
+
     } else {
       return booking.user?.name || booking.full_name || `${booking.first_name || ""} ${booking.last_name || ""}`.trim() || "N/A";
     }
@@ -523,12 +538,13 @@ export default function BookingPendingRequests() {
                 placeholder="Filter by type"
               >
                 <Option value="all">All Types</Option>
-                <Option value="Wedding">Wedding</Option>
+                <Option value="Anointing">Anointing</Option>
                 <Option value="Baptism">Baptism</Option>
                 <Option value="Burial">Burial</Option>
                 <Option value="Communion">Communion</Option>
+                <Option value="Confession">Confession</Option>
                 <Option value="Confirmation">Confirmation</Option>
-                <Option value="Anointing">Anointing</Option>
+                <Option value="Wedding">Wedding</Option>
               </Select>
             </Col>
           </Row>
