@@ -226,6 +226,22 @@ export default function BookingPendingRequests() {
 
   const getEmail = (booking) => booking.user?.email || booking.email || "N/A";
 
+  const formatTimeOnly = (dateString) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+
+    if (isNaN(date.getTime())) return "N/A";
+
+    let hours = date.getHours();
+    const minutes = date.getMinutes();
+    const ampm = hours >= 12 ? "PM" : "AM";
+    hours = hours % 12 || 12;
+
+    return `${hours.toString().padStart(2, "0")}:${minutes
+      .toString()
+      .padStart(2, "0")} ${ampm}`;
+  };
+
   const columns = [
     {
       title: "Type",
@@ -263,7 +279,9 @@ export default function BookingPendingRequests() {
       title: "Time",
       dataIndex: "time",
       key: "time",
-      render: (time) => time || "N/A",
+      render: (_, record) => (
+        <span>{formatTimeOnly(record.time)}</span>
+      ),
     },
     {
       title: "Status",
@@ -370,13 +388,18 @@ export default function BookingPendingRequests() {
               </Text>
               <div style={{ marginTop: 4 }}>
                 {typeof value === "string" && value.toLowerCase().endsWith(".pdf") ? (
-                  <iframe
-                    src={`https://qpwoatrmswpkgyxmzkjv.supabase.co/storage/v1/object/public/bookings/${value}`}
-                    width="100%"
-                    height="400px"
-                    title={key}
-                    style={{ border: "1px solid #ddd", borderRadius: 4 }}
-                  />
+                  <Button
+                    type="link"
+                    icon={<EyeOutlined />}
+                    onClick={() =>
+                      window.open(
+                        `https://qpwoatrmswpkgyxmzkjv.supabase.co/storage/v1/object/public/bookings/${value}`,
+                        "_blank"
+                      )
+                    }
+                  >
+                    View PDF
+                  </Button>
                 ) : typeof value === "boolean" ? (
                   value ? "Yes" : "No"
                 ) : Array.isArray(value) ? (
