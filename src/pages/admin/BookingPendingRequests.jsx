@@ -204,7 +204,7 @@ export default function BookingPendingRequests() {
       message.success(`Booking ${newStatus === "confirmed" ? "confirmed" : newStatus === "cancelled" ? "cancelled" : "updated"} successfully.`);
       fetchAllBookings();
       setDetailModalVisible(false);
-      setSelectedPriestId(null); 
+      setSelectedPriestId(null);
 
     } catch (error) {
       console.error("Error updating booking status:", error);
@@ -394,7 +394,8 @@ export default function BookingPendingRequests() {
 
     const details = [];
     Object.keys(selectedBooking).forEach((key) => {
-      if (["_id", "__v", "bookingType", "typeLabel"].includes(key)) return;
+      // Exclude these keys from modal display
+      if (["_id", "__v", "bookingType", "typeLabel", "priest_id", "user", "uid", "createdAt", "updatedAt"].includes(key)) return;
       const value = selectedBooking[key];
 
       if (value !== null && value !== undefined && value !== "") {
