@@ -235,10 +235,6 @@ export default function AdminAnnouncements() {
           <Form.Item label="Author" name="author">
             <Input placeholder="Author name" />
           </Form.Item>
-
-          <Form.Item label="Image URL" name="image">
-            <Input placeholder="Optional image URL" />
-          </Form.Item>
         </Form>
       </Modal>
     </Card>
