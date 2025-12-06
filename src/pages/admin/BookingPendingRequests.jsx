@@ -256,6 +256,16 @@ export default function BookingPendingRequests() {
     return <Tag color={colorMap[type] || "default"}>{type}</Tag>;
   };
 
+  const formatDateOnly = (dateString) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
+
   const getName = (booking) => {
     if (booking.bookingType === "Wedding") {
       return `${booking.groom_first_name || ""} ${booking.groom_last_name || ""} & ${booking.bride_first_name || ""} ${booking.bride_last_name || ""}`.trim();
@@ -473,8 +483,13 @@ export default function BookingPendingRequests() {
               <Text strong>
                 {key.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())}:
               </Text>
+              
               <div style={{ marginTop: 4 }}>
-                {typeof value === "string" && value.toLowerCase().endsWith(".pdf") ? (
+                {key === "date" ? (
+                  formatDateOnly(value)
+                ) : key === "time" ? (
+                  formatTimeOnly(value)
+                ) : typeof value === "string" && value.toLowerCase().endsWith(".pdf") ? (
                   <Button
                     type="link"
                     icon={<EyeOutlined />}
