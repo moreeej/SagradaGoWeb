@@ -95,8 +95,10 @@ export default function AdminDashboard() {
           const groom = `${booking.groom_first_name || ''} ${booking.groom_last_name || ''}`.trim();
           const bride = `${booking.bride_first_name || ''} ${booking.bride_last_name || ''}`.trim();
           return groom && bride ? `${groom} & ${bride}` : (groom || bride || booking.full_name || "Wedding");
+
         } else if (booking.bookingType === "Burial") {
           return booking.deceased_name || booking.full_name || "Burial Service";
+
         } else {
           return booking.full_name || booking.user?.name || booking.name || booking.bookingType || "Event";
         }
@@ -105,6 +107,7 @@ export default function AdminDashboard() {
       const eventsForCalendar = confirmedBookings.map((b) => {
         if (!b.date) return null;
         const bookingDate = dayjs(b.date);
+
         if (!bookingDate.isValid()) return null;
         const bookingType = b.bookingType || "Event";
 
@@ -143,7 +146,16 @@ export default function AdminDashboard() {
         recentUsers: recentUsers,
       });
 
-      setDonationReportData(allDonationsRes.data.donations || []);
+setDonationReportData(
+  (allDonationsRes.data.donations || []).map((d, i) => ({
+    id: d._id || i,
+    donor_name: d.user_name || "N/A",
+    email: d.user_email || "N/A",
+    amount: d.amount || 0,
+    date: d.createdAt || "",
+    transaction_id: d._id || "N/A",
+  }))
+);
 
       setBookingReportData(allBookings.map((b) => ({
         bookingName: getBookingName(b),
@@ -162,6 +174,7 @@ export default function AdminDashboard() {
 
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
+
     } finally {
       setLoading(false);
     }
@@ -255,13 +268,17 @@ export default function AdminDashboard() {
   const renderBookingDetails = () => {
     if (!selectedBooking) return null;
     const details = [];
+
     Object.keys(selectedBooking).forEach((key) => {
       if (["_id", "__v", "user"].includes(key)) return;
+
       const value = selectedBooking[key];
+
       if (value !== null && value !== undefined && value !== "") {
         details.push({ key, value });
       }
     });
+
     return (
       <div>
         <Row gutter={[16, 16]}>
