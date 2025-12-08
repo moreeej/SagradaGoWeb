@@ -26,9 +26,13 @@ import {
   SearchOutlined,
   EyeOutlined,
   CalendarOutlined,
+  DollarOutlined,
+  PhoneOutlined,
+  FileImageOutlined,
 } from "@ant-design/icons";
 import axios from "axios";
 import { API_URL } from "../../Constants";
+import { supabase } from "../../config/supabase";
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -465,6 +469,34 @@ export default function BookingPendingRequests() {
             </Col>
           )}
 
+          {/* Payment Method */}
+          {selectedBooking?.payment_method && (
+            <Col span={12}>
+              <Text strong>
+                <PhoneOutlined style={{ marginRight: 8 }} />
+                Payment Method:
+              </Text>
+              <div>
+                <Tag color={selectedBooking.payment_method === 'gcash' ? 'green' : 'blue'}>
+                  {selectedBooking.payment_method === 'gcash' ? 'GCash' : 'In-Person Payment'}
+                </Tag>
+              </div>
+            </Col>
+          )}
+
+          {/* Amount */}
+          {selectedBooking?.amount !== undefined && selectedBooking?.amount !== null && (
+            <Col span={12}>
+              <Text strong>
+                <DollarOutlined style={{ marginRight: 8 }} />
+                Amount:
+              </Text>
+              <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#52c41a' }}>
+                ₱{parseFloat(selectedBooking.amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </div>
+            </Col>
+          )}
+
           {/* Name */}
           <Col span={12}>
             <Text strong>Name:</Text>
@@ -478,46 +510,93 @@ export default function BookingPendingRequests() {
           </Col>
 
           {/* Dynamic details */}
-          {details.map(({ key, value }) => (
-            <Col span={12} key={key}>
-              <Text strong>
-                {key.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())}:
-              </Text>
-              
-              <div style={{ marginTop: 4 }}>
-                {key === "date" ? (
-                  formatDateOnly(value)
-                ) : key === "time" ? (
-                  formatTimeOnly(value)
-                ) : typeof value === "string" && value.toLowerCase().endsWith(".pdf") ? (
-                  <Button
-                    type="link"
-                    icon={<EyeOutlined />}
-                    onClick={() =>
-                      window.open(
-                        `https://qpwoatrmswpkgyxmzkjv.supabase.co/storage/v1/object/public/bookings/${value}`,
-                        "_blank"
-                      )
+          {details.map(({ key, value }) => {
+            // Skip payment fields as they're displayed separately above
+            if (['payment_method', 'amount', 'proof_of_payment'].includes(key)) return null;
+            
+            return (
+              <Col span={12} key={key}>
+                <Text strong>
+                  {key.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())}:
+                </Text>
+                
+                <div style={{ marginTop: 4 }}>
+                  {key === "date" ? (
+                    formatDateOnly(value)
+                  ) : key === "time" ? (
+                    formatTimeOnly(value)
+                  ) : typeof value === "string" && value.toLowerCase().endsWith(".pdf") ? (
+                    <Button
+                      type="link"
+                      icon={<EyeOutlined />}
+                      onClick={() =>
+                        window.open(
+                          `https://qpwoatrmswpkgyxmzkjv.supabase.co/storage/v1/object/public/bookings/${value}`,
+                          "_blank"
+                        )
+                      }
+                    >
+                      View PDF
+                    </Button>
+                  ) : typeof value === "boolean" ? (
+                    value ? "Yes" : "No"
+                  ) : Array.isArray(value) ? (
+                    <ul style={{ paddingLeft: 20 }}>
+                      {value.map((v, i) => (
+                        <li key={i}>{v}</li>
+                      ))}
+                    </ul>
+                  ) : typeof value === "object" ? (
+                    <pre style={{ whiteSpace: "pre-wrap" }}>{JSON.stringify(value, null, 2)}</pre>
+                  ) : (
+                    String(value)
+                  )}
+                </div>
+              </Col>
+            );
+          })}
+
+          {/* Proof of Payment Section */}
+          {selectedBooking?.payment_method === 'gcash' && selectedBooking?.proof_of_payment && (
+            <Col span={24}>
+              <div style={{ marginTop: 16, padding: 16, backgroundColor: '#f5f5f5', borderRadius: 8 }}>
+                <Text strong>
+                  <FileImageOutlined style={{ marginRight: 8 }} />
+                  Proof of Payment:
+                </Text>
+                <div style={{ marginTop: 12 }}>
+                  {(() => {
+                    let imageUrl = selectedBooking.proof_of_payment;
+                    if (!imageUrl.startsWith('http')) {
+                      const { data } = supabase.storage.from('bookings').getPublicUrl(selectedBooking.proof_of_payment);
+                      imageUrl = data?.publicUrl || `https://qpwoatrmswpkgyxmzkjv.supabase.co/storage/v1/object/public/bookings/${selectedBooking.proof_of_payment}`;
                     }
-                  >
-                    View PDF
-                  </Button>
-                ) : typeof value === "boolean" ? (
-                  value ? "Yes" : "No"
-                ) : Array.isArray(value) ? (
-                  <ul style={{ paddingLeft: 20 }}>
-                    {value.map((v, i) => (
-                      <li key={i}>{v}</li>
-                    ))}
-                  </ul>
-                ) : typeof value === "object" ? (
-                  <pre style={{ whiteSpace: "pre-wrap" }}>{JSON.stringify(value, null, 2)}</pre>
-                ) : (
-                  String(value)
-                )}
+                    return (
+                      <img
+                        src={imageUrl}
+                        alt="Proof of Payment"
+                        style={{
+                          maxWidth: '100%',
+                          maxHeight: '400px',
+                          borderRadius: 8,
+                          border: '1px solid #d9d9d9',
+                          cursor: 'pointer',
+                        }}
+                        onClick={() => window.open(imageUrl, '_blank')}
+                        onError={(e) => {
+                          console.error('Error loading proof of payment image:', e);
+                          e.target.style.display = 'none';
+                          const errorDiv = document.createElement('div');
+                          errorDiv.innerHTML = '<Text type="secondary">Failed to load proof of payment image</Text>';
+                          e.target.parentElement.appendChild(errorDiv);
+                        }}
+                      />
+                    );
+                  })()}
+                </div>
               </div>
             </Col>
-          ))}
+          )}
         </Row>
       </div>
     );
