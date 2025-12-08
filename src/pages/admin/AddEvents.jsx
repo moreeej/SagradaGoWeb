@@ -81,7 +81,7 @@ export default function AddEvents() {
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result);
-      };''
+      };
       reader.readAsDataURL(file);
     }
   };
