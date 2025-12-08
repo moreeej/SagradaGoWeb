@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, Row, Col, Statistic, Button, Space, Table, Tag, Typography, Spin, Empty, Calendar, Modal } from "antd";
+import { Card, Row, Col, Statistic, Button, Space, Tag, Typography, Spin, Empty, Calendar, Modal } from "antd";
 import {
   UserOutlined,
   TeamOutlined,
@@ -53,7 +53,7 @@ export default function AdminDashboard() {
           console.error("Error fetching donation statistics:", error);
           return { data: { stats: { amounts: { total: 0, confirmed: 0, pending: 0 }, counts: { total: 0, pending: 0, confirmed: 0, cancelled: 0 } } } };
         }),
-
+        
         axios.get(`${API_URL}/admin/getMonthlyDonations`).catch((error) => {
           console.error("Error fetching monthly donations:", error);
           return { data: { totalAmount: 0, count: 0, monthlyDonations: [] } };
@@ -63,7 +63,7 @@ export default function AdminDashboard() {
           console.error("Error fetching donations list:", error);
           return { data: { donations: [] } };
         }),
-        
+
         axios.all([
           axios.get(`${API_URL}/admin/getAllWeddings`).catch(() => ({ data: { weddings: [] } })),
           axios.get(`${API_URL}/admin/getAllBaptisms`).catch(() => ({ data: { baptisms: [] } })),
@@ -238,38 +238,6 @@ export default function AdminDashboard() {
     },
   ];
 
-  const recentUsersColumns = [
-    {
-      title: "Name",
-      dataIndex: "name",
-      key: "name",
-      render: (_, record) => (
-        <Text strong>
-          {record.first_name} {record.middle_name} {record.last_name}
-        </Text>
-      ),
-    },
-    {
-      title: "Email",
-      dataIndex: "email",
-      key: "email",
-    },
-    {
-      title: "Role",
-      dataIndex: "is_priest",
-      key: "role",
-      render: (isPriest) => (
-        <Tag color={isPriest ? "purple" : "blue"}>
-          {isPriest ? "Priest" : "User"}
-        </Tag>
-      ),
-    },
-    {
-      title: "Contact",
-      dataIndex: "contact_number",
-      key: "contact",
-    },
-  ];
 
   if (loading) {
     return (
@@ -451,39 +419,24 @@ export default function AdminDashboard() {
           </Row>
         </Card>
 
-        {/* Recent Users and Activity */}
+        {/* System Overview */}
         <Row gutter={[16, 16]}>
-          <Col xs={24} lg={16}>
-            <Card
-              title={<Title level={4} className="dashboard-recent-users-title">Recent Users</Title>}
-              className="dashboard-recent-users-card"
-              extra={<Button type="link" onClick={() => navigate("/admin/account-management")}>View All</Button>}
-            >
-              {stats.recentUsers.length > 0 ? (
-                <Table
-                  dataSource={stats.recentUsers}
-                  columns={recentUsersColumns}
-                  pagination={false}
-                  size="small"
-                  rowKey="uid"
-                />
-              ) : (
-                <Empty description="No recent users" />
-              )}
-            </Card>
-          </Col>
-          <Col xs={24} lg={8}>
+          <Col xs={24} lg={24}>
             <Card title={<Title level={4} className="dashboard-system-overview-title">System Overview</Title>} className="dashboard-system-overview-card">
-              <Space direction="vertical" style={{ width: "100%" }} size="large">
-                <div>
+              <Row gutter={[16, 16]}>
+                <Col xs={24} sm={12} lg={6}>
                   <div className="dashboard-system-overview-item">
                     <Text>System Status</Text>
                     <Tag color="success">Operational</Tag>
                   </div>
+                </Col>
+                <Col xs={24} sm={12} lg={6}>
                   <div className="dashboard-system-overview-item">
                     <Text>Total Accounts</Text>
                     <Text strong>{stats.totalUsers + stats.totalPriests}</Text>
                   </div>
+                </Col>
+                <Col xs={24} sm={12} lg={6}>
                   <div className="dashboard-system-overview-item">
                     <Text>User Ratio</Text>
                     <Text strong>
@@ -492,6 +445,8 @@ export default function AdminDashboard() {
                         : 0}%
                     </Text>
                   </div>
+                </Col>
+                <Col xs={24} sm={12} lg={6}>
                   <div className="dashboard-system-overview-item">
                     <Text>Priest Ratio</Text>
                     <Text strong>
@@ -500,8 +455,8 @@ export default function AdminDashboard() {
                         : 0}%
                     </Text>
                   </div>
-                </div>
-              </Space>
+                </Col>
+              </Row>
             </Card>
           </Col>
         </Row>
@@ -526,6 +481,7 @@ export default function AdminDashboard() {
         title="Donation Report"
         columns={donationColumns}
         data={donationReportData}
+        reportType="donation"
       />
 
       {/* Booking Report */}
@@ -533,6 +489,7 @@ export default function AdminDashboard() {
         title="Booking Report"
         columns={bookingColumns}
         data={bookingReportData}
+        reportType="booking"
       />
 
       {/* System Overview Report */}
@@ -540,6 +497,7 @@ export default function AdminDashboard() {
         title="System Overview Report"
         columns={systemOverviewColumns}
         data={systemReportData}
+        reportType="system"
       />
     </div>
   );
