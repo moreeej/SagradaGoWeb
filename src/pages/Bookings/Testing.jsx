@@ -2,15 +2,15 @@ import { useState } from "react";
 import { supabase } from "../../config/supabase";
 
 export default function Testing() {
-  // Separate file states
   const [groomFile, setGroomFile] = useState(null);
   const [brideFile, setBrideFile] = useState(null);
 
-  // Separate uploaded URLs
-  const [groomPhoto, setGroomPhoto] = useState("");
-  const [bridePhoto, setBridePhoto] = useState("");
+  const [groomPreview, setGroomPreview] = useState("");
+  const [bridePreview, setBridePreview] = useState("");
 
-  // Reusable upload function
+  // const [groomPhoto, setGroomPhoto] = useState("");
+  // const [bridePhoto, setBridePhoto] = useState("");
+
   async function uploadImage(file, namePrefix, setter) {
     const ext = file.name.split(".").pop();
     const fileName = `${namePrefix}_${Date.now()}.${ext}`;
@@ -26,9 +26,7 @@ export default function Testing() {
       return;
     }
 
-    const { data } = supabase.storage
-      .from("wedding")
-      .getPublicUrl(filePath);
+    const { data } = supabase.storage.from("wedding").getPublicUrl(filePath);
 
     setter(data.publicUrl);
   }
@@ -55,13 +53,15 @@ export default function Testing() {
       key: "groom_1x1",
       title: "Groom Photo",
       fileSetter: setGroomFile,
-      preview: groomPhoto,
+      preview: groomPreview,
+      previewSetter: setGroomPreview,
     },
     {
       key: "bride_1x1",
       title: "Bride Photo",
       fileSetter: setBrideFile,
-      preview: bridePhoto,
+      preview: bridePreview,
+      previewSetter: setBridePreview,
     },
   ];
 
@@ -70,18 +70,27 @@ export default function Testing() {
       {uploadProfileImage.map((elem) => (
         <div key={elem.key} style={{ marginBottom: "20px" }}>
           <h1>{elem.title}</h1>
+
           <input
             type="file"
             accept="image/*"
-            onChange={(e) => elem.fileSetter(e.target.files[0])}
+            onChange={(e) => {
+              const file = e.target.files[0];
+              elem.fileSetter(file);
+
+              if (file) {
+                elem.previewSetter(URL.createObjectURL(file));
+              }
+            }}
           />
 
           {elem.preview && (
             <div>
-              <h3>Uploaded Image:</h3>
-              <img src={elem.preview} alt="Uploaded" width={200} />
+              <h3>Preview:</h3>
+              <img src={elem.preview} alt="Preview" width={200} />
             </div>
           )}
+
         </div>
       ))}
 

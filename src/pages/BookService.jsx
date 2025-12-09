@@ -12,7 +12,7 @@ export default function BookService() {
       <div className="w-svw">
         {
           bookingSelected === "wedding" && 
-          <Testing />
+          <Wedding />
         }
 
 

@@ -36,23 +36,23 @@ export default function Wedding() {
   const [time, setTime] = useState("");
   const [contact, setContact] = useState("");
   const [attendees, setAttendees] = useState(0);
-  const [groomPhoto, setGroomPhoto] = useState("");
-  const [bridePhoto, setBridePhoto] = useState("");
-  const [groomBaptismal, setGroomBaptismal] = useState("");
-  const [brideBaptismal, setBrideBaptismal] = useState("");
-  const [groomConfirmation, setGroomConfirmation] = useState("");
-  const [brideConfirmation, setBrideConfirmation] = useState("");
-  const [groomCenomar, setGroomCenomar] = useState("");
-  const [brideCenomar, setBrideCenomar] = useState("");
-  const [groomPermission, setGroomPermission] = useState("");
-  const [bridePermission, setBridePermission] = useState("");
-  const [marriageDocu, setMarriageDocu] = useState("");
 
-  const [isCivil, setIsCivil] = useState("");
-  const civil_choices = [
-    { text: "Yes", value: "yes" },
-    { text: "No", value: "no" },
-  ];
+
+  // const [groomBaptismal, setGroomBaptismal] = useState("");
+  // const [brideBaptismal, setBrideBaptismal] = useState("");
+  // const [groomConfirmation, setGroomConfirmation] = useState("");
+  // const [brideConfirmation, setBrideConfirmation] = useState("");
+  // const [groomCenomar, setGroomCenomar] = useState("");
+  // const [brideCenomar, setBrideCenomar] = useState("");
+  // const [groomPermission, setGroomPermission] = useState("");
+  // const [bridePermission, setBridePermission] = useState("");
+  // const [marriageDocu, setMarriageDocu] = useState("");
+
+  // const [isCivil, setIsCivil] = useState("");
+  // const civil_choices = [
+  //   { text: "Yes", value: "yes" },
+  //   { text: "No", value: "no" },
+  // ];
 
   const inputText = [
     {
@@ -123,86 +123,106 @@ export default function Wedding() {
     },
   ];
 
-  // function convertToBase64(file) {
-  //   return new Promise((resolve, reject) => {
-  //     const reader = new FileReader();
-  //     reader.readAsDataURL(file);
-  //     reader.onload = () => resolve(reader.result);
-  //     reader.onerror = (error) => reject(error);
-  //   });
-  // }
 
-  // const groomPreview = groomPhoto || default_profile;
-  // const bridePreview = bridePhoto || default_profile;
 
-  const brideUploadPhoto = async (e) => {
-    const file = e.target.files[0];
-    console.log("file", file);
 
-    if (!file) return;
-    // if (!file || !currentUser?.uid) return;
+  const [groomFile, setGroomFile] = useState(null);
+  const [brideFile, setBrideFile] = useState(null);
 
-    const fileExt = file.name.split(".").pop().toLowerCase();
-    const fileName = `bride_${currentUser.uid}_${Date.now()}.${fileExt}`;
+  const [groomPreview, setGroomPreview] = useState("");
+  const [bridePreview, setBridePreview] = useState("");
+
+  const [groomPhoto, setGroomPhoto] = useState("");
+  const [bridePhoto, setBridePhoto] = useState("");
+
+
+
+  async function uploadImage(file, namePrefix, setter) {
+    const ext = file.name.split(".").pop();
+    const fileName = `${namePrefix}_${Date.now()}.${ext}`;
     const filePath = `wedding/${fileName}`;
 
-    // Upload to Supabase
     const { error } = await supabase.storage
-      .from("profile")
-      .upload(filePath, file, {
-        cacheControl: "3600",
-        upsert: true,
-      });
+      .from("wedding")
+      .upload(filePath, file, { upsert: true });
 
     if (error) {
-      console.error("Upload error:", error.message);
+      console.error("Upload Error:", error);
+      alert("Upload failed.");
       return;
     }
 
-
-    const { data } = supabase.storage.from("wedding").getPublicUrl(filePath);
-    const timestamp = Date.now();
-
-    setBridePhoto(`${data.publicUrl}?t=${timestamp}`);
-
-    alert("Bride photo uploaded successfully");
-  };
+    const {data} = supabase.storage.from("wedding").getPublicUrl(filePath);
+    console.log("data", data);
+    
+    setter(data.publicUrl);
+  }
 
 
+
+  async function handleUpload() {
+    if (!groomFile && !brideFile) {
+      alert("Please select files first.");
+      return;
+    }
+
+    if (groomFile) {
+      await uploadImage(groomFile, `groom_photo`, setGroomPhoto);
+    }
+
+    if (brideFile) {
+      await uploadImage(brideFile, `bride_photo`, setBridePhoto);
+    }
+
+    alert("Upload success!");
+  }
 
   const uploadProfileImage = [
     {
       key: "groom_1x1",
       title: "Groom Photo",
-      // onChange: groomUploadPhoto,
-      preview: groomPhoto, 
+      fileSetter: setGroomFile,
+      preview: groomPreview,
+      previewSetter: setGroomPreview,
     },
     {
       key: "bride_1x1",
       title: "Bride Photo",
-      onChange: brideUploadPhoto,
-      preview: bridePhoto,
+      fileSetter: setBrideFile,
+      preview: bridePreview,
+      previewSetter: setBridePreview,
     },
   ];
 
-  const groomBaptismalPrev = groomBaptismal
-    ? URL.createObjectURL(groomBaptismal)
-    : no_image;
-  const brideBaptismalPrev = brideBaptismal
-    ? URL.createObjectURL(brideBaptismal)
-    : no_image;
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
   const uploadBaptismal = [
     {
       key: "groom_baptismal",
       title: "Groom Baptismal Certificate Photo",
-      onChange: setGroomBaptismal,
-      preview: groomBaptismalPrev,
+
+
     },
     {
       key: "bride_baptismal",
       title: "Bride Baptismal Certificate Photo",
-      onChange: setBrideBaptismal,
-      preview: brideBaptismalPrev,
+
+
     },
   ];
 
@@ -252,43 +272,51 @@ export default function Wedding() {
     // bride_permission: bridePermission,
   });
 
-  async function handleSubmit() {
-    console.log("bride photo", bridePhoto);
-    console.log("groom photo", groomPhoto);
 
 
 
-    
 
-    setBookingSelected(bookingSelected);
 
-    const dateOnly = date.split("T")[0];
-    setForm({
-      // uid: currentUser?.uid || "",
-      date: dateOnly,
-      time: time,
-      attendees: attendees,
-      contact_number: contact,
-      groom_first: groomFname,
-      groom_middle: groomMname,
-      groom_last: groomLname,
-      bride_first: brideFname,
-      bride_middle: brideMname,
-      bride_last: brideLname,
-      groom_1x1: groomPhoto,
-      bride_1x1: bridePhoto,
-      // marriage_docu: marriageDocu,
-      // groom_baptismal_cert: groomBaptismal,
-      // bride_baptismal_cert: brideBaptismal,
-      // groom_confirmation_cert: groomConfirmation,
-      // bride_confirmation_cert: brideConfirmation,
-      // groom_cenomar: groomCenomar,
-      // bride_cenomar: brideCenomar,
-      // groom_permission: groomPermission,
-      // bride_permission: bridePermission,
-    });
-    console.log("forms:", form);
-  }
+
+
+ 
+
+
+
+
+  // async function handleSubmit() {
+
+
+
+  //   setBookingSelected(bookingSelected);
+
+  //   const dateOnly = date.split("T")[0];
+  //   setForm({
+  //     // uid: currentUser?.uid || "",
+  //     date: dateOnly,
+  //     time: time,
+  //     attendees: attendees,
+  //     contact_number: contact,
+  //     groom_first: groomFname,
+  //     groom_middle: groomMname,
+  //     groom_last: groomLname,
+  //     bride_first: brideFname,
+  //     bride_middle: brideMname,
+  //     bride_last: brideLname,
+  //     groom_1x1: groomPhoto,
+  //     bride_1x1: bridePhoto,
+  //     // marriage_docu: marriageDocu,
+  //     // groom_baptismal_cert: groomBaptismal,
+  //     // bride_baptismal_cert: brideBaptismal,
+  //     // groom_confirmation_cert: groomConfirmation,
+  //     // bride_confirmation_cert: brideConfirmation,
+  //     // groom_cenomar: groomCenomar,
+  //     // bride_cenomar: brideCenomar,
+  //     // groom_permission: groomPermission,
+  //     // bride_permission: bridePermission,
+  //   });
+  //   console.log("forms:", form);
+  // }
 
 
 
@@ -364,29 +392,33 @@ export default function Wedding() {
         </div>
       ))}
 
-      {uploadProfileImage.map((elem) => (
-        <div className="grid grid-cols-[3fr_1fr]" key={elem.key}>
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              {elem.title}
-            </label>
+       {uploadProfileImage.map((elem) => (
+        <div key={elem.key} style={{ marginBottom: "20px" }}>
+          <h1>{elem.title}</h1>
 
-            <input
-              type="file"
-              accept="image/*"
-              name={elem.key}
-              onChange={elem.onChange}
-            />
-          </div>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => {
+              const file = e.target.files[0];
+              elem.fileSetter(file);
 
-          <img
-            src={elem.preview ? elem.preview : default_profile}
-            alt="no-profile"
-            className="w-15"
+              if (file) {
+                elem.previewSetter(URL.createObjectURL(file));
+              }
+            }}
           />
+
+          {elem.preview && (
+            <div>
+              <h3>Preview:</h3>
+              <img src={elem.preview} alt="Preview" width={200} />
+            </div>
+          )}
+
         </div>
       ))}
-
+{/* 
       {uploadBaptismal.map((elem) => (
         <div className="grid grid-cols-[3fr_1fr]" key={elem.key}>
           <div>
@@ -424,9 +456,9 @@ export default function Wedding() {
             />
           </div>
         </div>
-      ))}
+      ))} */}
 
-      {uploadCenomar.map((elem) => (
+      {/* {uploadCenomar.map((elem) => (
         <div className="grid grid-cols-[3fr_1fr]" key={elem.key}>
           <div>
             <label className="block text-sm font-medium mb-1">
@@ -490,13 +522,13 @@ export default function Wedding() {
             <p>Upload Marriage License</p>
           </div>
         )}
-      </div>
+      </div> */}
 
       <input
         type="submit"
         value="Submit"
         className="bg-blue-400 px-6 py-3"
-        onClick={handleSubmit}
+        onClick={handleUpload}
       />
     </div>
   );
