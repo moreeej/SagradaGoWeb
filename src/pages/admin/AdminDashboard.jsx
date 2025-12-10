@@ -110,10 +110,10 @@ export default function AdminDashboard() {
           return groom && bride ? `${groom} & ${bride}` : (groom || bride || booking.full_name || "Wedding");
 
         } else if (booking.bookingType === "Burial") {
-          return booking.deceased_name || booking.full_name || "Burial Service";
+          return booking.deceased_name || booking.name || booking.user?.name || booking.full_name || "Burial Service";
 
         } else {
-          return booking.full_name || booking.user?.name || booking.name || booking.bookingType || "Event";
+          return booking.user?.name || booking.name || booking.full_name || `${booking.first_name || ""} ${booking.last_name || ""}`.trim() || booking.bookingType || "Event";
         }
       };
 
