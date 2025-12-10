@@ -182,12 +182,74 @@ export default function AccountManagement() {
     return "";
   };
 
+  const checkEmailExists = async (email, currentUserEmail = null) => {
+    try {
+      if (currentUserEmail && currentUserEmail.toLowerCase() === email.trim().toLowerCase()) {
+        return false;
+      }
+      
+      const response = await axios.post(`${API_URL}/checkEmail`, { email: email.trim().toLowerCase() });
+      return response.data.exists || false;
+
+    } catch (error) {
+      console.error("Error checking email:", error);
+      return false;
+    }
+  };
+
+  const checkContactExists = async (contactNumber, currentUserContact = null) => {
+    try {
+      if (currentUserContact && currentUserContact.trim() === contactNumber.trim()) {
+        return false;
+      }
+      
+      const response = await axios.post(`${API_URL}/checkContact`, { contact_number: contactNumber.trim() });
+      return response.data.exists || false;
+
+    } catch (error) {
+      console.error("Error checking contact number:", error);
+      return false;
+    }
+  };
+
+  const validateContactNumber = (contactNumber) => {
+    if (!contactNumber) {
+      return "Contact number is required";
+    }
+
+    const trimmed = contactNumber.trim();
+
+    if (!/^\d+$/.test(trimmed)) {
+      return "Contact number must contain only numbers";
+    }
+
+    if (trimmed.length !== 11) {
+      return "Contact number must be exactly 11 digits";
+    }
+
+    return "";
+  };
+
+  const handleContactNumberChange = (value) => {
+    const numericOnly = value.replace(/\D/g, "");
+    const limited = numericOnly.slice(0, 11);
+    setFormData({ ...formData, contact_number: limited });
+   
+    if (errors.contact_number) {
+      setErrors((prev) => ({ ...prev, contact_number: "" }));
+    }
+  };
+
   const handleAddUser = async () => {
     const newErrors = {};
     if (!formData.first_name) newErrors.first_name = "First name is required";
     if (!formData.last_name) newErrors.last_name = "Last name is required";
     if (!formData.email) newErrors.email = "Email is required";
-    if (!formData.contact_number) newErrors.contact_number = "Contact number is required";
+    
+    const contactError = validateContactNumber(formData.contact_number);
+    if (contactError) {
+      newErrors.contact_number = contactError;
+    }
     
     const birthdayError = validateBirthday(formData.birthday);
     if (birthdayError) {
@@ -209,6 +271,23 @@ export default function AccountManagement() {
 
     try {
       setLoading(true);
+
+      const emailExists = await checkEmailExists(formData.email);
+      if (emailExists) {
+        newErrors.email = "Email is already in use. Please use a different email.";
+      }
+
+      const contactExists = await checkContactExists(formData.contact_number);
+      if (contactExists) {
+        newErrors.contact_number = "Contact number is already in use. Please use a different contact number.";
+      }
+
+      if (Object.keys(newErrors).length > 0) {
+        setErrors(newErrors);
+        setLoading(false);
+        return;
+      }
+
       setErrors({});
 
       const userCredential = await createUserWithEmailAndPassword(
@@ -311,12 +390,15 @@ export default function AccountManagement() {
     if (!formData.first_name) newErrors.first_name = "First name is required";
     if (!formData.last_name) newErrors.last_name = "Last name is required";
     if (!formData.email) newErrors.email = "Email is required";
-    if (!formData.contact_number) newErrors.contact_number = "Contact number is required";
+    
+    const contactError = validateContactNumber(formData.contact_number);
+    if (contactError) {
+      newErrors.contact_number = contactError;
+    }
     
     let birthdayToValidate = formData.birthday;
     if (birthdayDisplay && /^\d{2}\/\d{2}\/\d{4}$/.test(birthdayDisplay)) {
       birthdayToValidate = parseDateInput(birthdayDisplay);
-
     } else if (!birthdayToValidate && birthdayDisplay) {
       birthdayToValidate = parseDateInput(birthdayDisplay);
     }
@@ -333,6 +415,23 @@ export default function AccountManagement() {
 
     try {
       setLoading(true);
+  
+      const emailExists = await checkEmailExists(formData.email, editingUser?.email);
+      if (emailExists) {
+        newErrors.email = "Email is already in use. Please use a different email.";
+      }
+
+      const contactExists = await checkContactExists(formData.contact_number, editingUser?.contact_number);
+      if (contactExists) {
+        newErrors.contact_number = "Contact number is already in use. Please use a different contact number.";
+      }
+
+      if (Object.keys(newErrors).length > 0) {
+        setErrors(newErrors);
+        setLoading(false);
+        return;
+      }
+
       setErrors({});
 
       const formattedBirthday = birthdayToValidate
@@ -608,10 +707,15 @@ export default function AccountManagement() {
                 >
                   <Input
                     value={formData.contact_number}
-                    onChange={(e) =>
-                      setFormData({ ...formData, contact_number: e.target.value })
-                    }
-                    placeholder="Enter contact number"
+                    onChange={(e) => handleContactNumberChange(e.target.value)}
+                    onBlur={() => {
+                      const error = validateContactNumber(formData.contact_number);
+                      if (error) {
+                        setErrors((prev) => ({ ...prev, contact_number: error }));
+                      }
+                    }}
+                    placeholder="Enter 11-digit contact number"
+                    maxLength={11}
                   />
                 </Form.Item>
               </Col>
@@ -805,10 +909,15 @@ export default function AccountManagement() {
                 >
                   <Input
                     value={formData.contact_number}
-                    onChange={(e) =>
-                      setFormData({ ...formData, contact_number: e.target.value })
-                    }
-                    placeholder="Enter contact number"
+                    onChange={(e) => handleContactNumberChange(e.target.value)}
+                    onBlur={() => {
+                      const error = validateContactNumber(formData.contact_number);
+                      if (error) {
+                        setErrors((prev) => ({ ...prev, contact_number: error }));
+                      }
+                    }}
+                    placeholder="Enter 11-digit contact number"
+                    maxLength={11}
                   />
                 </Form.Item>
               </Col>
