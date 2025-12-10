@@ -103,6 +103,7 @@ export default function BookingPendingRequests() {
         date: b.date ? new Date(b.date).toISOString() : null,
         createdAt: b.createdAt ? new Date(b.createdAt).toISOString() : null,
         status: b.status || "pending",
+        // name field is now populated by backend with updated user info
         full_name: b.full_name || b.name || "N/A",
         transaction_id: b.transaction_id || `CONF-${Date.now()}`, 
       }));
@@ -312,11 +313,13 @@ export default function BookingPendingRequests() {
       );
 
     } else {
+      // For other booking types, check name from user object first, then direct name field, then fallback to stored fields
       return booking.user?.name || booking.name || booking.full_name || `${booking.first_name || ""} ${booking.last_name || ""}`.trim() || "N/A";
     }
   };
 
   const getEmail = (booking) => {
+    // Check email from user object first (for anointing), then direct email field (for other bookings)
     return booking.user?.email || booking.email || "N/A";
   };
 
@@ -543,7 +546,8 @@ export default function BookingPendingRequests() {
           {/* Dynamic details */}
           {details.map(({ key, value }) => {
             // Skip payment fields as they're displayed separately above
-            if (['payment_method', 'amount', 'proof_of_payment'].includes(key)) return null;
+            // Skip full_name and email as they're displayed separately above
+            if (['payment_method', 'amount', 'proof_of_payment', 'full_name', 'email'].includes(key)) return null;
             
             return (
               <Col span={12} key={key}>
