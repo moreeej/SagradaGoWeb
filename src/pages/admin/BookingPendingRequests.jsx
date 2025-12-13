@@ -58,6 +58,9 @@ export default function BookingPendingRequests() {
   const [priests, setPriests] = useState([]);
   const [selectedPriestId, setSelectedPriestId] = useState(null);
   const [loadingPriests, setLoadingPriests] = useState(false);
+  const [imageModalVisible, setImageModalVisible] = useState(false);
+  const [selectedImageUrl, setSelectedImageUrl] = useState(null);
+  const [selectedImageTitle, setSelectedImageTitle] = useState('');
 
   useEffect(() => {
     fetchAllBookings();
@@ -539,9 +542,96 @@ export default function BookingPendingRequests() {
             <div>{getEmail(selectedBooking)}</div>
           </Col>
 
+          {/* Wedding Images Section */}
+          {selectedBooking?.bookingType === "Wedding" && (
+            <>
+              {selectedBooking?.groom_pic && (
+                <Col span={12}>
+                  <Text strong>Groom Photo:</Text>
+                  <div style={{ marginTop: 8 }}>
+                    {(() => {
+                      let imageUrl = selectedBooking.groom_pic;
+                      if (!imageUrl.startsWith('http')) {
+                        const { data } = supabase.storage.from('bookings').getPublicUrl(selectedBooking.groom_pic);
+                        imageUrl = data?.publicUrl || `https://qpwoatrmswpkgyxmzkjv.supabase.co/storage/v1/object/public/bookings/${selectedBooking.groom_pic}`;
+                      }
+                      return (
+                        <img
+                          src={imageUrl}
+                          alt="Groom Photo"
+                          style={{
+                            maxWidth: '100%',
+                            maxHeight: '200px',
+                            borderRadius: 8,
+                            border: '1px solid #d9d9d9',
+                            cursor: 'pointer',
+                            objectFit: 'cover',
+                          }}
+                          onClick={() => {
+                            setSelectedImageUrl(imageUrl);
+                            setSelectedImageTitle('Groom Photo');
+                            setImageModalVisible(true);
+                          }}
+                          onError={(e) => {
+                            console.error('Error loading groom photo:', e);
+                            e.target.style.display = 'none';
+                          }}
+                        />
+                      );
+                    })()}
+                  </div>
+                </Col>
+              )}
+              {selectedBooking?.bride_pic && (
+                <Col span={12}>
+                  <Text strong>Bride Photo:</Text>
+                  <div style={{ marginTop: 8 }}>
+                    {(() => {
+                      let imageUrl = selectedBooking.bride_pic;
+                      if (!imageUrl.startsWith('http')) {
+                        const { data } = supabase.storage.from('bookings').getPublicUrl(selectedBooking.bride_pic);
+                        imageUrl = data?.publicUrl || `https://qpwoatrmswpkgyxmzkjv.supabase.co/storage/v1/object/public/bookings/${selectedBooking.bride_pic}`;
+                      }
+                      return (
+                        <img
+                          src={imageUrl}
+                          alt="Bride Photo"
+                          style={{
+                            maxWidth: '100%',
+                            maxHeight: '200px',
+                            borderRadius: 8,
+                            border: '1px solid #d9d9d9',
+                            cursor: 'pointer',
+                            objectFit: 'cover',
+                          }}
+                          onClick={() => {
+                            setSelectedImageUrl(imageUrl);
+                            setSelectedImageTitle('Bride Photo');
+                            setImageModalVisible(true);
+                          }}
+                          onError={(e) => {
+                            console.error('Error loading bride photo:', e);
+                            e.target.style.display = 'none';
+                          }}
+                        />
+                      );
+                    })()}
+                  </div>
+                </Col>
+              )}
+            </>
+          )}
+
           {/* Dynamic details */}
           {details.map(({ key, value }) => {
-            if (['payment_method', 'amount', 'proof_of_payment', 'full_name', 'email'].includes(key)) return null;
+            if (['payment_method', 'amount', 'proof_of_payment', 'full_name', 'email', 'groom_pic', 'bride_pic'].includes(key)) return null;
+
+            const isImageField = typeof value === "string" && (
+              value.toLowerCase().match(/\.(jpg|jpeg|png|gif|webp)$/i) ||
+              key.toLowerCase().includes('pic') ||
+              key.toLowerCase().includes('photo') ||
+              key.toLowerCase().includes('image')
+            );
             
             return (
               <Col span={12} key={key}>
@@ -567,6 +657,39 @@ export default function BookingPendingRequests() {
                     >
                       View PDF
                     </Button>
+                  ) : isImageField ? (
+                    <div>
+                      {(() => {
+                        let imageUrl = value;
+                        if (!imageUrl.startsWith('http')) {
+                          const { data } = supabase.storage.from('bookings').getPublicUrl(value);
+                          imageUrl = data?.publicUrl || `https://qpwoatrmswpkgyxmzkjv.supabase.co/storage/v1/object/public/bookings/${value}`;
+                        }
+                        return (
+                          <img
+                            src={imageUrl}
+                            alt={key.replace(/_/g, " ")}
+                            style={{
+                              maxWidth: '100%',
+                              maxHeight: '200px',
+                              borderRadius: 8,
+                              border: '1px solid #d9d9d9',
+                              cursor: 'pointer',
+                              objectFit: 'cover',
+                            }}
+                            onClick={() => {
+                              setSelectedImageUrl(imageUrl);
+                              setSelectedImageTitle(key.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase()));
+                              setImageModalVisible(true);
+                            }}
+                            onError={(e) => {
+                              console.error(`Error loading ${key} image:`, e);
+                              e.target.style.display = 'none';
+                            }}
+                          />
+                        );
+                      })()}
+                    </div>
                   ) : typeof value === "boolean" ? (
                     value ? "Yes" : "No"
                   ) : Array.isArray(value) ? (
@@ -815,6 +938,62 @@ export default function BookingPendingRequests() {
           width={800}
         >
           {renderBookingDetails()}
+        </Modal>
+
+        {/* Image View Modal */}
+        <Modal
+          title={selectedImageTitle}
+          open={imageModalVisible}
+          onCancel={() => {
+            setImageModalVisible(false);
+            setSelectedImageUrl(null);
+            setSelectedImageTitle('');
+          }}
+          footer={[
+            <Button key="close" onClick={() => {
+              setImageModalVisible(false);
+              setSelectedImageUrl(null);
+              setSelectedImageTitle('');
+            }}>
+              Close
+            </Button>,
+            <Button 
+              key="open" 
+              type="primary"
+              onClick={() => {
+                if (selectedImageUrl) {
+                  window.open(selectedImageUrl, '_blank');
+                }
+              }}
+            >
+              Open in New Tab
+            </Button>,
+          ]}
+          width={800}
+          centered
+        >
+          {selectedImageUrl && (
+            <div style={{ textAlign: 'center', padding: '20px 0' }}>
+              <img
+                src={selectedImageUrl}
+                alt={selectedImageTitle}
+                style={{
+                  maxWidth: '100%',
+                  maxHeight: '70vh',
+                  borderRadius: 8,
+                  border: '1px solid #d9d9d9',
+                  objectFit: 'contain',
+                }}
+                onError={(e) => {
+                  console.error('Error loading image in modal:', e);
+                  e.target.style.display = 'none';
+                  const errorDiv = document.createElement('div');
+                  errorDiv.innerHTML = '<Text type="secondary">Failed to load image</Text>';
+                  e.target.parentElement.appendChild(errorDiv);
+                }}
+              />
+            </div>
+          )}
         </Modal>
       </div>
     </div>
