@@ -1,17 +1,17 @@
 @import "tailwindcss";
 
-.header-main-container{
-    @apply w-full h-20 flex justify-evenly top-0 z-50 sticky bg-white shadow-md;
+.header-main-container {
+  @apply w-full h-20 sticky top-0 z-50 bg-white shadow-md flex items-center px-8 justify-between;
 }
 
-.header-logo{
-    @apply w-20 h-full drop-shadow-xl;
+.header-logo {
+  @apply w-16 h-auto cursor-pointer select-none;
 }
 
-.navbar-container{
-    @apply w-7/12 h-full flex justify-evenly items-center;
+.navbar-container {
+  @apply flex justify-center flex-1 gap-6 text-[19px]; /* center navbar, small gaps */
 }
 
-.signin-container{
-    @apply w-auto h-full flex gap-5 justify-center items-center;
+.signin-container {
+  @apply flex items-center gap-4;
 }

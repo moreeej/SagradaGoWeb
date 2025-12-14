@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useContext, useEffect } from "react";
-import Button from "./Button";
+import { FaSignOutAlt } from "react-icons/fa";
 import NavButton from "./NavButton";
 import { NavbarContext } from "../context/AllContext";
 import "../styles/header.css";
@@ -23,7 +23,6 @@ export default function Header() {
     { id: "donate", text: "Donate", path: "/donate" },
   ];
 
-  
   useEffect(() => {
     const currentNavItem = navbar.find(
       (elem) =>
@@ -36,19 +35,16 @@ export default function Header() {
   }, [location.pathname, setSelectedNavbar, navbar]);
 
   function handleMouseEnter(id) {
-    if (id === "book") {
-      setActiveDropdown(true);
-    }
+    if (id === "book") setActiveDropdown(true);
   }
 
   function handleMouseLeave(id) {
-    if (id === "book") {
-      setActiveDropdown(false);
-    }
+    if (id === "book") setActiveDropdown(false);
   }
 
   return (
     <div className="header-main-container">
+      {/* Left: Logo */}
       <img
         src={Logo}
         alt="Logo"
@@ -56,6 +52,7 @@ export default function Header() {
         onClick={() => navigate("/")}
       />
 
+      {/* Center: Navbar */}
       <div className="navbar-container">
         {navbar.map((elem) => (
           <NavButton
@@ -64,9 +61,7 @@ export default function Header() {
             text={elem.text}
             onClick={() => {
               setSelectedNavbar(elem.id);
-              if (elem.id !== "book") {
-                navigate(elem.path);
-              }
+              if (elem.id !== "book") navigate(elem.path);
             }}
             onMouseEnter={() => handleMouseEnter(elem.id)}
             onMouseLeave={() => handleMouseLeave(elem.id)}
@@ -74,31 +69,27 @@ export default function Header() {
         ))}
       </div>
 
+      {/* Right: Sign-in / Logout */}
       <div className="signin-container">
         {email ? (
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-black">
-              Welcome,<strong>{currentUser?.data?.first_name}</strong>
-            </span>
-            <Button
-              text={"Logout"}
-              color={"#b87d3e"}
-              textColor={"#ffffff"}
-              onClick={() => {
-                Cookies.remove("email");
-                navigate("/");
-
-                window.location.reload();
-              }}
-            />
-          </div>
+          <button
+            className="p-2 rounded hover:bg-gray-200 transition"
+            title="Logout"
+            onClick={() => {
+              Cookies.remove("email");
+              navigate("/");
+              window.location.reload();
+            }}
+          >
+            <FaSignOutAlt size={18} color="#b87d3e" />
+          </button>
         ) : (
-          <Button
-            text={"Sign in"}
-            color={"#6B5F32"}
-            textColor={"#ffffff"}
+          <button
+            className="px-4 py-2 rounded text-white bg-[#6B5F32] text-[14px] font-medium hover:opacity-90 transition"
             onClick={() => setShowSignin(true)}
-          />
+          >
+            Sign in
+          </button>
         )}
       </div>
     </div>
