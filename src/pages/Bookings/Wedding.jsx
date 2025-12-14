@@ -131,25 +131,24 @@ export default function Wedding() {
   const [groomPhoto, setGroomPhoto] = useState("");
   const [bridePhoto, setBridePhoto] = useState("");
 
-  async function uploadImage(file, namePrefix, setter) {
-    const ext = file.name.split(".").pop();
-    const fileName = `${namePrefix}_${Date.now()}.${ext}`;
-    const filePath = `wedding/${fileName}`;
+  async function uploadImage(file, namePrefix) {
+  const ext = file.name.split(".").pop();
+  const fileName = `${namePrefix}_${Date.now()}.${ext}`;
+  const filePath = `wedding/${fileName}`;
 
-    const { error } = await supabase.storage
-      .from("wedding")
-      .upload(filePath, file, { upsert: true });
+  const { error } = await supabase.storage
+    .from("wedding")
+    .upload(filePath, file, { upsert: true });
 
-    if (error) {
-      console.error("Upload Error:", error);
-      alert("Upload failed.");
-      return;
-    }
-
-    const { data } = supabase.storage.from("wedding").getPublicUrl(filePath);
-
-    setter(data.publicUrl);
+  if (error) {
+    console.error("Upload Error:", error);
+    throw error;
   }
+
+  const { data } = supabase.storage.from("wedding").getPublicUrl(filePath);
+  return data.publicUrl;
+}
+
 
   const uploadProfileImage = [
     {
@@ -300,139 +299,95 @@ export default function Wedding() {
 
 
   async function handleUpload() {
-
+  try {
     if (
       !date ||
       !time ||
       attendees <= 0 ||
-      contact.trim() === "" ||
-      groomFname.trim() === "" ||
-      groomLname.trim() === "" ||
-      brideFname.trim() === "" ||
-      brideLname.trim() === ""
+      !contact.trim() ||
+      !groomFname.trim() ||
+      !groomLname.trim() ||
+      !brideFname.trim() ||
+      !brideLname.trim()
     ) {
       alert("Please fill all input fields.");
       return;
     }
 
+    // Upload files & store URLs locally
+    const uploaded = {};
 
-    if (
-      !groomFile &&
-      !brideFile &&
-      !groomBapFile &&
-      !brideBapFile &&
-      !groomConfFile &&
-      !brideConfFile &&
-      !groomCenomarFile &&
-      !brideCenomarFile &&
-      !groomPermFile &&
-      !bridePermFile &&
-      !marriageDocuFile
-    ) {
-      alert("Please select files first.");
-      return;
-    }
+    if (groomFile)
+      uploaded.groomPhoto = await uploadImage(groomFile, "groom_photo");
 
+    if (brideFile)
+      uploaded.bridePhoto = await uploadImage(brideFile, "bride_photo");
 
+    if (groomBapFile)
+      uploaded.groomBaptismal = await uploadImage(groomBapFile, "groom_baptismal");
 
-    if (marriageDocuFile) {
-      await uploadImage(marriageDocuFile, `marriage_docu`, setMarriageDocu);
-    }
+    if (brideBapFile)
+      uploaded.brideBaptismal = await uploadImage(brideBapFile, "bride_baptismal");
 
-    if (bridePermFile) {
-      await uploadImage(bridePermFile, `bride_permission`, setBridePermission);
-    }
+    if (groomConfFile)
+      uploaded.groomConfirmation = await uploadImage(groomConfFile, "groom_confirmation");
 
-    if (groomPermFile) {
-      await uploadImage(groomPermFile, `groom_permission`, setGroomPermission);
-    }
+    if (brideConfFile)
+      uploaded.brideConfirmation = await uploadImage(brideConfFile, "bride_confirmation");
 
-    if (groomCenomarFile) {
-      await uploadImage(groomCenomarFile, `groom_cenomar`, setGroomCenomar);
-    }
+    if (groomCenomarFile)
+      uploaded.groomCenomar = await uploadImage(groomCenomarFile, "groom_cenomar");
 
-    if (brideCenomarFile) {
-      await uploadImage(brideCenomarFile, `bride_cenomar`, setBrideCenomar);
-    }
+    if (brideCenomarFile)
+      uploaded.brideCenomar = await uploadImage(brideCenomarFile, "bride_cenomar");
 
-    if (groomFile) {
-      await uploadImage(groomFile, `groom_photo`, setGroomPhoto);
-    }
+    if (groomPermFile)
+      uploaded.groomPermission = await uploadImage(groomPermFile, "groom_permission");
 
-    if (brideFile) {
-      await uploadImage(brideFile, `bride_photo`, setBridePhoto);
-    }
+    if (bridePermFile)
+      uploaded.bridePermission = await uploadImage(bridePermFile, "bride_permission");
 
-    if (groomBapFile) {
-      await uploadImage(groomBapFile, `groom_baptismal`, setGroomBaptismal);
-    }
+    if (marriageDocuFile)
+      uploaded.marriageDocu = await uploadImage(marriageDocuFile, "marriage_docu");
 
-    if (brideBapFile) {
-      await uploadImage(brideBapFile, `groom_baptismal`, setBrideBaptismal);
-    }
-
-    if (groomConfFile) {
-      await uploadImage(
-        groomConfFile,
-        `groom_confirmation`,
-        setGroomConfirmation
-      );
-    }
-
-    if (brideConfFile) {
-      await uploadImage(
-        brideConfFile,
-        `bride_confirmation`,
-        setBrideConfirmation
-      );
-    }
-
-    alert("Upload success!");
-
-    axios.post(`${API_URL}/createWeddingBooking`, {
+    // Save to DB using returned URLs (NOT state)
+    await axios.post(`${API_URL}/createWeddingBooking`, {
       uid: "123123123",
-      email: email,
+      email,
       transaction_id: generateTransactionID(),
-      date: date,
-      time: time,
-      attendees: attendees,
+      date,
+      time,
+      attendees,
       contact_number: contact,
-      groom_last_name: groomLname,
+
       groom_first_name: groomFname,
       groom_middle_name: groomMname,
-      groom_pic: groomPhoto,
-      bride_last_name: brideLname,
+      groom_last_name: groomLname,
+      groom_pic: uploaded.groomPhoto,
+
       bride_first_name: brideFname,
       bride_middle_name: brideMname,
-      bride_pic: bridePhoto,
-      marriage_docu: marriageDocu,
-      groom_cenomar: groomCenomar,
-      bride_cenomar: brideCenomar,
-      groom_baptismal_cert: groomBaptismal,
-      bride_baptismal_cert: brideBaptismal,
-      groom_confirmation_cert: groomConfirmation,
-      bride_confirmation_cert: brideConfirmation,
-      groom_permission: groomPermission,
-      bride_permission: bridePermission,
-    })
+      bride_last_name: brideLname,
+      bride_pic: uploaded.bridePhoto,
 
+      marriage_docu: uploaded.marriageDocu,
+      groom_cenomar: uploaded.groomCenomar,
+      bride_cenomar: uploaded.brideCenomar,
+      groom_baptismal_cert: uploaded.groomBaptismal,
+      bride_baptismal_cert: uploaded.brideBaptismal,
+      groom_confirmation_cert: uploaded.groomConfirmation,
+      bride_confirmation_cert: uploaded.brideConfirmation,
+      groom_permission: uploaded.groomPermission,
+      bride_permission: uploaded.bridePermission,
+    });
 
-
-
-    console.log(date)
-    console.log(time)
-    console.log(groomPhoto)
-    console.log(bridePhoto)
-    console.log(marriageDocu)
-    console.log(groomBaptismal)
-    console.log(brideBaptismal)
-    console.log(groomConfirmation)
-    console.log(brideConfirmation)
-    console.log(groomCenomar)
-    console.log(brideCenomar)
-    console.log(groomPermission)
-    console.log(bridePermission)
+    alert("Booking submitted successfully!");
+  } catch (err) {
+    console.error(err);
+    alert("Something went wrong during upload.");
   }
+}
+
 
  
 

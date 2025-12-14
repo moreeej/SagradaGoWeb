@@ -39,8 +39,11 @@ import {
   EditOutlined,
 } from "@ant-design/icons";
 
+
+
 const { Title, Text } = Typography;
 const { Option } = Select;
+
 
 export default function AccountManagement() {
   const navigate = useNavigate();
@@ -580,6 +583,16 @@ export default function AccountManagement() {
                 style={{ backgroundColor: "#b87d3e", borderColor: "#b87d3e" }}
               >
                 Add User/Priest
+              </Button>
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={() => {
+                  navigate("/admin/create");
+                }}
+                style={{ backgroundColor: "#b87d3e", borderColor: "#b87d3e" }}
+              >
+                Add Admin
               </Button>
             </Space>
           </div>
