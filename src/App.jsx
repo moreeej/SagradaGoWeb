@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
 import { NavbarContext } from "./context/AllContext";
 import { useState } from "react";
 import "./App.css";
@@ -22,7 +22,46 @@ import AddEvents from "./pages/admin/AddEvents";
 import Header from "./components/Header";
 import AdminLayout from "./components/AdminLayout";
 import AdminAnnouncements from "./pages/admin/AdminAnnouncement";
-import AdminChat from "./components/AdminChat"; 
+import AdminChat from "./components/AdminChat";
+
+function AppContent() {
+  const location = useLocation();
+
+  // Hide header on admin routes
+  const isAdminRoute = location.pathname.startsWith("/admin");
+
+  return (
+    <>
+      {!isAdminRoute && <Header />}
+
+      <Routes>
+        {/* Admin */}
+        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<AdminDashboard />} />
+          <Route path="dashboard" element={<AdminDashboard />} />
+          <Route path="account-management" element={<AccountManagement />} />
+          <Route path="bookings" element={<BookingPendingRequests />} />
+          <Route path="donations" element={<DonationsList />} />
+          <Route path="volunteers" element={<VolunteersList />} />
+          <Route path="events" element={<AddEvents />} />
+          <Route path="create" element={<AddAdmin />} />
+          <Route path="announcements" element={<AdminAnnouncements />} />
+          <Route path="chat" element={<AdminChat />} />
+        </Route>
+
+        {/* Public */}
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/sign-up" element={<SignUpPage />} />
+        <Route path="/sign-in" element={<SignInPage />} />
+        <Route path="/book-service" element={<BookService />} />
+        <Route path="/events" element={<Events />} />
+        <Route path="/be-volunteer" element={<BeVolunteer />} />
+        <Route path="/donate" element={<Donate />} />
+      </Routes>
+    </>
+  );
+}
 
 function App() {
   const [selectedNavbar, setSelectedNavbar] = useState("Home");
@@ -46,39 +85,12 @@ function App() {
         activeDropdown,
         setActiveDropdown,
         bookingSelected,
-        setBookingSelected
+        setBookingSelected,
       }}
     >
       <BrowserRouter>
-        <Header />   {/* If you want header everywhere */}
-
-        <Routes>
-          {/* Admin */}
-          <Route path="/admin/login" element={<AdminLogin />} />
-          <Route path="/admin" element={<AdminLayout />}>
-            <Route path="dashboard" element={<AdminDashboard />} />
-            <Route path="account-management" element={<AccountManagement />} />
-            <Route path="bookings" element={<BookingPendingRequests />} />
-            <Route path="donations" element={<DonationsList />} />
-            <Route path="volunteers" element={<VolunteersList />} />
-            <Route path="events" element={<AddEvents />} />
-            <Route index element={<AdminDashboard />} />
-            <Route path="create" element={<AddAdmin />} />
-            <Route path="announcements" element={<AdminAnnouncements />} />
-            <Route path="chat" element={<AdminChat />} /> 
-          </Route>
-
-          {/* Public */}
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/sign-up" element={<SignUpPage />} />
-          <Route path="/sign-in" element={<SignInPage />} />
-          <Route path="/book-service" element={<BookService />} />
-          <Route path="/events" element={<Events />} />
-          <Route path="/be-volunteer" element={<BeVolunteer />} />
-          <Route path="/donate" element={<Donate />} />
-        </Routes>
+        <AppContent />
       </BrowserRouter>
-
     </NavbarContext.Provider>
   );
 }
