@@ -107,7 +107,8 @@ export default function BookingPendingRequests() {
         createdAt: b.createdAt ? new Date(b.createdAt).toISOString() : null,
         status: b.status || "pending",
         full_name: b.full_name || b.name || "N/A",
-        transaction_id: b.transaction_id || `CONF-${Date.now()}`, 
+        transaction_id: b.transaction_id || `CONF-${Date.now()}`,
+        time: b.time || null,
       }));
 
       const allBookings = [
@@ -119,6 +120,15 @@ export default function BookingPendingRequests() {
         ...(anointings.data.anointings || []).map((b) => ({ ...b, bookingType: "Anointing", typeLabel: "Anointing of the Sick" })),
         ...normalizedConfessions
       ];
+
+      if (process.env.NODE_ENV === 'development' && allBookings.length > 0) {
+        console.log('Sample booking time fields:', allBookings.slice(0, 3).map(b => ({
+          type: b.bookingType,
+          transaction_id: b.transaction_id,
+          time: b.time,
+          timeType: typeof b.time
+        })));
+      }
 
       let filtered = allBookings;
 
@@ -177,6 +187,13 @@ export default function BookingPendingRequests() {
           b.first_name,
           b.last_name,
           b.deceased_name,
+          b.deceased_age,
+          b.deceased_civil_status,
+          b.requested_by,
+          b.relationship_to_deceased,
+          b.address,
+          b.place_of_mass,
+          b.mass_address,
           b.user?.name,
           b.user?.email,
         ].filter(Boolean);
@@ -323,20 +340,46 @@ export default function BookingPendingRequests() {
     return booking.user?.email || booking.email || "N/A";
   };
 
-  const formatTimeOnly = (dateString) => {
-    if (!dateString) return "N/A";
-    const date = new Date(dateString);
+  const formatTimeOnly = (timeValue) => {
+    if (timeValue === null || timeValue === undefined || timeValue === '') {
+      return "N/A";
+    }
 
-    if (isNaN(date.getTime())) return "N/A";
+    const timeStr = String(timeValue).trim();
+    
+    if (!timeStr || timeStr === 'null' || timeStr === 'undefined' || timeStr === 'NaN') {
+      return "N/A";
+    }
+    
+    const timeMatch = timeStr.match(/^(\d{1,2}):(\d{2})(?::\d{2})?(?:\.[\d]+)?$/);
+    if (timeMatch) {
+      const hours24 = parseInt(timeMatch[1], 10);
+      const minutes = parseInt(timeMatch[2], 10);
 
-    let hours = date.getHours();
-    const minutes = date.getMinutes();
-    const ampm = hours >= 12 ? "PM" : "AM";
-    hours = hours % 12 || 12;
+      if (!isNaN(hours24) && !isNaN(minutes) && hours24 >= 0 && hours24 <= 23 && minutes >= 0 && minutes <= 59) {
+        const hours = hours24 % 12 || 12;
+        const ampm = hours24 >= 12 ? "PM" : "AM";
 
-    return `${hours.toString().padStart(2, "0")}:${minutes
-      .toString()
-      .padStart(2, "0")} ${ampm}`;
+        return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")} ${ampm}`;
+      }
+    }
+    
+    try {
+      const date = new Date(timeStr);
+      if (!isNaN(date.getTime()) && date instanceof Date) {
+        let hours = date.getHours();
+        const minutes = date.getMinutes();
+        const ampm = hours >= 12 ? "PM" : "AM";
+        hours = hours % 12 || 12;
+        return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")} ${ampm}`;
+      }
+
+    } catch (e) {
+      // If date parsing fails, continue to return original or N/A
+    }
+
+    console.warn('Unable to format time value:', timeValue, 'type:', typeof timeValue);
+    return "N/A";
   };
 
   const columns = [
@@ -376,9 +419,12 @@ export default function BookingPendingRequests() {
       title: "Time",
       dataIndex: "time",
       key: "time",
-      render: (_, record) => (
-        <span>{formatTimeOnly(record.time)}</span>
-      ),
+      render: (_, record) => {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Time value for record:', record.transaction_id, 'time:', record.time, 'type:', typeof record.time);
+        }
+        return <span>{formatTimeOnly(record.time)}</span>;
+      },
     },
     {
       title: "Status",
@@ -622,13 +668,69 @@ export default function BookingPendingRequests() {
             </>
           )}
 
+          {/* Burial-specific deceased information section */}
+          {selectedBooking?.bookingType === "Burial" && (
+            <>
+              {selectedBooking?.deceased_name && (
+                <Col span={12}>
+                  <Text strong>Deceased Name:</Text>
+                  <div>{selectedBooking.deceased_name}</div>
+                </Col>
+              )}
+              {selectedBooking?.deceased_age && (
+                <Col span={12}>
+                  <Text strong>Deceased Age:</Text>
+                  <div>{selectedBooking.deceased_age}</div>
+                </Col>
+              )}
+              {selectedBooking?.deceased_civil_status && (
+                <Col span={12}>
+                  <Text strong>Civil Status:</Text>
+                  <div>{selectedBooking.deceased_civil_status}</div>
+                </Col>
+              )}
+              {selectedBooking?.requested_by && (
+                <Col span={12}>
+                  <Text strong>Requested By:</Text>
+                  <div>{selectedBooking.requested_by}</div>
+                </Col>
+              )}
+              {selectedBooking?.relationship_to_deceased && (
+                <Col span={12}>
+                  <Text strong>Relationship to Deceased:</Text>
+                  <div>{selectedBooking.relationship_to_deceased}</div>
+                </Col>
+              )}
+              {selectedBooking?.address && (
+                <Col span={24}>
+                  <Text strong>Address:</Text>
+                  <div>{selectedBooking.address}</div>
+                </Col>
+              )}
+              {selectedBooking?.place_of_mass && (
+                <Col span={12}>
+                  <Text strong>Place of Mass:</Text>
+                  <div>{selectedBooking.place_of_mass}</div>
+                </Col>
+              )}
+              {selectedBooking?.mass_address && (
+                <Col span={12}>
+                  <Text strong>Mass Address:</Text>
+                  <div>{selectedBooking.mass_address}</div>
+                </Col>
+              )}
+            </>
+          )}
+
           {/* Dynamic details */}
           {(() => {
             let addressShown = false;
             let godparentsShown = false;
             
             return details.map(({ key, value }) => {
-              if (['payment_method', 'amount', 'proof_of_payment', 'full_name', 'email', 'groom_pic', 'bride_pic'].includes(key)) return null;
+              if (['payment_method', 'amount', 'proof_of_payment', 'full_name', 'email', 'groom_pic', 'bride_pic', 
+                    'deceased_name', 'deceased_age', 'deceased_civil_status', 'requested_by', 
+                    'relationship_to_deceased', 'address', 'place_of_mass', 'mass_address'].includes(key)) return null;
               
               if (selectedBooking?.bookingType === "Baptism" && [
                 'main_godfather_first_name', 
@@ -640,7 +742,7 @@ export default function BookingPendingRequests() {
                 'main_godfather',
                 'main_godmother'
               ].includes(key)) return null;
-
+              
               const isAddressField = key === 'address';
               const showGodparentsAfterAddress = isAddressField && selectedBooking?.bookingType === "Baptism" && !godparentsShown;
               
