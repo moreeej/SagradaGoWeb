@@ -16,7 +16,10 @@ import {
   Spin,
   Empty,
   Tooltip,
-  Tabs,
+  Form,
+  DatePicker,
+  TimePicker,
+  Checkbox,
 } from "antd";
 import {
   ClockCircleOutlined,
@@ -29,14 +32,689 @@ import {
   DollarOutlined,
   PhoneOutlined,
   FileImageOutlined,
+  PlusOutlined,
 } from "@ant-design/icons";
 import axios from "axios";
 import { API_URL } from "../../Constants";
 import { supabase } from "../../config/supabase";
+import dayjs from "dayjs";
 
 const { Title, Text } = Typography;
 const { Option } = Select;
-const { TabPane } = Tabs;
+
+function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
+  const [form] = Form.useForm();
+  const [loading, setLoading] = useState(false);
+  const [date, setDate] = useState(null);
+  const [time, setTime] = useState(null);
+  
+  const [groomPic, setGroomPic] = useState(null);
+  const [bridePic, setBridePic] = useState(null);
+  const [isCivillyMarried, setIsCivillyMarried] = useState("no");
+
+  const [uploadedFiles, setUploadedFiles] = useState({});
+  
+  const handleSubmit = async (values) => {
+    try {
+      setLoading(true);
+      
+      const formData = new FormData();
+
+      const combinedDateTime = new Date(date);
+      combinedDateTime.setHours(time.getHours());
+      combinedDateTime.setMinutes(time.getMinutes());
+      combinedDateTime.setSeconds(0);
+      combinedDateTime.setMilliseconds(0);
+      
+      const timeString = time ? `${time.getHours().toString().padStart(2, '0')}:${time.getMinutes().toString().padStart(2, '0')}` : '';
+      
+      formData.append('uid', 'admin'); // Admin created bookings
+      formData.append('full_name', values.full_name || '');
+      formData.append('email', values.email || '');
+      formData.append('date', combinedDateTime.toISOString());
+      formData.append('time', timeString);
+      formData.append('attendees', values.attendees || '1');
+      formData.append('contact_number', values.contact_number || '');
+      formData.append('payment_method', values.payment_method || 'in_person');
+      formData.append('amount', getSacramentPrice(bookingType).toString());
+      
+      if (bookingType === 'Wedding') {
+        formData.append('groom_first_name', values.groom_first_name || '');
+        formData.append('groom_middle_name', values.groom_middle_name || '');
+        formData.append('groom_last_name', values.groom_last_name || '');
+        formData.append('bride_first_name', values.bride_first_name || '');
+        formData.append('bride_middle_name', values.bride_middle_name || '');
+        formData.append('bride_last_name', values.bride_last_name || '');
+        formData.append('is_civilly_married', isCivillyMarried);
+        
+        if (groomPic) formData.append('groom_1x1', groomPic);
+        if (bridePic) formData.append('bride_1x1', bridePic);
+
+        Object.keys(uploadedFiles).forEach(key => {
+          if (uploadedFiles[key]) formData.append(key, uploadedFiles[key]);
+        });
+        
+        await axios.post(`${API_URL}/createWedding`, formData);
+        
+      } else if (bookingType === 'Baptism') {
+        formData.append('candidate_first_name', values.candidate_first_name || '');
+        formData.append('candidate_middle_name', values.candidate_middle_name || '');
+        formData.append('candidate_last_name', values.candidate_last_name || '');
+        formData.append('candidate_birthday', values.candidate_birthday || '');
+        formData.append('candidate_birth_place', values.candidate_birth_place || '');
+        formData.append('father_first_name', values.father_first_name || '');
+        formData.append('father_middle_name', values.father_middle_name || '');
+        formData.append('father_last_name', values.father_last_name || '');
+        formData.append('father_birth_place', values.father_birth_place || '');
+        formData.append('mother_first_name', values.mother_first_name || '');
+        formData.append('mother_middle_name', values.mother_middle_name || '');
+        formData.append('mother_last_name', values.mother_last_name || '');
+        formData.append('mother_birth_place', values.mother_birth_place || '');
+        formData.append('marriage_type', values.marriage_type || '');
+        formData.append('address', values.address || '');
+        formData.append('main_godfather', JSON.stringify({
+          name: values.main_godfather_name || '',
+          relationship: values.main_godfather_relationship || ''
+        }));
+        formData.append('main_godmother', JSON.stringify({
+          name: values.main_godmother_name || '',
+          relationship: values.main_godmother_relationship || ''
+        }));
+        formData.append('additional_godparents', JSON.stringify([]));
+        
+        Object.keys(uploadedFiles).forEach(key => {
+          if (uploadedFiles[key]) formData.append(key, uploadedFiles[key]);
+        });
+        
+        await axios.post(`${API_URL}/createBaptism`, formData);
+        
+      } else if (bookingType === 'Burial') {
+        formData.append('deceased_name', values.deceased_name || '');
+        formData.append('deceased_age', values.deceased_age || '');
+        formData.append('deceased_civil_status', values.deceased_civil_status || '');
+        formData.append('requested_by', values.requested_by || '');
+        formData.append('relationship_to_deceased', values.relationship_to_deceased || '');
+        formData.append('address', values.address || '');
+        formData.append('place_of_mass', values.place_of_mass || '');
+        formData.append('mass_address', values.mass_address || '');
+        formData.append('funeral_mass', burialServices.funeral_mass ? 'true' : 'false');
+        formData.append('death_anniversary', burialServices.death_anniversary ? 'true' : 'false');
+        formData.append('funeral_blessing', burialServices.funeral_blessing ? 'true' : 'false');
+        formData.append('tomb_blessing', burialServices.tomb_blessing ? 'true' : 'false');
+        
+        Object.keys(uploadedFiles).forEach(key => {
+          if (uploadedFiles[key]) formData.append(key, uploadedFiles[key]);
+        });
+        
+        await axios.post(`${API_URL}/createBurial`, formData);
+        
+      } else if (bookingType === 'Communion') {
+        Object.keys(uploadedFiles).forEach(key => {
+          if (uploadedFiles[key]) formData.append(key, uploadedFiles[key]);
+        });
+        
+        await axios.post(`${API_URL}/createCommunion`, formData);
+        
+      } else if (bookingType === 'Confirmation') {
+        formData.append('sponsor_name', values.sponsor_name || '');
+        
+        Object.keys(uploadedFiles).forEach(key => {
+          if (uploadedFiles[key]) formData.append(key, uploadedFiles[key]);
+        });
+        
+        await axios.post(`${API_URL}/createConfirmation`, formData);
+        
+      } else if (bookingType === 'Anointing') {
+        const payload = {
+          uid: 'admin',
+          full_name: values.full_name || '',
+          email: values.email || '',
+          date: combinedDateTime.toISOString(),
+          time: timeString,
+          attendees: 1,
+          contact_number: values.contact_number || '',
+          medical_condition: values.medical_condition || '',
+          transaction_id: `ANOINT-${Date.now()}`,
+          status: 'pending',
+        };
+        
+        await axios.post(`${API_URL}/createAnointing`, payload);
+        
+      } else if (bookingType === 'Confession') {
+        const payload = {
+          uid: 'admin',
+          full_name: values.full_name || '',
+          email: values.email || '',
+          date: combinedDateTime.toISOString(),
+          time: timeString,
+          attendees: 1,
+          transaction_id: `CONF-${Date.now()}`,
+          status: 'pending',
+        };
+        
+        await axios.post(`${API_URL}/createConfession`, payload);
+      }
+      
+      message.success(`${bookingType} booking created successfully!`);
+      form.resetFields();
+      setDate(null);
+      setTime(null);
+      setGroomPic(null);
+      setBridePic(null);
+      setUploadedFiles({});
+      setBurialServices({
+        funeral_mass: false,
+        death_anniversary: false,
+        funeral_blessing: false,
+        tomb_blessing: false,
+      });
+      onSuccess();
+      
+    } catch (error) {
+      console.error('Error creating booking:', error);
+      message.error(error.response?.data?.message || `Failed to create ${bookingType} booking.`);
+
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const getSacramentPrice = (sacrament) => {
+    const prices = {
+      'Wedding': 10000,
+      'Baptism': 2000,
+      'Confession': 0,
+      'Anointing': 0,
+      'Communion': 1500,
+      'Burial': 3000,
+      'Confirmation': 1500,
+    };
+    return prices[sacrament] || 0;
+  };
+  
+  const [burialServices, setBurialServices] = useState({
+    funeral_mass: false,
+    death_anniversary: false,
+    funeral_blessing: false,
+    tomb_blessing: false,
+  });
+  
+  const getMinimumDate = () => {
+    const today = dayjs();
+    if (bookingType === 'Baptism' || bookingType === 'Wedding') {
+      return today.add(2, 'month');
+
+    } else if (bookingType === 'Burial') {
+      return today.add(7, 'day');
+      
+    }
+    return today.add(1, 'day');
+  };
+  
+  return (
+    <Form
+      form={form}
+      layout="vertical"
+      onFinish={handleSubmit}
+      style={{ marginTop: 20 }}
+    >
+      <Row gutter={16}>
+        <Col span={12}>
+          <Form.Item
+            label="Full Name"
+            name="full_name"
+            rules={[{ required: true, message: 'Please enter full name' }]}
+          >
+            <Input placeholder="Enter full name" />
+          </Form.Item>
+        </Col>
+        <Col span={12}>
+          <Form.Item
+            label="Email"
+            name="email"
+            rules={[{ required: true, type: 'email', message: 'Please enter valid email' }]}
+          >
+            <Input placeholder="Enter email" />
+          </Form.Item>
+        </Col>
+      </Row>
+      
+      <Row gutter={16}>
+        <Col span={12}>
+          <Form.Item
+            label="Contact Number"
+            name="contact_number"
+            rules={[{ required: true, message: 'Please enter contact number' }]}
+          >
+            <Input placeholder="Enter contact number" />
+          </Form.Item>
+        </Col>
+        {(bookingType !== 'Confession' && bookingType !== 'Anointing') && (
+          <Col span={12}>
+            <Form.Item
+              label="Number of Attendees"
+              name="attendees"
+              rules={[{ required: true, message: 'Please enter number of attendees' }]}
+            >
+              <Input type="number" min={1} placeholder="Enter attendees" />
+            </Form.Item>
+          </Col>
+        )}
+      </Row>
+      
+      <Row gutter={16}>
+        <Col span={12}>
+          <Form.Item
+            label="Date"
+            rules={[{ required: true, message: 'Please select date' }]}
+          >
+            <DatePicker
+              style={{ width: '100%' }}
+              value={date ? dayjs(date) : null}
+              onChange={(value) => setDate(value ? value.toDate() : null)}
+              minDate={getMinimumDate()}
+              format="YYYY-MM-DD"
+            />
+          </Form.Item>
+        </Col>
+        <Col span={12}>
+          <Form.Item
+            label="Time"
+            rules={[{ required: true, message: 'Please select time' }]}
+          >
+            <TimePicker
+              style={{ width: '100%' }}
+              value={time ? dayjs(time) : null}
+              onChange={(value) => setTime(value ? value.toDate() : null)}
+              format="HH:mm"
+            />
+          </Form.Item>
+        </Col>
+      </Row>
+      
+      {(bookingType === 'Wedding' || bookingType === 'Baptism' || bookingType === 'Burial' || 
+        bookingType === 'Communion' || bookingType === 'Confirmation') && (
+        <Form.Item
+          label="Payment Method"
+          name="payment_method"
+          initialValue="in_person"
+        >
+          <Select>
+            <Option value="in_person">In-Person Payment</Option>
+            <Option value="gcash">GCash</Option>
+          </Select>
+        </Form.Item>
+      )}
+      
+      {/* Wedding-specific fields */}
+      {bookingType === 'Wedding' && (
+        <>
+          <Row gutter={16}>
+            <Col span={8}>
+              <Form.Item
+                label="Groom First Name"
+                name="groom_first_name"
+                rules={[{ required: true, message: 'Required' }]}
+              >
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item label="Groom Middle Name" name="groom_middle_name">
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item
+                label="Groom Last Name"
+                name="groom_last_name"
+                rules={[{ required: true, message: 'Required' }]}
+              >
+                <Input />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Row gutter={16}>
+            <Col span={8}>
+              <Form.Item
+                label="Bride First Name"
+                name="bride_first_name"
+                rules={[{ required: true, message: 'Required' }]}
+              >
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item label="Bride Middle Name" name="bride_middle_name">
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item
+                label="Bride Last Name"
+                name="bride_last_name"
+                rules={[{ required: true, message: 'Required' }]}
+              >
+                <Input />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item label="Are you civilly married?">
+                <Select value={isCivillyMarried} onChange={setIsCivillyMarried}>
+                  <Option value="no">No</Option>
+                  <Option value="yes">Yes</Option>
+                </Select>
+              </Form.Item>
+            </Col>
+          </Row>
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item label="Groom 1x1 Photo">
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setGroomPic(e.target.files[0])}
+                />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item label="Bride 1x1 Photo">
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setBridePic(e.target.files[0])}
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+        </>
+      )}
+      
+      {/* Baptism-specific fields */}
+      {bookingType === 'Baptism' && (
+        <>
+          <Title level={5}>Candidate Information</Title>
+          <Row gutter={16}>
+            <Col span={8}>
+              <Form.Item
+                label="First Name"
+                name="candidate_first_name"
+                rules={[{ required: true }]}
+              >
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item label="Middle Name" name="candidate_middle_name">
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item
+                label="Last Name"
+                name="candidate_last_name"
+                rules={[{ required: true }]}
+              >
+                <Input />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                label="Birthday (MM/DD/YYYY)"
+                name="candidate_birthday"
+                rules={[{ required: true }]}
+              >
+                <Input placeholder="MM/DD/YYYY" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                label="Birth Place"
+                name="candidate_birth_place"
+                rules={[{ required: true }]}
+              >
+                <Input />
+              </Form.Item>
+            </Col>
+          </Row>
+          
+          <Title level={5}>Father Information</Title>
+          <Row gutter={16}>
+            <Col span={8}>
+              <Form.Item
+                label="First Name"
+                name="father_first_name"
+                rules={[{ required: true }]}
+              >
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item label="Middle Name" name="father_middle_name">
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item
+                label="Last Name"
+                name="father_last_name"
+                rules={[{ required: true }]}
+              >
+                <Input />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Form.Item
+            label="Birth Place"
+            name="father_birth_place"
+            rules={[{ required: true }]}
+          >
+            <Input />
+          </Form.Item>
+          
+          <Title level={5}>Mother Information</Title>
+          <Row gutter={16}>
+            <Col span={8}>
+              <Form.Item
+                label="First Name"
+                name="mother_first_name"
+                rules={[{ required: true }]}
+              >
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item label="Middle Name" name="mother_middle_name">
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item
+                label="Last Name"
+                name="mother_last_name"
+                rules={[{ required: true }]}
+              >
+                <Input />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Form.Item
+            label="Birth Place"
+            name="mother_birth_place"
+            rules={[{ required: true }]}
+          >
+            <Input />
+          </Form.Item>
+          
+          <Form.Item
+            label="Marriage Type"
+            name="marriage_type"
+            rules={[{ required: true }]}
+          >
+            <Input />
+          </Form.Item>
+          
+          <Form.Item
+            label="Address"
+            name="address"
+            rules={[{ required: true }]}
+          >
+            <Input.TextArea />
+          </Form.Item>
+          
+          <Title level={5}>Godparents</Title>
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                label="Main Godfather Name"
+                name="main_godfather_name"
+                rules={[{ required: true }]}
+              >
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item label="Relationship" name="main_godfather_relationship">
+                <Input />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                label="Main Godmother Name"
+                name="main_godmother_name"
+                rules={[{ required: true }]}
+              >
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item label="Relationship" name="main_godmother_relationship">
+                <Input />
+              </Form.Item>
+            </Col>
+          </Row>
+        </>
+      )}
+      
+      {/* Burial-specific fields */}
+      {bookingType === 'Burial' && (
+        <>
+          <Form.Item
+            label="Deceased Name"
+            name="deceased_name"
+            rules={[{ required: true }]}
+          >
+            <Input />
+          </Form.Item>
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                label="Deceased Age"
+                name="deceased_age"
+                rules={[{ required: true }]}
+              >
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                label="Civil Status"
+                name="deceased_civil_status"
+                rules={[{ required: true }]}
+              >
+                <Input />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Form.Item
+            label="Requested By"
+            name="requested_by"
+            rules={[{ required: true }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            label="Relationship to Deceased"
+            name="relationship_to_deceased"
+            rules={[{ required: true }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            label="Address"
+            name="address"
+            rules={[{ required: true }]}
+          >
+            <Input.TextArea />
+          </Form.Item>
+          <Form.Item label="Place of Mass" name="place_of_mass">
+            <Input />
+          </Form.Item>
+          <Form.Item label="Mass Address" name="mass_address">
+            <Input.TextArea />
+          </Form.Item>
+          <Form.Item label="Services">
+            <Space direction="vertical">
+              <Checkbox 
+                checked={burialServices.funeral_mass}
+                onChange={(e) => setBurialServices({...burialServices, funeral_mass: e.target.checked})}
+              >
+                Funeral Mass
+              </Checkbox>
+              <Checkbox 
+                checked={burialServices.death_anniversary}
+                onChange={(e) => setBurialServices({...burialServices, death_anniversary: e.target.checked})}
+              >
+                Death Anniversary
+              </Checkbox>
+              <Checkbox 
+                checked={burialServices.funeral_blessing}
+                onChange={(e) => setBurialServices({...burialServices, funeral_blessing: e.target.checked})}
+              >
+                Funeral Blessing
+              </Checkbox>
+              <Checkbox 
+                checked={burialServices.tomb_blessing}
+                onChange={(e) => setBurialServices({...burialServices, tomb_blessing: e.target.checked})}
+              >
+                Tomb Blessing
+              </Checkbox>
+            </Space>
+          </Form.Item>
+        </>
+      )}
+      
+      {/* Confirmation-specific fields */}
+      {bookingType === 'Confirmation' && (
+        <Form.Item label="Sponsor Name" name="sponsor_name">
+          <Input />
+        </Form.Item>
+      )}
+      
+      {/* Anointing-specific fields */}
+      {bookingType === 'Anointing' && (
+        <Form.Item label="Medical Condition" name="medical_condition">
+          <Input.TextArea />
+        </Form.Item>
+      )}
+      
+      <Form.Item>
+        <Space>
+          <Button type="primary" htmlType="submit" loading={loading}>
+            Create Booking
+          </Button>
+          <Button onClick={onCancel}>Cancel</Button>
+        </Space>
+      </Form.Item>
+    </Form>
+  );
+}
 
 export default function BookingPendingRequests() {
   const [bookings, setBookings] = useState([]);
@@ -61,6 +739,8 @@ export default function BookingPendingRequests() {
   const [imageModalVisible, setImageModalVisible] = useState(false);
   const [selectedImageUrl, setSelectedImageUrl] = useState(null);
   const [selectedImageTitle, setSelectedImageTitle] = useState('');
+  const [createBookingModalVisible, setCreateBookingModalVisible] = useState(false);
+  const [selectedBookingType, setSelectedBookingType] = useState(null);
 
   useEffect(() => {
     fetchAllBookings();
@@ -911,6 +1591,7 @@ export default function BookingPendingRequests() {
     );
   };
 
+  
   return (
     <div style={{ padding: "24px", background: "#f0f2f5", minHeight: "100vh" }}>
       <div style={{ maxWidth: "1400px", margin: "0 auto" }}>
@@ -925,9 +1606,18 @@ export default function BookingPendingRequests() {
                 Manage and track all booking requests
               </Text>
             </div>
-            <Button icon={<ReloadOutlined />} onClick={fetchAllBookings} loading={loading}>
-              Refresh
-            </Button>
+            <Space>
+              <Button 
+                type="primary" 
+                icon={<PlusOutlined />} 
+                onClick={() => setCreateBookingModalVisible(true)}
+              >
+                Create Booking
+              </Button>
+              <Button icon={<ReloadOutlined />} onClick={fetchAllBookings} loading={loading}>
+                Refresh
+              </Button>
+            </Space>
           </div>
         </div>
 
@@ -1149,6 +1839,58 @@ export default function BookingPendingRequests() {
                   e.target.parentElement.appendChild(errorDiv);
                 }}
               />
+            </div>
+          )}
+        </Modal>
+
+        {/* Create Booking Modal */}
+        <Modal
+          title="Create New Booking"
+          open={createBookingModalVisible}
+          onCancel={() => {
+            setCreateBookingModalVisible(false);
+            setSelectedBookingType(null);
+          }}
+          footer={null}
+          width={900}
+          style={{ top: 20 }}
+        >
+          <div style={{ marginBottom: 24 }}>
+            <Text strong style={{ marginRight: 8 }}>Select Sacrament:</Text>
+            <Select
+              style={{ width: 200 }}
+              placeholder="Choose a sacrament"
+              value={selectedBookingType}
+              onChange={setSelectedBookingType}
+            >
+              <Option value="Wedding">Wedding</Option>
+              <Option value="Baptism">Baptism</Option>
+              <Option value="Burial">Burial</Option>
+              <Option value="Communion">Communion</Option>
+              <Option value="Confirmation">Confirmation</Option>
+              <Option value="Anointing">Anointing</Option>
+              <Option value="Confession">Confession</Option>
+            </Select>
+          </div>
+          
+          {selectedBookingType && (
+            <AdminBookingForm
+              bookingType={selectedBookingType}
+              onSuccess={() => {
+                setCreateBookingModalVisible(false);
+                setSelectedBookingType(null);
+                fetchAllBookings();
+              }}
+              onCancel={() => {
+                setCreateBookingModalVisible(false);
+                setSelectedBookingType(null);
+              }}
+            />
+          )}
+          
+          {!selectedBookingType && (
+            <div style={{ textAlign: 'center', padding: '40px 0', color: '#999' }}>
+              <Text type="secondary">Please select a sacrament type to create a booking</Text>
             </div>
           )}
         </Modal>
