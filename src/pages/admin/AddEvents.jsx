@@ -42,8 +42,8 @@ export default function AddEvents() {
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [locations, setLocations] = useState([]);
-  const [dateFilter, setDateFilter] = useState("all"); 
-  const [monthFilter, setMonthFilter] = useState("all"); 
+  const [dateFilter, setDateFilter] = useState("all");
+  const [monthFilter, setMonthFilter] = useState("all");
 
   useEffect(() => {
     fetchEvents();
@@ -66,7 +66,7 @@ export default function AddEvents() {
       setLoading(true);
       const response = await axios.get(`${API_URL}/getAllEvents`);
       setEvents(response.data.events || []);
-      
+
     } catch (error) {
       console.error("Error fetching events:", error);
       message.error("Failed to fetch events. Please try again.");
@@ -93,7 +93,7 @@ export default function AddEvents() {
     try {
       setLoading(true);
       const formData = new FormData();
-      
+
       formData.append("title", values.title);
       formData.append("date", values.date.format("YYYY-MM-DD"));
       formData.append("location", values.location);
@@ -101,7 +101,7 @@ export default function AddEvents() {
       if (values.description) {
         formData.append("description", values.description);
       }
-      
+
       if (imageFile) {
         formData.append("image", imageFile);
       }
@@ -329,13 +329,13 @@ export default function AddEvents() {
 
   return (
     <div style={{ padding: "24px", background: "#f0f2f5", minHeight: "100vh" }}>
-      <div style={{ maxWidth: "1400px", margin: "0 auto" }}>
+      <div style={{ maxWidth: "1550px", margin: "0 auto", marginTop: 20 }}>
         {/* Header */}
         <div style={{ marginBottom: 24 }}>
-          <Title level={2} style={{ margin: 0, color: "#262626" }}>
+          <Title level={2} style={{ margin: 0, color: "#262626", fontFamily: 'Poppins' }}>
             {editingEvent ? "Edit Event" : "Add New Event"}
           </Title>
-          <Text type="secondary" style={{ fontSize: 16 }}>
+          <Text type="secondary" style={{ fontSize: 16, fontFamily: 'Poppins' }}>
             {editingEvent
               ? "Update event information"
               : "Create and manage parish events"}
@@ -448,6 +448,7 @@ export default function AddEvents() {
                       size="large"
                       loading={loading}
                       icon={<PlusOutlined />}
+                      className="border-btn"
                     >
                       {editingEvent ? "Update Event" : "Create Event"}
                     </Button>
@@ -476,6 +477,8 @@ export default function AddEvents() {
                   icon={<UploadOutlined />}
                   onClick={fetchEvents}
                   loading={loading}
+                  className="border-btn"
+                  style={{ padding: 12 }}
                 >
                   Refresh
                 </Button>
