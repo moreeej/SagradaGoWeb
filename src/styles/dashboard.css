@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 * {
-  font-family: 'Poppins';
+  font-family: 'Poppins', sans-serif;
 }
 
 .dashboard-container {
@@ -11,8 +11,9 @@
 }
 
 .dashboard-content {
-  max-width: 1400px;
+  max-width: 1550px;
   margin: 0 auto;
+  margin-top: 20px;
 }
 
 .dashboard-header {
@@ -26,7 +27,7 @@
 }
 
 .dashboard-title {
-  margin: 0;
+  margin: 0 !important;
   color: #262626;
   font-family: 'Poppins';
 }
@@ -46,10 +47,12 @@
 
 .dashboard-stat-title {
   margin-top: 8px;
+  font-family: 'Poppins';
 }
 
 .dashboard-stat-text {
   font-size: 12px;
+  font-family: 'Poppins';
 }
 
 .dashboard-quick-actions-card {
@@ -57,7 +60,8 @@
 }
 
 .dashboard-quick-actions-title {
-  margin: 0;
+  margin: 0 !important;
+  font-family: 'Poppins';
 }
 
 .dashboard-quick-action-card {
@@ -77,12 +81,14 @@
 }
 
 .dashboard-quick-action-title {
-  margin: 8px 0;
+  margin: 0 !important;
   color: #262626;
+  font-family: 'Poppins';
 }
 
 .dashboard-quick-action-description {
-  font-size: 12px;
+  font-size: 15px;
+  font-family: 'Poppins';
 }
 
 .dashboard-recent-users-card {
@@ -91,6 +97,7 @@
 
 .dashboard-recent-users-title {
   margin: 0;
+  font-family: 'Poppins';
 }
 
 .dashboard-system-overview-card {
@@ -98,13 +105,26 @@
 }
 
 .dashboard-system-overview-title {
-  margin: 0;
+  margin: 0 !important;
+  font-family: 'Poppins';
 }
 
 .dashboard-system-overview-item {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   margin-bottom: 8px;
+  font-family: 'Poppins', sans-serif;
+}
+
+.dashboard-system-overview-item .ant-typography {
+  font-family: 'Poppins', sans-serif !important;
+  font-weight: 500;
+}
+
+.dashboard-system-overview-item .ant-tag {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 500;
 }
 
 .dashboard-loading-container {
@@ -129,7 +149,7 @@
 }
 
 .dashboard-quick-action-card-bookings:hover {
-  border-color: #1890ff;
+  border-color: #FFC942;
   box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
 }
 

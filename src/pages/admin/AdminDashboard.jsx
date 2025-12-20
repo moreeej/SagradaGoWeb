@@ -53,7 +53,7 @@ export default function AdminDashboard() {
           console.error("Error fetching donation statistics:", error);
           return { data: { stats: { amounts: { total: 0, confirmed: 0, pending: 0 }, counts: { total: 0, pending: 0, confirmed: 0, cancelled: 0 } } } };
         }),
-        
+
         axios.get(`${API_URL}/admin/getMonthlyDonations`).catch((error) => {
           console.error("Error fetching monthly donations:", error);
           return { data: { totalAmount: 0, count: 0, monthlyDonations: [] } };
@@ -79,7 +79,7 @@ export default function AdminDashboard() {
       const priests = users.filter((user) => user.is_priest === true);
 
       const [weddings, baptisms, burials, communions, confirmations, anointings, confessions] = bookingsRes;
-      
+
       const normalizedConfessions = (confessions.data.bookings || []).map((b) => ({
         ...b,
         bookingType: "Confession",
@@ -290,9 +290,9 @@ export default function AdminDashboard() {
   const donationColumns = [
     { title: "Donor Name", dataIndex: "donor_name", key: "donor_name" },
     { title: "Email", dataIndex: "email", key: "email" },
-    { 
-      title: "Amount", 
-      dataIndex: "amount", 
+    {
+      title: "Amount",
+      dataIndex: "amount",
       key: "amount",
       render: (value) => {
         const amount = typeof value === 'number' ? value : parseFloat(value) || 0;
@@ -324,9 +324,9 @@ export default function AdminDashboard() {
         <div className="dashboard-header">
           <div className="dashboard-header-content">
             <div>
-              <Title level={2} className="dashboard-title">Admin Dashboard</Title>
+              <Title level={2} className="dashboard-title">Welcome Back, Nadine!</Title>
               <Text type="secondary" className="dashboard-subtitle">
-                Welcome back! Here's what's happening today.
+                Here's what's happening today.
               </Text>
             </div>
             <Button icon={<ReloadOutlined />} onClick={fetchDashboardData} loading={loading}>
@@ -407,9 +407,9 @@ export default function AdminDashboard() {
             {quickActions.map((action, index) => {
               const cardClass =
                 action.path.includes("account") ? "dashboard-quick-action-card-users" :
-                action.path.includes("bookings") ? "dashboard-quick-action-card-bookings" :
-                action.path.includes("donations") ? "dashboard-quick-action-card-donations" :
-                "dashboard-quick-action-card-volunteers";
+                  action.path.includes("bookings") ? "dashboard-quick-action-card-bookings" :
+                    action.path.includes("donations") ? "dashboard-quick-action-card-donations" :
+                      "dashboard-quick-action-card-volunteers";
               return (
                 <Col xs={24} sm={12} lg={6} key={index}>
                   <Card hoverable onClick={() => navigate(action.path)} className={`dashboard-quick-action-card ${cardClass}`} bodyStyle={{ padding: "24px" }}>
