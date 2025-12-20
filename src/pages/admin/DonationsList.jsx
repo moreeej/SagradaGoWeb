@@ -74,7 +74,7 @@ export default function DonationsList() {
         page: pagination.page,
         limit: pagination.limit,
       };
-      
+
       if (statusFilter !== "all") {
         params.status = statusFilter;
       }
@@ -106,7 +106,7 @@ export default function DonationsList() {
     if (paymentMethodFilter !== "all") {
       filtered = filtered.filter((donation) => {
         const method = donation.paymentMethod || "";
-        
+
         if (paymentMethodFilter === "In Kind") {
           return method.toLowerCase() === "in kind";
 
@@ -323,15 +323,15 @@ export default function DonationsList() {
 
   return (
     <div style={{ padding: "24px", background: "#f0f2f5", minHeight: "100vh" }}>
-      <div style={{ maxWidth: "1400px", margin: "0 auto" }}>
+      <div style={{ maxWidth: "1550px", margin: "0 auto", marginTop: 20 }}>
         {/* Header */}
         <div style={{ marginBottom: 24 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div>
-              <Title level={2} style={{ margin: 0, color: "#262626" }}>
+              <Title level={2} style={{ margin: 0, color: "#262626", fontFamily: 'Poppins' }}>
                 Donations Management
               </Title>
-              <Text type="secondary" style={{ fontSize: 16 }}>
+              <Text type="secondary" style={{ fontSize: 16, fontFamily: 'Poppins' }}>
                 Manage and track all donations
               </Text>
             </div>
@@ -339,6 +339,7 @@ export default function DonationsList() {
               icon={<ReloadOutlined />}
               onClick={fetchDonations}
               loading={loading}
+              className="border-btn"
             >
               Refresh
             </Button>
@@ -395,15 +396,27 @@ export default function DonationsList() {
             <Col xs={24} sm={12} md={8}>
               <Input
                 placeholder="Search by name, email, or payment method..."
-                prefix={<SearchOutlined />}
+                prefix={<SearchOutlined style={{ marginRight: 8 }} />}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 allowClear
+                style={{
+                  fontFamily: 'Poppins, sans-serif',
+                  fontWeight: 500,
+                  padding: '10px 12px',
+                  height: '42px',
+                }}
               />
             </Col>
             <Col xs={24} sm={12} md={8}>
               <Select
-                style={{ width: "100%" }}
+                style={{
+                  width: '100%',
+                  fontFamily: 'Poppins, sans-serif',
+                  fontWeight: 500,
+                  padding: '8px 12px',
+                  height: '42px',
+                }}
                 value={statusFilter}
                 onChange={setStatusFilter}
                 placeholder="Filter by status"
@@ -416,7 +429,13 @@ export default function DonationsList() {
             </Col>
             <Col xs={24} sm={12} md={8}>
               <Select
-                style={{ width: "100%" }}
+                style={{
+                  width: '100%',
+                  fontFamily: 'Poppins, sans-serif',
+                  fontWeight: 500,
+                  padding: '8px 12px',
+                  height: '42px',
+                }}
                 value={paymentMethodFilter}
                 onChange={setPaymentMethodFilter}
                 placeholder="Filter by payment method"

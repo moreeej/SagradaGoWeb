@@ -1759,7 +1759,8 @@ export default function BookingPendingRequests() {
                   fontWeight: 500,
                   padding: '8px 12px',
                   height: '42px',
-                }} value={statusFilter}
+                }} 
+                value={statusFilter}
                 onChange={setStatusFilter}
                 placeholder="Filter by status"
 
@@ -1800,7 +1801,8 @@ export default function BookingPendingRequests() {
                   fontWeight: 500,
                   padding: '8px 12px',
                   height: '42px',
-                }} value={monthFilter}
+                }} 
+                value={monthFilter}
                 onChange={setMonthFilter}
                 placeholder="Filter by month"
                 showSearch
