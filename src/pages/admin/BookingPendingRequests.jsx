@@ -48,22 +48,22 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
   const [loading, setLoading] = useState(false);
   const [date, setDate] = useState(null);
   const [time, setTime] = useState(null);
-  
+
   const [groomPic, setGroomPic] = useState(null);
   const [bridePic, setBridePic] = useState(null);
   const [isCivillyMarried, setIsCivillyMarried] = useState("no");
 
   const [uploadedFiles, setUploadedFiles] = useState({});
-  const [physicalRequirements, setPhysicalRequirements] = useState({}); 
-  
+  const [physicalRequirements, setPhysicalRequirements] = useState({});
+
   useEffect(() => {
     setPhysicalRequirements({});
   }, [bookingType]);
-  
+
   const handleSubmit = async (values) => {
     try {
       setLoading(true);
-      
+
       const formData = new FormData();
 
       const combinedDateTime = new Date(date);
@@ -71,9 +71,9 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
       combinedDateTime.setMinutes(time.getMinutes());
       combinedDateTime.setSeconds(0);
       combinedDateTime.setMilliseconds(0);
-      
+
       const timeString = time ? `${time.getHours().toString().padStart(2, '0')}:${time.getMinutes().toString().padStart(2, '0')}` : '';
-      
+
       formData.append('uid', 'admin'); // Admin created bookings
       formData.append('full_name', values.full_name || '');
       formData.append('email', values.email || '');
@@ -83,9 +83,9 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
       formData.append('contact_number', values.contact_number || '');
       formData.append('payment_method', values.payment_method || 'in_person');
       formData.append('amount', getSacramentPrice(bookingType).toString());
- 
+
       formData.append('physical_requirements', JSON.stringify(physicalRequirements));
-      
+
       if (bookingType === 'Wedding') {
         formData.append('groom_first_name', values.groom_first_name || '');
         formData.append('groom_middle_name', values.groom_middle_name || '');
@@ -94,16 +94,16 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
         formData.append('bride_middle_name', values.bride_middle_name || '');
         formData.append('bride_last_name', values.bride_last_name || '');
         formData.append('is_civilly_married', isCivillyMarried);
-        
+
         if (groomPic) formData.append('groom_1x1', groomPic);
         if (bridePic) formData.append('bride_1x1', bridePic);
 
         Object.keys(uploadedFiles).forEach(key => {
           if (uploadedFiles[key]) formData.append(key, uploadedFiles[key]);
         });
-        
+
         await axios.post(`${API_URL}/createWedding`, formData);
-        
+
       } else if (bookingType === 'Baptism') {
         formData.append('candidate_first_name', values.candidate_first_name || '');
         formData.append('candidate_middle_name', values.candidate_middle_name || '');
@@ -129,13 +129,13 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
           relationship: values.main_godmother_relationship || ''
         }));
         formData.append('additional_godparents', JSON.stringify([]));
-        
+
         Object.keys(uploadedFiles).forEach(key => {
           if (uploadedFiles[key]) formData.append(key, uploadedFiles[key]);
         });
-        
+
         await axios.post(`${API_URL}/createBaptism`, formData);
-        
+
       } else if (bookingType === 'Burial') {
         formData.append('deceased_name', values.deceased_name || '');
         formData.append('deceased_age', values.deceased_age || '');
@@ -149,29 +149,29 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
         formData.append('death_anniversary', burialServices.death_anniversary ? 'true' : 'false');
         formData.append('funeral_blessing', burialServices.funeral_blessing ? 'true' : 'false');
         formData.append('tomb_blessing', burialServices.tomb_blessing ? 'true' : 'false');
-        
+
         Object.keys(uploadedFiles).forEach(key => {
           if (uploadedFiles[key]) formData.append(key, uploadedFiles[key]);
         });
-        
+
         await axios.post(`${API_URL}/createBurial`, formData);
-        
+
       } else if (bookingType === 'Communion') {
         Object.keys(uploadedFiles).forEach(key => {
           if (uploadedFiles[key]) formData.append(key, uploadedFiles[key]);
         });
-        
+
         await axios.post(`${API_URL}/createCommunion`, formData);
-        
+
       } else if (bookingType === 'Confirmation') {
         formData.append('sponsor_name', values.sponsor_name || '');
-        
+
         Object.keys(uploadedFiles).forEach(key => {
           if (uploadedFiles[key]) formData.append(key, uploadedFiles[key]);
         });
-        
+
         await axios.post(`${API_URL}/createConfirmation`, formData);
-        
+
       } else if (bookingType === 'Anointing') {
         const payload = {
           uid: 'admin',
@@ -186,9 +186,9 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
           status: 'pending',
           physical_requirements: physicalRequirements,
         };
-        
+
         await axios.post(`${API_URL}/createAnointing`, payload);
-        
+
       } else if (bookingType === 'Confession') {
         const payload = {
           uid: 'admin',
@@ -201,10 +201,10 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
           status: 'pending',
           physical_requirements: physicalRequirements,
         };
-        
+
         await axios.post(`${API_URL}/createConfession`, payload);
       }
-      
+
       message.success(`${bookingType} booking created successfully!`);
       form.resetFields();
       setDate(null);
@@ -220,7 +220,7 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
         tomb_blessing: false,
       });
       onSuccess();
-      
+
     } catch (error) {
       console.error('Error creating booking:', error);
       message.error(error.response?.data?.message || `Failed to create ${bookingType} booking.`);
@@ -229,7 +229,7 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
       setLoading(false);
     }
   };
-  
+
   const getSacramentPrice = (sacrament) => {
     const prices = {
       'Wedding': 10000,
@@ -242,14 +242,14 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
     };
     return prices[sacrament] || 0;
   };
-  
+
   const [burialServices, setBurialServices] = useState({
     funeral_mass: false,
     death_anniversary: false,
     funeral_blessing: false,
     tomb_blessing: false,
   });
-  
+
   const getMinimumDate = () => {
     const today = dayjs();
     if (bookingType === 'Baptism' || bookingType === 'Wedding') {
@@ -257,11 +257,11 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
 
     } else if (bookingType === 'Burial') {
       return today.add(7, 'day');
-      
+
     }
     return today.add(1, 'day');
   };
-  
+
   return (
     <Form
       form={form}
@@ -289,7 +289,7 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
           </Form.Item>
         </Col>
       </Row>
-      
+
       <Row gutter={16}>
         <Col span={12}>
           <Form.Item
@@ -312,7 +312,7 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
           </Col>
         )}
       </Row>
-      
+
       <Row gutter={16}>
         <Col span={12}>
           <Form.Item
@@ -342,21 +342,21 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
           </Form.Item>
         </Col>
       </Row>
-      
-      {(bookingType === 'Wedding' || bookingType === 'Baptism' || bookingType === 'Burial' || 
+
+      {(bookingType === 'Wedding' || bookingType === 'Baptism' || bookingType === 'Burial' ||
         bookingType === 'Communion' || bookingType === 'Confirmation') && (
-        <Form.Item
-          label="Payment Method"
-          name="payment_method"
-          initialValue="in_person"
-        >
-          <Select>
-            <Option value="in_person">In-Person Payment</Option>
-            <Option value="gcash">GCash</Option>
-          </Select>
-        </Form.Item>
-      )}
-      
+          <Form.Item
+            label="Payment Method"
+            name="payment_method"
+            initialValue="in_person"
+          >
+            <Select>
+              <Option value="in_person">In-Person Payment</Option>
+              <Option value="gcash">GCash</Option>
+            </Select>
+          </Form.Item>
+        )}
+
       {/* Wedding-specific fields */}
       {bookingType === 'Wedding' && (
         <>
@@ -442,7 +442,7 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
           </Row>
         </>
       )}
-      
+
       {/* Baptism-specific fields */}
       {bookingType === 'Baptism' && (
         <>
@@ -492,7 +492,7 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
               </Form.Item>
             </Col>
           </Row>
-          
+
           <Title level={5}>Father Information</Title>
           <Row gutter={16}>
             <Col span={8}>
@@ -526,7 +526,7 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
           >
             <Input />
           </Form.Item>
-          
+
           <Title level={5}>Mother Information</Title>
           <Row gutter={16}>
             <Col span={8}>
@@ -560,7 +560,7 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
           >
             <Input />
           </Form.Item>
-          
+
           <Form.Item
             label="Marriage Type"
             name="marriage_type"
@@ -568,7 +568,7 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
           >
             <Input />
           </Form.Item>
-          
+
           <Form.Item
             label="Address"
             name="address"
@@ -576,7 +576,7 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
           >
             <Input.TextArea />
           </Form.Item>
-          
+
           <Title level={5}>Godparents</Title>
           <Row gutter={16}>
             <Col span={12}>
@@ -612,7 +612,7 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
           </Row>
         </>
       )}
-      
+
       {/* Burial-specific fields */}
       {bookingType === 'Burial' && (
         <>
@@ -672,27 +672,27 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
           </Form.Item>
           <Form.Item label="Services">
             <Space direction="vertical">
-              <Checkbox 
+              <Checkbox
                 checked={burialServices.funeral_mass}
-                onChange={(e) => setBurialServices({...burialServices, funeral_mass: e.target.checked})}
+                onChange={(e) => setBurialServices({ ...burialServices, funeral_mass: e.target.checked })}
               >
                 Funeral Mass
               </Checkbox>
-              <Checkbox 
+              <Checkbox
                 checked={burialServices.death_anniversary}
-                onChange={(e) => setBurialServices({...burialServices, death_anniversary: e.target.checked})}
+                onChange={(e) => setBurialServices({ ...burialServices, death_anniversary: e.target.checked })}
               >
                 Death Anniversary
               </Checkbox>
-              <Checkbox 
+              <Checkbox
                 checked={burialServices.funeral_blessing}
-                onChange={(e) => setBurialServices({...burialServices, funeral_blessing: e.target.checked})}
+                onChange={(e) => setBurialServices({ ...burialServices, funeral_blessing: e.target.checked })}
               >
                 Funeral Blessing
               </Checkbox>
-              <Checkbox 
+              <Checkbox
                 checked={burialServices.tomb_blessing}
-                onChange={(e) => setBurialServices({...burialServices, tomb_blessing: e.target.checked})}
+                onChange={(e) => setBurialServices({ ...burialServices, tomb_blessing: e.target.checked })}
               >
                 Tomb Blessing
               </Checkbox>
@@ -700,24 +700,24 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
           </Form.Item>
         </>
       )}
-      
+
       {/* Confirmation-specific fields */}
       {bookingType === 'Confirmation' && (
         <Form.Item label="Sponsor Name" name="sponsor_name">
           <Input />
         </Form.Item>
       )}
-      
+
       {/* Anointing-specific fields */}
       {bookingType === 'Anointing' && (
         <Form.Item label="Medical Condition" name="medical_condition">
           <Input.TextArea />
         </Form.Item>
       )}
-      
+
       {(() => {
         let requirements = sacramentRequirements[bookingType] || [];
-  
+
         if (bookingType === 'Wedding') {
           requirements = requirements.filter((req) => {
             if (req.onlyIfCivillyMarried) {
@@ -726,13 +726,13 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
             return true;
           });
         }
- 
+
         const uploadRequirements = requirements.filter(req => req.requiresUpload);
-        
+
         if (uploadRequirements.length === 0) {
           return null;
         }
-        
+
         return (
           <Form.Item
             label={
@@ -745,9 +745,9 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
               </span>
             }
           >
-            <div style={{ 
-              border: '1px solid #d9d9d9', 
-              borderRadius: '4px', 
+            <div style={{
+              border: '1px solid #d9d9d9',
+              borderRadius: '4px',
               padding: '16px',
               backgroundColor: '#fafafa'
             }}>
@@ -771,7 +771,7 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
           </Form.Item>
         );
       })()}
-      
+
       <Form.Item>
         <Space>
           <Button type="primary" htmlType="submit" loading={loading}>
@@ -992,7 +992,7 @@ export default function BookingPendingRequests() {
       }
 
       const selectedPriest = priests.find(p => p.uid === selectedPriestId);
-      
+
       await axios.put(`${API_URL}/${endpoint}`, {
         transaction_id: bookingId,
         status: newStatus,
@@ -1068,7 +1068,7 @@ export default function BookingPendingRequests() {
   const getName = (booking) => {
     if (booking.bookingType === "Wedding") {
       return `${booking.groom_first_name || ""} ${booking.groom_last_name || ""} & ${booking.bride_first_name || ""} ${booking.bride_last_name || ""}`.trim();
-      
+
     } else if (booking.bookingType === "Burial") {
       return (
         booking.deceased_name ||
@@ -1094,11 +1094,11 @@ export default function BookingPendingRequests() {
     }
 
     const timeStr = String(timeValue).trim();
-    
+
     if (!timeStr || timeStr === 'null' || timeStr === 'undefined' || timeStr === 'NaN') {
       return "N/A";
     }
-    
+
     const timeMatch = timeStr.match(/^(\d{1,2}):(\d{2})(?::\d{2})?(?:\.[\d]+)?$/);
     if (timeMatch) {
       const hours24 = parseInt(timeMatch[1], 10);
@@ -1111,7 +1111,7 @@ export default function BookingPendingRequests() {
         return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")} ${ampm}`;
       }
     }
-    
+
     try {
       const date = new Date(timeStr);
       if (!isNaN(date.getTime()) && date instanceof Date) {
@@ -1474,142 +1474,142 @@ export default function BookingPendingRequests() {
           {(() => {
             let addressShown = false;
             let godparentsShown = false;
-            
+
             return details.map(({ key, value }) => {
-              if (['payment_method', 'amount', 'proof_of_payment', 'full_name', 'email', 'groom_pic', 'bride_pic', 
-                    'deceased_name', 'deceased_age', 'deceased_civil_status', 'requested_by', 
-                    'relationship_to_deceased', 'address', 'place_of_mass', 'mass_address'].includes(key)) return null;
-              
+              if (['payment_method', 'amount', 'proof_of_payment', 'full_name', 'email', 'groom_pic', 'bride_pic',
+                'deceased_name', 'deceased_age', 'deceased_civil_status', 'requested_by',
+                'relationship_to_deceased', 'address', 'place_of_mass', 'mass_address'].includes(key)) return null;
+
               if (selectedBooking?.bookingType === "Baptism" && [
-                'main_godfather_first_name', 
-                'main_godfather_middle_name', 
+                'main_godfather_first_name',
+                'main_godfather_middle_name',
                 'main_godfather_last_name',
-                'main_godmother_first_name', 
-                'main_godmother_middle_name', 
+                'main_godmother_first_name',
+                'main_godmother_middle_name',
                 'main_godmother_last_name',
                 'main_godfather',
                 'main_godmother'
               ].includes(key)) return null;
-              
+
               const isAddressField = key === 'address';
               const showGodparentsAfterAddress = isAddressField && selectedBooking?.bookingType === "Baptism" && !godparentsShown;
-              
+
               if (isAddressField) addressShown = true;
               if (showGodparentsAfterAddress) godparentsShown = true;
 
-            const isImageField = typeof value === "string" && (
-              value.toLowerCase().match(/\.(jpg|jpeg|png|gif|webp)$/i) ||
-              key.toLowerCase().includes('pic') ||
-              key.toLowerCase().includes('photo') ||
-              key.toLowerCase().includes('image')
-            );
-            
-            return (
-              <Fragment key={key}>
-                <Col span={12}>
-                  <Text strong>
-                    {key.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())}:
-                  </Text>
-                  
-                  <div style={{ marginTop: 4 }}>
-                    {key === "date" || key === "candidate_birthday" ? (
-                      formatDateOnly(value)
-                    ) : key === "time" ? (
-                      formatTimeOnly(value)
-                    ) : typeof value === "string" && value.toLowerCase().endsWith(".pdf") ? (
-                      <Button
-                        type="link"
-                        icon={<EyeOutlined />}
-                        onClick={() =>
-                          window.open(
-                            `https://qpwoatrmswpkgyxmzkjv.supabase.co/storage/v1/object/public/bookings/${value}`,
-                            "_blank"
-                          )
-                        }
-                      >
-                        View PDF
-                      </Button>
-                    ) : isImageField ? (
-                      <div>
-                        {(() => {
-                          let imageUrl = value;
-                          if (!imageUrl.startsWith('http')) {
-                            const { data } = supabase.storage.from('bookings').getPublicUrl(value);
-                            imageUrl = data?.publicUrl || `https://qpwoatrmswpkgyxmzkjv.supabase.co/storage/v1/object/public/bookings/${value}`;
-                          }
-                          return (
-                            <img
-                              src={imageUrl}
-                              alt={key.replace(/_/g, " ")}
-                              style={{
-                                maxWidth: '100%',
-                                maxHeight: '200px',
-                                borderRadius: 8,
-                                border: '1px solid #d9d9d9',
-                                cursor: 'pointer',
-                                objectFit: 'cover',
-                              }}
-                              onClick={() => {
-                                setSelectedImageUrl(imageUrl);
-                                setSelectedImageTitle(key.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase()));
-                                setImageModalVisible(true);
-                              }}
-                              onError={(e) => {
-                                console.error(`Error loading ${key} image:`, e);
-                                e.target.style.display = 'none';
-                              }}
-                            />
-                          );
-                        })()}
-                      </div>
-                    ) : typeof value === "boolean" ? (
-                      value ? "Yes" : "No"
-                    ) : Array.isArray(value) ? (
-                      <ul style={{ paddingLeft: 20 }}>
-                        {value.map((v, i) => (
-                          <li key={i}>{v}</li>
-                        ))}
-                      </ul>
-                    ) : typeof value === "object" ? (
-                      <pre style={{ whiteSpace: "pre-wrap" }}>{JSON.stringify(value, null, 2)}</pre>
-                    ) : (
-                      String(value)
-                    )}
-                  </div>
-                </Col>
-                
-                {/* Show godparents after address field for Baptism */}
-                {showGodparentsAfterAddress && (
-                  <>
-                    {/* Main Godfather - Only First Name */}
-                    {selectedBooking.main_godfather_first_name && (
-                      <Col span={12}>
-                        <Text strong>Main Godfather Name:</Text>
-                        <div>{selectedBooking.main_godfather_first_name}</div>
-                        {selectedBooking.main_godfather?.relationship && (
-                          <Text type="secondary" style={{ display: 'block', marginTop: 4 }}>
-                            Relationship: {selectedBooking.main_godfather.relationship}
-                          </Text>
-                        )}
-                      </Col>
-                    )}
+              const isImageField = typeof value === "string" && (
+                value.toLowerCase().match(/\.(jpg|jpeg|png|gif|webp)$/i) ||
+                key.toLowerCase().includes('pic') ||
+                key.toLowerCase().includes('photo') ||
+                key.toLowerCase().includes('image')
+              );
 
-                    {/* Main Godmother - Only First Name */}
-                    {selectedBooking.main_godmother_first_name && (
-                      <Col span={12}>
-                        <Text strong>Main Godmother Name:</Text>
-                        <div>{selectedBooking.main_godmother_first_name}</div>
-                        {selectedBooking.main_godmother?.relationship && (
-                          <Text type="secondary" style={{ display: 'block', marginTop: 4 }}>
-                            Relationship: {selectedBooking.main_godmother.relationship}
-                          </Text>
-                        )}
-                      </Col>
-                    )}
-                  </>
-                )}
-              </Fragment>
-            );
+              return (
+                <Fragment key={key}>
+                  <Col span={12}>
+                    <Text strong>
+                      {key.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())}:
+                    </Text>
+
+                    <div style={{ marginTop: 4 }}>
+                      {key === "date" || key === "candidate_birthday" ? (
+                        formatDateOnly(value)
+                      ) : key === "time" ? (
+                        formatTimeOnly(value)
+                      ) : typeof value === "string" && value.toLowerCase().endsWith(".pdf") ? (
+                        <Button
+                          type="link"
+                          icon={<EyeOutlined />}
+                          onClick={() =>
+                            window.open(
+                              `https://qpwoatrmswpkgyxmzkjv.supabase.co/storage/v1/object/public/bookings/${value}`,
+                              "_blank"
+                            )
+                          }
+                        >
+                          View PDF
+                        </Button>
+                      ) : isImageField ? (
+                        <div>
+                          {(() => {
+                            let imageUrl = value;
+                            if (!imageUrl.startsWith('http')) {
+                              const { data } = supabase.storage.from('bookings').getPublicUrl(value);
+                              imageUrl = data?.publicUrl || `https://qpwoatrmswpkgyxmzkjv.supabase.co/storage/v1/object/public/bookings/${value}`;
+                            }
+                            return (
+                              <img
+                                src={imageUrl}
+                                alt={key.replace(/_/g, " ")}
+                                style={{
+                                  maxWidth: '100%',
+                                  maxHeight: '200px',
+                                  borderRadius: 8,
+                                  border: '1px solid #d9d9d9',
+                                  cursor: 'pointer',
+                                  objectFit: 'cover',
+                                }}
+                                onClick={() => {
+                                  setSelectedImageUrl(imageUrl);
+                                  setSelectedImageTitle(key.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase()));
+                                  setImageModalVisible(true);
+                                }}
+                                onError={(e) => {
+                                  console.error(`Error loading ${key} image:`, e);
+                                  e.target.style.display = 'none';
+                                }}
+                              />
+                            );
+                          })()}
+                        </div>
+                      ) : typeof value === "boolean" ? (
+                        value ? "Yes" : "No"
+                      ) : Array.isArray(value) ? (
+                        <ul style={{ paddingLeft: 20 }}>
+                          {value.map((v, i) => (
+                            <li key={i}>{v}</li>
+                          ))}
+                        </ul>
+                      ) : typeof value === "object" ? (
+                        <pre style={{ whiteSpace: "pre-wrap" }}>{JSON.stringify(value, null, 2)}</pre>
+                      ) : (
+                        String(value)
+                      )}
+                    </div>
+                  </Col>
+
+                  {/* Show godparents after address field for Baptism */}
+                  {showGodparentsAfterAddress && (
+                    <>
+                      {/* Main Godfather - Only First Name */}
+                      {selectedBooking.main_godfather_first_name && (
+                        <Col span={12}>
+                          <Text strong>Main Godfather Name:</Text>
+                          <div>{selectedBooking.main_godfather_first_name}</div>
+                          {selectedBooking.main_godfather?.relationship && (
+                            <Text type="secondary" style={{ display: 'block', marginTop: 4 }}>
+                              Relationship: {selectedBooking.main_godfather.relationship}
+                            </Text>
+                          )}
+                        </Col>
+                      )}
+
+                      {/* Main Godmother - Only First Name */}
+                      {selectedBooking.main_godmother_first_name && (
+                        <Col span={12}>
+                          <Text strong>Main Godmother Name:</Text>
+                          <div>{selectedBooking.main_godmother_first_name}</div>
+                          {selectedBooking.main_godmother?.relationship && (
+                            <Text type="secondary" style={{ display: 'block', marginTop: 4 }}>
+                              Relationship: {selectedBooking.main_godmother.relationship}
+                            </Text>
+                          )}
+                        </Col>
+                      )}
+                    </>
+                  )}
+                </Fragment>
+              );
             });
           })()}
 
@@ -1659,30 +1659,30 @@ export default function BookingPendingRequests() {
     );
   };
 
-  
   return (
     <div style={{ padding: "24px", background: "#f0f2f5", minHeight: "100vh" }}>
-      <div style={{ maxWidth: "1400px", margin: "0 auto" }}>
+      <div style={{ maxWidth: "1550px", margin: "0 auto", marginTop: 20 }}>
         {/* Header */}
         <div style={{ marginBottom: 24 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div>
-              <Title level={2} style={{ margin: 0, color: "#262626" }}>
+              <Title level={2} style={{ margin: 0, color: "#262626", fontFamily: 'Poppins' }}>
                 Booking Pending Requests
               </Title>
-              <Text type="secondary" style={{ fontSize: 16 }}>
+              <Text type="secondary" style={{ fontSize: 16, fontFamily: 'Poppins' }}>
                 Manage and track all booking requests
               </Text>
             </div>
             <Space>
-              <Button 
-                type="primary" 
-                icon={<PlusOutlined />} 
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
                 onClick={() => setCreateBookingModalVisible(true)}
+                className="border-btn"
               >
                 Create Booking
               </Button>
-              <Button icon={<ReloadOutlined />} onClick={fetchAllBookings} loading={loading}>
+              <Button icon={<ReloadOutlined />} onClick={fetchAllBookings} loading={loading} className="border-btn">
                 Refresh
               </Button>
             </Space>
@@ -1739,18 +1739,30 @@ export default function BookingPendingRequests() {
             <Col xs={24} sm={12} md={6}>
               <Input
                 placeholder="Search by name, transaction ID, or contact..."
-                prefix={<SearchOutlined />}
+                prefix={<SearchOutlined style={{ marginRight: 8 }} />}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 allowClear
+                style={{
+                  fontFamily: 'Poppins, sans-serif',
+                  fontWeight: 500,
+                  padding: '10px 12px',
+                  height: '42px',
+                }}
               />
             </Col>
             <Col xs={24} sm={12} md={6}>
               <Select
-                style={{ width: "100%" }}
-                value={statusFilter}
+                style={{
+                  width: '100%',
+                  fontFamily: 'Poppins, sans-serif',
+                  fontWeight: 500,
+                  padding: '8px 12px',
+                  height: '42px',
+                }} value={statusFilter}
                 onChange={setStatusFilter}
                 placeholder="Filter by status"
+
               >
                 <Option value="all">All Status</Option>
                 <Option value="pending">Pending</Option>
@@ -1760,8 +1772,13 @@ export default function BookingPendingRequests() {
             </Col>
             <Col xs={24} sm={12} md={6}>
               <Select
-                style={{ width: "100%" }}
-                value={typeFilter}
+                style={{
+                  width: '100%',
+                  fontFamily: 'Poppins, sans-serif',
+                  fontWeight: 500,
+                  padding: '8px 12px',
+                  height: '42px',
+                }} value={typeFilter}
                 onChange={setTypeFilter}
                 placeholder="Filter by type"
               >
@@ -1777,8 +1794,13 @@ export default function BookingPendingRequests() {
             </Col>
             <Col xs={24} sm={12} md={6}>
               <Select
-                style={{ width: "100%" }}
-                value={monthFilter}
+                style={{
+                  width: '100%',
+                  fontFamily: 'Poppins, sans-serif',
+                  fontWeight: 500,
+                  padding: '8px 12px',
+                  height: '42px',
+                }} value={monthFilter}
                 onChange={setMonthFilter}
                 placeholder="Filter by month"
                 showSearch
@@ -1872,8 +1894,8 @@ export default function BookingPendingRequests() {
             }}>
               Close
             </Button>,
-            <Button 
-              key="open" 
+            <Button
+              key="open"
               type="primary"
               onClick={() => {
                 if (selectedImageUrl) {
@@ -1940,7 +1962,7 @@ export default function BookingPendingRequests() {
               <Option value="Confession">Confession</Option>
             </Select>
           </div>
-          
+
           {selectedBookingType && (
             <AdminBookingForm
               bookingType={selectedBookingType}
@@ -1955,7 +1977,7 @@ export default function BookingPendingRequests() {
               }}
             />
           )}
-          
+
           {!selectedBookingType && (
             <div style={{ textAlign: 'center', padding: '40px 0', color: '#999' }}>
               <Text type="secondary">Please select a sacrament type to create a booking</Text>
