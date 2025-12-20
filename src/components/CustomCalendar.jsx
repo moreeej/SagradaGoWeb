@@ -9,7 +9,7 @@ const CustomCalendar = ({ events = [], onEventClick }) => {
       return null;
     }
 
-    const dateStr = dayjs(value).format("YYYY-MM-DD"); 
+    const dateStr = dayjs(value).format("YYYY-MM-DD");
     const dayEvents = events.filter((event) => event && event.date === dateStr);
 
     if (dayEvents.length === 0) {
@@ -20,7 +20,7 @@ const CustomCalendar = ({ events = [], onEventClick }) => {
       <div style={{ minHeight: 50, position: "relative" }}>
         {dayEvents.map((item, index) => {
           let badgeStatus;
-          
+
           if ((item.status || "").toLowerCase() === "confirmed") {
             badgeStatus = "success";
 
@@ -41,7 +41,7 @@ const CustomCalendar = ({ events = [], onEventClick }) => {
             <Badge
               key={index}
               status={badgeStatus}
-              text={item.type} 
+              text={item.type}
               style={{
                 display: "block",
                 marginBottom: 2,
@@ -79,7 +79,7 @@ const CustomCalendar = ({ events = [], onEventClick }) => {
     return info.originNode;
   };
 
-  return <Calendar cellRender={cellRender} />;
+  return <Calendar cellRender={cellRender} className="custom-calendar" />;
 };
 
 export default CustomCalendar;

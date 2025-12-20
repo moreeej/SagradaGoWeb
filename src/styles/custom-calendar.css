@@ -14,8 +14,25 @@
   font-size: 12px;
 }
 
-/* Badge text smaller */
 .ant-badge-status-text {
   font-size: 12px;
   white-space: nowrap;
+}
+
+.custom-calendar .ant-picker-cell-today .ant-picker-cell-inner {
+  border: 1px solid #FFC942 !important;
+  background-color: rgba(255, 201, 66, 0.2) !important;
+  color: #FFC942 !important;
+  font-weight: 600 !important;
+}
+
+.custom-calendar .ant-picker-cell-today:hover .ant-picker-cell-inner,
+.custom-calendar .ant-picker-cell-today.ant-picker-cell-selected .ant-picker-cell-inner {
+  background-color: rgba(255, 201, 66, 0.35) !important;
+  color: #FFC942 !important;
+  border-color: #FFC942 !important;
+}
+
+.ant-picker-cell-today .ant-picker-cell-inner::after {
+  display: none !important;
 }
