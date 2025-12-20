@@ -28,14 +28,14 @@ export default function AdminChat() {
     if (API_BASE.endsWith("/api")) {
       API_BASE = API_BASE.replace("/api", "");
     }
-    
+
     const newSocket = io(API_BASE, {
       transports: ["websocket", "polling"],
     });
 
     newSocket.on("connect", () => {
       console.log("Connected to server");
-      
+
       newSocket.emit("join-room", {
         userId: currentUser?.uid || "admin",
         userType: "admin",
@@ -65,13 +65,13 @@ export default function AdminChat() {
         const updatedChats = prevChats.map((c) =>
           c.userId === chat.userId ? chat : c
         );
-        
+
         const chatIndex = updatedChats.findIndex((c) => c.userId === chat.userId);
         if (chatIndex > 0) {
           const [chatToMove] = updatedChats.splice(chatIndex, 1);
           updatedChats.unshift(chatToMove);
         }
-        
+
         return updatedChats;
       });
 
@@ -86,7 +86,7 @@ export default function AdminChat() {
         setSelectedChat(chat);
         setMessages(chat.messages || []);
         scrollToBottom();
-        
+
         if (chat.unreadCount > 0) {
           markAsRead(chat.userId);
         }
@@ -110,7 +110,7 @@ export default function AdminChat() {
     try {
       const response = await axios.get(`${API_URL}/chat/getAllChats`);
       setChats(response.data.chats || []);
-      
+
       const totalUnread = response.data.chats?.reduce(
         (sum, chat) => sum + (chat.unreadCount || 0),
         0
@@ -180,7 +180,7 @@ export default function AdminChat() {
 
     } else if (days === 1) {
       return "Yesterday";
-      
+
     } else {
       return date.toLocaleDateString("en-US", {
         month: "short",
@@ -198,205 +198,167 @@ export default function AdminChat() {
   };
 
   return (
-    <Layout style={{ height: "100vh", background: "#f0f2f5" }}>
-      <Sider width={320} style={{ background: "#fff", borderRight: "1px solid #e8e8e8" }}>
-        <div style={{ padding: "16px", borderBottom: "1px solid #e8e8e8" }}>
-          <Text strong style={{ fontSize: "18px" }}>
-            Chats
-          </Text>
-          {unreadCount > 0 && (
-            <Badge count={unreadCount} style={{ marginLeft: "8px" }} />
-          )}
-        </div>
-        <div style={{ overflowY: "auto", height: "calc(100vh - 73px)" }}>
-          {chats.length === 0 ? (
-            <Empty
-              description="No active chats"
-              style={{ marginTop: "50px" }}
-            />
-          ) : (
-            <List
-              dataSource={chats}
-              renderItem={(chat) => (
-                <List.Item
-                  style={{
-                    cursor: "pointer",
-                    padding: "12px 16px",
-                    backgroundColor:
-                      selectedChat?.userId === chat.userId ? "#e6f7ff" : "transparent",
-                    borderBottom: "1px solid #f0f0f0",
-                  }}
-                  onClick={() => handleSelectChat(chat)}
-                >
-                  <List.Item.Meta
-                    avatar={
-                      <Badge count={chat.unreadCount || 0} offset={[-5, 5]}>
-                        <Avatar
-                          icon={<UserOutlined />}
-                          style={{ backgroundColor: "#b87d3e" }}
-                        />
-                      </Badge>
-                    }
-                    title={
-                      <div
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                        }}
-                      >
-                        <Text strong>{chat.userName}</Text>
-                        {chat.lastMessage && (
-                          <Text type="secondary" style={{ fontSize: "12px" }}>
-                            {formatTime(chat.lastMessage)}
-                          </Text>
-                        )}
-                      </div>
-                    }
-                    description={
-                      <Text
-                        ellipsis
-                        style={{
-                          color: chat.unreadCount > 0 ? "#000" : "#8c8c8c",
-                          fontWeight: chat.unreadCount > 0 ? 500 : 400,
-                        }}
-                      >
-                        {getLastMessage(chat)}
-                      </Text>
-                    }
-                  />
-                </List.Item>
-              )}
-            />
-          )}
-        </div>
-      </Sider>
-
-      <Content style={{ display: "flex", flexDirection: "column" }}>
-        {selectedChat ? (
-          <>
-            <div
-              style={{
-                padding: "16px",
-                borderBottom: "1px solid #e8e8e8",
-                background: "#fff",
-              }}
-            >
-              <Text strong style={{ fontSize: "16px" }}>
-                {selectedChat.userName}
-              </Text>
-              {selectedChat.userEmail && (
-                <Text type="secondary" style={{ display: "block", fontSize: "12px" }}>
-                  {selectedChat.userEmail}
-                </Text>
-              )}
-            </div>
-
-            <div
-              ref={messagesContainerRef}
-              style={{
-                flex: 1,
-                overflowY: "auto",
-                padding: "16px",
-                background: "#fafafa",
-              }}
-            >
-              {messages.length === 0 ? (
-                <Empty description="No messages yet. Start the conversation!" />
-              ) : (
-                messages.map((msg, index) => (
-                  <div
-                    key={index}
-                    style={{
-                      display: "flex",
-                      justifyContent: msg.senderType === "admin" ? "flex-end" : "flex-start",
-                      marginBottom: "12px",
-                    }}
-                  >
-                    <Card
-                      style={{
-                        maxWidth: "70%",
-                        background: msg.senderType === "admin" ? "#b87d3e" : "#fff",
-                        border: msg.senderType === "admin" ? "none" : "1px solid #e8e8e8",
-                        borderRadius: "8px",
-                      }}
-                      bodyStyle={{ padding: "8px 12px" }}
-                    >
-                      <Text
-                        style={{
-                          color: msg.senderType === "admin" ? "#fff" : "#000",
-                          fontSize: "14px",
-                        }}
-                      >
-                        {msg.message}
-                      </Text>
-                      <div
-                        style={{
-                          fontSize: "11px",
-                          color: msg.senderType === "admin" ? "rgba(255,255,255,0.7)" : "#8c8c8c",
-                          marginTop: "4px",
-                        }}
-                      >
-                        {formatTime(msg.timestamp)}
-                      </div>
-                    </Card>
-                  </div>
-                ))
-              )}
-              <div ref={messagesEndRef} />
-            </div>
-
-            <div
-              style={{
-                padding: "16px",
-                borderTop: "1px solid #e8e8e8",
-                background: "#fff",
-              }}
-            >
-              <div style={{ display: "flex", gap: "8px" }}>
-                <TextArea
-                  value={inputMessage}
-                  onChange={(e) => setInputMessage(e.target.value)}
-                  onPressEnter={(e) => {
-                    if (!e.shiftKey) {
-                      e.preventDefault();
-                      sendMessage();
-                    }
-                  }}
-                  placeholder="Type a message..."
-                  autoSize={{ minRows: 1, maxRows: 4 }}
-                  style={{ flex: 1 }}
-                />
-                <Button
-                  type="primary"
-                  icon={<SendOutlined />}
-                  onClick={sendMessage}
-                  disabled={!inputMessage.trim()}
-                  style={{ background: "#b87d3e", borderColor: "#b87d3e" }}
-                >
-                  Send
-                </Button>
-              </div>
-            </div>
-          </>
-        ) : (
-          <div
+    <div style={{ padding: "24px", background: "#f0f2f5", minHeight: "100vh" }}>
+      <div style={{ maxWidth: "1550px", margin: "0 auto" }}>
+        <Layout
+          style={{
+            background: "#f0f2f5",
+            borderRadius: "8px",
+            overflow: "hidden",
+            minHeight: "95vh",
+          }}
+        >
+          <Sider
+            width={320}
             style={{
+              background: "#fff",
+              borderRight: "1px solid #e8e8e8",
               display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              height: "100%",
               flexDirection: "column",
             }}
           >
-            <MessageOutlined style={{ fontSize: "64px", color: "#d9d9d9" }} />
-            <Text type="secondary" style={{ marginTop: "16px", fontSize: "16px" }}>
-              Select a chat to start messaging
-            </Text>
-          </div>
-        )}
-      </Content>
-    </Layout>
+            <div style={{ padding: "16px", borderBottom: "1px solid #e8e8e8" }}>
+              <Text strong style={{ fontSize: "18px" }}>Chats</Text>
+              {unreadCount > 0 && <Badge count={unreadCount} style={{ marginLeft: "8px" }} />}
+            </div>
+
+            <div style={{ overflowY: "auto", flex: 1 }}>
+              {chats.length === 0 ? (
+                <Empty description="No active chats" style={{ marginTop: "50px" }} />
+              ) : (
+                <List
+                  dataSource={chats}
+                  renderItem={(chat) => (
+                    <List.Item
+                      style={{
+                        cursor: "pointer",
+                        padding: "12px 16px",
+                        backgroundColor: selectedChat?.userId === chat.userId ? "#e6f7ff" : "transparent",
+                        borderBottom: "1px solid #f0f0f0",
+                      }}
+                      onClick={() => handleSelectChat(chat)}
+                    >
+                      <List.Item.Meta
+                        avatar={
+                          <Badge count={chat.unreadCount || 0} offset={[-5, 5]}>
+                            <Avatar icon={<UserOutlined />} style={{ backgroundColor: "#b87d3e" }} />
+                          </Badge>
+                        }
+                        title={
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                            <Text strong>{chat.userName}</Text>
+                            {chat.lastMessage && <Text type="secondary" style={{ fontSize: "12px" }}>{formatTime(chat.lastMessage)}</Text>}
+                          </div>
+                        }
+                        description={
+                          <Text ellipsis style={{ color: chat.unreadCount > 0 ? "#000" : "#8c8c8c", fontWeight: chat.unreadCount > 0 ? 500 : 400 }}>
+                            {getLastMessage(chat)}
+                          </Text>
+                        }
+                      />
+                    </List.Item>
+                  )}
+                />
+              )}
+            </div>
+          </Sider>
+
+          {/* Main chat area */}
+          <Content style={{ display: "flex", flexDirection: "column", background: "#f0f2f5" }}>
+            {selectedChat ? (
+              <>
+                {/* Header */}
+                <div style={{ padding: "16px", borderBottom: "1px solid #e8e8e8", background: "#fff" }}>
+                  <Text strong>{selectedChat.userName}</Text>
+                </div>
+
+                {/* Messages container */}
+                <div
+                  ref={messagesContainerRef}
+                  style={{ flex: 1, overflowY: "auto", padding: "16px", background: "#fafafa" }}
+                >
+                  {messages.length === 0 ? (
+                    <Empty description="No messages yet. Start the conversation!" />
+                  ) : (
+                    messages.map((msg, index) => (
+                      <div
+                        key={index}
+                        style={{
+                          display: "flex",
+                          justifyContent: msg.senderType === "admin" ? "flex-end" : "flex-start",
+                          marginBottom: "12px",
+                        }}
+                      >
+                        <Card
+                          style={{
+                            maxWidth: "70%",
+                            background: msg.senderType === "admin" ? "#b87d3e" : "#fff",
+                            border: msg.senderType === "admin" ? "none" : "1px solid #e8e8e8",
+                            borderRadius: "8px",
+                          }}
+                          bodyStyle={{ padding: "8px 12px" }}
+                        >
+                          <Text style={{ color: msg.senderType === "admin" ? "#fff" : "#000", fontSize: "14px" }}>
+                            {msg.message}
+                          </Text>
+                          <div style={{ fontSize: "11px", color: msg.senderType === "admin" ? "rgba(255,255,255,0.7)" : "#8c8c8c", marginTop: "4px" }}>
+                            {formatTime(msg.timestamp)}
+                          </div>
+                        </Card>
+                      </div>
+                    ))
+                  )}
+                  <div ref={messagesEndRef} />
+                </div>
+
+                {/* Input box */}
+                <div style={{ padding: "16px", borderTop: "1px solid #e8e8e8", background: "#fff" }}>
+                  <div style={{ display: "flex", gap: "8px" }}>
+                    <TextArea
+                      value={inputMessage}
+                      onChange={(e) => setInputMessage(e.target.value)}
+                      onPressEnter={(e) => {
+                        if (!e.shiftKey) {
+                          e.preventDefault();
+                          sendMessage();
+                        }
+                      }}
+                      placeholder="Type a message..."
+                      autoSize={{ minRows: 1, maxRows: 4 }}
+                      style={{ flex: 1 }}
+                    />
+                    <Button
+                      type="primary"
+                      icon={<SendOutlined />}
+                      onClick={sendMessage}
+                      disabled={!inputMessage.trim()}
+                      style={{ background: "#b87d3e", borderColor: "#b87d3e" }}
+                    >
+                      Send
+                    </Button>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  height: "100%",
+                  flexDirection: "column",
+                }}
+              >
+                <MessageOutlined style={{ fontSize: "64px", color: "#d9d9d9" }} />
+                <Text type="secondary" style={{ marginTop: "16px", fontSize: "16px", fontFamily: 'Poppins' }}>
+                  Select a chat to start messaging
+                </Text>
+              </div>
+            )}
+          </Content>
+        </Layout>
+      </div>
+    </div>
   );
 }
 
