@@ -20,6 +20,7 @@
   gap: 12px;
   padding: 24px;
   cursor: pointer;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.219);
 }
 
 .admin-logo img {
@@ -77,7 +78,7 @@
 .admin-logout {
   margin-top: auto;
   padding: 16px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid rgba(255, 255, 255, 0.219);
 }
 
 .admin-logout .ant-btn {
@@ -86,6 +87,11 @@
   border-radius: 10px;
   text-align: left;
   transition: all 0.25s ease;
+}
+
+.admin-logout .ant-btn span {
+  font-weight: 600 !important;
+  font-size: 16px;
 }
 
 .admin-logout .ant-btn:hover {
@@ -111,4 +117,58 @@
 .custom-admin-menu.ant-menu-dark .ant-menu-item:not(.ant-menu-item-selected):hover .ant-menu-item-icon svg {
   color: #ffffff !important;
   fill: #ffffff !important;
+}
+
+.admin-logout .ant-btn,
+.admin-logout .ant-btn span,
+.admin-logout .ant-btn .anticon,
+.admin-logout .ant-btn .anticon svg {
+  color: #f9f9f9 !important;
+  fill: #f9f9f9 !important;
+}
+
+.admin-logout .ant-btn:hover,
+.admin-logout .ant-btn:hover span,
+.admin-logout .ant-btn:hover .anticon,
+.admin-logout .ant-btn:hover .anticon svg {
+  color: #ffffff !important;
+  fill: #ffffff !important;
+}
+
+/* Download App Section */
+.admin-download-app {
+  margin: 16px;
+  margin-top: 55px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  text-align: center;
+  backdrop-filter: blur(6px);
+}
+
+.download-title {
+  color: #f9f9f9;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.download-subtitle {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+  margin-bottom: 12px;
+}
+
+.download-btn {
+  background: #FFC942;
+  border: none;
+  color: #424242;
+  font-weight: 600;
+  height: 38px;
+  border-radius: 8px;
+}
+
+.download-btn:hover {
+  background: #ffd766 !important;
+  color: #424242 !important;
 }

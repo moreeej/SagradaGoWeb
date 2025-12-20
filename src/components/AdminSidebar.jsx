@@ -104,6 +104,17 @@ export default function AdminSidebar() {
           Logout
         </Button>
       </div>
+
+      {/* Download App Box */}
+      <div className="admin-download-app">
+        <div className="download-title">Download our mobile app</div>
+        <div className="download-subtitle">
+          Get faster access on your phone!
+        </div>
+        <Button type="primary" block className="download-btn">
+          Download
+        </Button>
+      </div>
     </Sider>
   );
 }
