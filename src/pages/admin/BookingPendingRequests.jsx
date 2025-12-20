@@ -1736,7 +1736,7 @@ export default function BookingPendingRequests() {
         {/* Filters */}
         <Card style={{ marginBottom: 24 }}>
           <Row gutter={[16, 16]}>
-            <Col xs={24} sm={12} md={6}>
+            <Col xs={24} sm={12} md={12}>
               <Input
                 placeholder="Search by name, transaction ID, or contact..."
                 prefix={<SearchOutlined style={{ marginRight: 8 }} />}
@@ -1751,7 +1751,7 @@ export default function BookingPendingRequests() {
                 }}
               />
             </Col>
-            <Col xs={24} sm={12} md={6}>
+            <Col xs={24} sm={12} md={4}>
               <Select
                 style={{
                   width: '100%',
@@ -1771,7 +1771,7 @@ export default function BookingPendingRequests() {
                 <Option value="cancelled">Cancelled</Option>
               </Select>
             </Col>
-            <Col xs={24} sm={12} md={6}>
+            <Col xs={24} sm={12} md={4}>
               <Select
                 style={{
                   width: '100%',
@@ -1793,7 +1793,7 @@ export default function BookingPendingRequests() {
                 <Option value="Wedding">Wedding</Option>
               </Select>
             </Col>
-            <Col xs={24} sm={12} md={6}>
+            <Col xs={24} sm={12} md={4}>
               <Select
                 style={{
                   width: '100%',

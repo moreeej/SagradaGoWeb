@@ -393,7 +393,7 @@ export default function DonationsList() {
         {/* Filters */}
         <Card style={{ marginBottom: 24 }}>
           <Row gutter={[16, 16]}>
-            <Col xs={24} sm={12} md={8}>
+            <Col xs={24} sm={12} md={12}>
               <Input
                 placeholder="Search by name, email, or payment method..."
                 prefix={<SearchOutlined style={{ marginRight: 8 }} />}
@@ -408,7 +408,7 @@ export default function DonationsList() {
                 }}
               />
             </Col>
-            <Col xs={24} sm={12} md={8}>
+            <Col xs={24} sm={12} md={6}>
               <Select
                 style={{
                   width: '100%',
@@ -427,7 +427,7 @@ export default function DonationsList() {
                 <Option value="cancelled">Cancelled</Option>
               </Select>
             </Col>
-            <Col xs={24} sm={12} md={8}>
+            <Col xs={24} sm={12} md={6}>
               <Select
                 style={{
                   width: '100%',
