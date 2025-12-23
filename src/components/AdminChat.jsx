@@ -52,15 +52,14 @@ export default function AdminChat() {
       setChats(chats || []);
       const totalUnread = chats?.reduce((sum, chat) => sum + (chat.unreadCount || 0), 0) || 0;
       setUnreadCount(totalUnread);
-
+      
       const currentSelectedChat = selectedChatRef.current;
       if (currentSelectedChat && chats) {
         const updatedChat = chats.find(c => c.userId === currentSelectedChat.userId);
-
         if (updatedChat) {
           setSelectedChat(updatedChat);
           selectedChatRef.current = updatedChat;
-
+  
           if (updatedChat.messages && JSON.stringify(updatedChat.messages) !== JSON.stringify(currentSelectedChat.messages)) {
             setMessages(updatedChat.messages || []);
             scrollToBottom();
@@ -75,6 +74,14 @@ export default function AdminChat() {
         setMessages((prev) => [...prev, message]);
         scrollToBottom();
       }
+    });
+
+    newSocket.on("message-seen", ({ messageId, seenAt }) => {
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg._id === messageId || msg.id === messageId ? { ...msg, seenAt } : msg
+        )
+      );
     });
 
     newSocket.on("new-message", ({ chat, message }) => {
@@ -94,14 +101,13 @@ export default function AdminChat() {
 
       const currentSelectedChat = selectedChatRef.current;
       if (currentSelectedChat && currentSelectedChat.userId === chat.userId) {
-  
+
         if (chat.messages && Array.isArray(chat.messages)) {
           setMessages(chat.messages);
 
         } else {
           setMessages((prev) => [...prev, message]);
         }
-
         setSelectedChat((prev) => {
           const updated = { ...prev, ...chat };
           selectedChatRef.current = updated;
@@ -226,6 +232,34 @@ export default function AdminChat() {
     } else if (days === 1) {
       return "Yesterday";
 
+    } else {
+      return date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      });
+    }
+  };
+
+  const formatSeenTime = (timestamp) => {
+    if (!timestamp) return null;
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diff = now - date;
+    const seconds = Math.floor(diff / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+
+    if (seconds < 60) {
+      return "just now";
+    } else if (minutes < 60) {
+      return `${minutes} ${minutes === 1 ? "minute" : "minutes"} ago`;
+    } else if (hours < 24) {
+      return `${hours} ${hours === 1 ? "hour" : "hours"} ago`;
+    } else if (days === 1) {
+      return "yesterday";
+    } else if (days < 7) {
+      return `${days} ${days === 1 ? "day" : "days"} ago`;
     } else {
       return date.toLocaleDateString("en-US", {
         month: "short",
