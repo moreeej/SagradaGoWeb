@@ -1,7 +1,7 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { useContext, useState, useEffect } from "react";
 import { Layout, Menu, Button, Badge } from "antd";
-import { DashboardOutlined, UserOutlined, LogoutOutlined, BookOutlined, DollarOutlined, TeamOutlined, CalendarOutlined, NotificationOutlined, MessageOutlined } from "@ant-design/icons";
+import { DashboardOutlined, UserOutlined, LogoutOutlined, BookOutlined, DollarOutlined, TeamOutlined, CalendarOutlined, NotificationOutlined, MessageOutlined, BellOutlined } from "@ant-design/icons";
 import { NavbarContext } from "../context/AllContext";
 import Cookies from "js-cookie";
 import axios from "axios";
@@ -87,7 +87,7 @@ export default function AdminSidebar() {
     },
     {
       key: "/admin/notifications",
-      icon: <NotificationOutlined />,
+      icon: <BellOutlined />,
       label: (
         <span style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <span>Notifications</span>
