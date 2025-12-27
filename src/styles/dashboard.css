@@ -184,7 +184,7 @@
 .border-btn {
   border: 1px solid #424242;
   background: transparent;
-  color: #FFC942;
+  color: #424242;
   font-family: 'Poppins', sans-serif;
   font-weight: 500;
   border-radius: 6px;
@@ -195,7 +195,7 @@
 .border-btn:hover,
 .border-btn:focus {
   background: rgb(255, 201, 66) !important;
-  color: #FFC942 !important;
+  color: #424242 !important;
   border-color: #FFC942 !important;
 }
 
