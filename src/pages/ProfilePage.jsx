@@ -266,14 +266,6 @@ export default function ProfilePage({ user, onLogout, updateUser }) {
             </div>
           ))}
         </div>
-
-        <Button
-          danger
-          className="logoutBtn"
-          onClick={() => setShowLogoutModal(true)}
-        >
-          Logout
-        </Button>
       </div>
 
       <Modal
