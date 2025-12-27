@@ -1,6 +1,6 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { useContext, useState, useEffect } from "react";
-import { Layout, Menu, Button, Badge } from "antd";
+import { Layout, Menu, Button, Badge, Modal } from "antd";
 import { DashboardOutlined, UserOutlined, LogoutOutlined, BookOutlined, DollarOutlined, TeamOutlined, CalendarOutlined, NotificationOutlined, MessageOutlined } from "@ant-design/icons";
 import { NavbarContext } from "../context/AllContext";
 import Cookies from "js-cookie";
@@ -17,6 +17,7 @@ export default function AdminSidebar() {
   const { setCurrentUser } = useContext(NavbarContext);
   const [notificationUnreadCount, setNotificationUnreadCount] = useState(0);
   const [chatUnreadCount, setChatUnreadCount] = useState(0);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const user = JSON.parse(localStorage.getItem("currentUser")) || null;
 
@@ -147,6 +148,11 @@ export default function AdminSidebar() {
   };
 
   const handleLogout = () => {
+    setShowLogoutModal(true);
+  };
+
+  const handleLogoutConfirm = () => {
+    setShowLogoutModal(false);
     Cookies.remove("email");
     setCurrentUser({});
     navigate("/");
@@ -195,6 +201,19 @@ export default function AdminSidebar() {
           Download
         </Button>
       </div>
+
+      {/* Logout Confirmation Modal */}
+      <Modal
+        open={showLogoutModal}
+        title="Confirm Logout"
+        onCancel={() => setShowLogoutModal(false)}
+        onOk={handleLogoutConfirm}
+        okText="Logout"
+        cancelText="Cancel"
+        okButtonProps={{ danger: true }}
+      >
+        <p>Are you sure you want to logout?</p>
+      </Modal>
     </Sider>
   );
 }
