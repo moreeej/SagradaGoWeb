@@ -1,7 +1,7 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { useContext, useState, useEffect } from "react";
 import { Layout, Menu, Button, Badge } from "antd";
-import { DashboardOutlined, UserOutlined, LogoutOutlined, BookOutlined, DollarOutlined, TeamOutlined, CalendarOutlined, NotificationOutlined, MessageOutlined, BellOutlined } from "@ant-design/icons";
+import { DashboardOutlined, UserOutlined, LogoutOutlined, BookOutlined, DollarOutlined, TeamOutlined, CalendarOutlined, NotificationOutlined, MessageOutlined } from "@ant-design/icons";
 import { NavbarContext } from "../context/AllContext";
 import Cookies from "js-cookie";
 import axios from "axios";
@@ -15,17 +15,22 @@ export default function AdminSidebar() {
   const navigate = useNavigate();
   const location = useLocation();
   const { setCurrentUser } = useContext(NavbarContext);
-  const [unreadCount, setUnreadCount] = useState(0);
+  const [notificationUnreadCount, setNotificationUnreadCount] = useState(0);
+  const [chatUnreadCount, setChatUnreadCount] = useState(0);
 
   const user = JSON.parse(localStorage.getItem("currentUser")) || null;
 
   useEffect(() => {
-    fetchUnreadCount();
-    const interval = setInterval(fetchUnreadCount, 30000);
+    fetchNotificationUnreadCount();
+    fetchChatUnreadCount();
+    const interval = setInterval(() => {
+      fetchNotificationUnreadCount();
+      fetchChatUnreadCount();
+    }, 30000);
     return () => clearInterval(interval);
   }, []);
 
-  const fetchUnreadCount = async () => {
+  const fetchNotificationUnreadCount = async () => {
     try {
       if (!user?.uid) return;
 
@@ -36,11 +41,27 @@ export default function AdminSidebar() {
       });
 
       if (response.data) {
-        setUnreadCount(response.data.unreadCount || 0);
+        setNotificationUnreadCount(response.data.unreadCount || 0);
       }
       
     } catch (error) {
-      console.error("Error fetching unread count:", error);
+      console.error("Error fetching notification unread count:", error);
+    }
+  };
+
+  const fetchChatUnreadCount = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/chat/getAllChats`);
+      const fetchedChats = response.data.chats || [];
+      
+      const totalUnread = fetchedChats.reduce(
+        (sum, chat) => sum + (chat.unreadCount || 0),
+        0
+      );
+      setChatUnreadCount(totalUnread);
+      
+    } catch (error) {
+      console.error("Error fetching chat unread count:", error);
     }
   };
 
@@ -58,7 +79,7 @@ export default function AdminSidebar() {
     {
       key: "/admin/account-management",
       icon: <UserOutlined />,
-      label: "Accounts",
+      label: "Account Management",
     },
     {
       key: "/admin/bookings",
@@ -87,13 +108,13 @@ export default function AdminSidebar() {
     },
     {
       key: "/admin/notifications",
-      icon: <BellOutlined />,
+      icon: <NotificationOutlined />,
       label: (
         <span style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <span>Notifications</span>
-          {unreadCount > 0 && (
+          {notificationUnreadCount > 0 && (
             <Badge
-              count={unreadCount}
+              count={notificationUnreadCount}
               style={{
                 backgroundColor: "#b87d3e",
               }}
@@ -105,7 +126,19 @@ export default function AdminSidebar() {
     {
       key: "/admin/chat",
       icon: <MessageOutlined />,
-      label: "Chat",
+      label: (
+        <span style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <span>Chat</span>
+          {chatUnreadCount > 0 && (
+            <Badge
+              count={chatUnreadCount}
+              style={{
+                backgroundColor: "#b87d3e",
+              }}
+            />
+          )}
+        </span>
+      ),
     },
   ];
 
@@ -158,7 +191,7 @@ export default function AdminSidebar() {
         <div className="download-subtitle">
           Get faster access on your phone!
         </div>
-        <Button block className="download-btn">
+        <Button type="primary" block className="download-btn">
           Download
         </Button>
       </div>
