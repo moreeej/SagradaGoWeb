@@ -69,6 +69,7 @@ export default function Baptism() {
       title: "Date",
       type: "date",
       onChange: setDate,
+      value: date,
     },
     {
       key: "candidate_fname",
@@ -93,7 +94,7 @@ export default function Baptism() {
       value: candidateLname,
     },
     {
-      key: "date",
+      key: "candidate_bday",
       title: "Candidate Birth Date",
       type: "date",
       onChange: setCandidateBday,
@@ -320,11 +321,99 @@ export default function Baptism() {
     return data.publicUrl;
   }
 
-  //   function generateTransactionID() {
-  //     const random = Math.random().toString(36).substring(2, 8).toUpperCase();
-  //     const timestamp = Date.now().toString().slice(-6); // last 6 digits of timestamp
-  //     return `TX-${timestamp}-${random}`;
-  //   }
+    function generateTransactionID() {
+      const random = Math.random().toString(36).substring(2, 8).toUpperCase();
+      const timestamp = Date.now().toString().slice(-6); 
+      return `TX-${timestamp}-${random}`;
+    }
+
+  async function handleUpload() {
+  try {
+    const uploaded = {};
+
+    if (birthCertificateFile) {
+      uploaded.birth_certificate = await uploadImage(
+        birthCertificateFile,
+        "birth_certificate"
+      );
+    }
+
+    if (marriageCertFile) {
+      uploaded.parents_marriage_certificate = await uploadImage(
+        marriageCertFile,
+        "parents_marriage_certificate"
+      );
+    }
+
+    if (godparentConfirmationFile) {
+      uploaded.godparent_confirmation = await uploadImage(
+        godparentConfirmationFile,
+        "godparent_confirmation"
+      );
+    }
+
+    if (baptismalSeminarFile) {
+      uploaded.baptismal_seminar = await uploadImage(
+        baptismalSeminarFile,
+        "baptismal_seminar"
+      );
+    }
+
+
+    const payload = {
+      uid: currentUser?.id,
+      transaction_id: generateTransactionID(),
+
+      fullname,
+      email,
+      date,
+      time,
+      attendees,
+      contact_number: contact,
+
+      candidate_first_name: candidateFname,
+      candidate_middle_name: candidateMname,
+      candidate_last_name: candidateLname,
+      candidate_birth_date: candidateBday,
+      candidate_birth_place: candidateBplace,
+
+      mother_first_name: motherFname,
+      mother_middle_name: motherMname,
+      mother_last_name: motherLname,
+      mother_birth_place: motherBirthPlace,
+
+      father_first_name: fatherFname,
+      father_middle_name: fatherMname,
+      father_last_name: fatherLname,
+      father_birth_place: fatherBirthPlace,
+
+      main_godfather_first_name: mainGodFatherFname,
+      main_godfather_middle_name: mainGodFatherMname,
+      main_godfather_last_name: mainGodFatherLname,
+
+      main_godmother_first_name: mainGodMotherFname,
+      main_godmother_middle_name: mainGodMotherMname,
+      main_godmother_last_name: mainGodMotherLname,
+
+      other_godparents: additionalGodParents, 
+
+      ...uploaded, 
+    };
+
+    // 3️⃣ Send to backend
+    const res = await axios.post(
+      `${API_URL}/addBaptismalWeb`,
+      payload
+    );
+
+    alert("Baptismal booking submitted successfully!");
+    console.log("Saved:", res.data);
+  } catch (err) {
+    console.error("UPLOAD ERROR:", err);
+    alert("Failed to submit baptismal booking");
+  }
+}
+
 
   return (
     <div className="main-holder">
@@ -333,16 +422,16 @@ export default function Baptism() {
           <div className="flex flex-col" key={elem.key}>
             <h1>{elem.title}</h1>
 
-            {elem.type === "date" ? (
-              <>
-                <DatePicker
-                  selected={date ? new Date(date) : null}
-                  onChange={(v) => setDate(v ? v.toISOString() : "")}
-                  className="input-text"
-                  dateFormat="yyyy-MM-dd"
-                  excludeDates={occupiedDates}
-                />
-              </>
+          {elem.type === "date" ? (
+            <DatePicker
+              selected={elem.value ? new Date(elem.value) : null}
+              onChange={(v) =>
+                elem.onChange(v ? v.toISOString() : "")
+              }
+              className="input-text"
+              dateFormat="yyyy-MM-dd"
+              excludeDates={occupiedDates}
+            />
             ) : elem.type === "time" ? (
               <div className="time-container">
                 <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -582,6 +671,14 @@ export default function Baptism() {
 
           </div>
         ))}
+      </div>
+      <div className="w-full">
+        <button 
+          className="submit-button"
+          onClick={handleUpload}
+        >
+          Submit
+        </button>
       </div>
     </div>
   );
