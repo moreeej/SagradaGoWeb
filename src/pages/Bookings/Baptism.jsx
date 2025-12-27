@@ -14,7 +14,8 @@ import axios from "axios";
 import { API_URL } from "../../Constants";
 
 export default function Baptism() {
-  const { currentUser, bookingSelected, setBookingSelected } = useContext(NavbarContext);
+  const { currentUser, bookingSelected, setBookingSelected } =
+    useContext(NavbarContext);
 
   // TO BE DELETE
   const occupiedDates = [
@@ -29,14 +30,14 @@ export default function Baptism() {
 
   const [fullname, setFullname] = useState("");
   const [email, setEmail] = useState("");
-    const [date, setDate] = useState("");
+  const [date, setDate] = useState("");
   const [time, setTime] = useState("");
 
   const [candidateFname, setCandidateFname] = useState("");
   const [candidateMname, setCandidateMname] = useState("");
   const [candidateLname, setCandidateLname] = useState("");
   const [candidateBday, setCandidateBday] = useState("");
-    const [candidateBplace, setCandidateBplace] = useState("");
+  const [candidateBplace, setCandidateBplace] = useState("");
 
   const [contact, setContact] = useState("");
   const [attendees, setAttendees] = useState(0);
@@ -63,11 +64,11 @@ export default function Baptism() {
       onChange: setTime,
       value: time,
     },
-    { 
-        key: "date", 
-        title: "Date", 
-        type: "date", 
-        onChange: setDate 
+    {
+      key: "date",
+      title: "Date",
+      type: "date",
+      onChange: setDate,
     },
     {
       key: "candidate_fname",
@@ -76,7 +77,6 @@ export default function Baptism() {
       onChange: setCandidateFname,
       value: candidateFname,
     },
-    
 
     {
       key: "candidate_mname",
@@ -92,12 +92,12 @@ export default function Baptism() {
       onChange: setCandidateLname,
       value: candidateLname,
     },
-    { 
-        key: "date", 
-        title: "Candidate Birth Date", 
-        type: "date", 
-        onChange: setCandidateBday ,
-        value: candidateBday
+    {
+      key: "date",
+      title: "Candidate Birth Date",
+      type: "date",
+      onChange: setCandidateBday,
+      value: candidateBday,
     },
     {
       key: "candidate_bplace",
@@ -123,14 +123,184 @@ export default function Baptism() {
     },
   ];
 
-  const [groomFile, setGroomFile] = useState(null);
-  const [brideFile, setBrideFile] = useState(null);
+  const [motherFname, setMotherFname] = useState("");
+  const [motherMname, setMotherMname] = useState("");
+  const [motherLname, setMotherLname] = useState("");
+  const [motherBirthPlace, setMotherBirthPlace] = useState("");
+  const [fatherFname, setFatherFname] = useState("");
+  const [fatherMname, setFatherMname] = useState("");
+  const [fatherLname, setFatherLname] = useState("");
+  const [fatherBirthPlace, setFatherBirthPlace] = useState("");
 
-  const [groomPreview, setGroomPreview] = useState("");
-  const [bridePreview, setBridePreview] = useState("");
+  const inputText2 = [
+    {
+      key: "mother_fname",
+      title: "Mother First Name",
+      type: "text",
+      onChange: setMotherFname,
+      value: motherFname,
+    },
 
-  const [groomPhoto, setGroomPhoto] = useState("");
-  const [bridePhoto, setBridePhoto] = useState("");
+    {
+      key: "mother_mname",
+      title: "Mother Middle Name",
+      type: "text",
+      onChange: setMotherMname,
+      value: motherMname,
+    },
+    {
+      key: "mother_lname",
+      title: "Mother Last Name",
+      type: "text",
+      onChange: setMotherLname,
+      value: motherLname,
+    },
+
+    {
+      key: "mother_bplace",
+      title: "Mother Birth Place",
+      type: "text",
+      onChange: setMotherBirthPlace,
+      value: motherBirthPlace,
+    },
+    {
+      key: "father_fname",
+      title: "Father First Name",
+      type: "text",
+      onChange: setFatherFname,
+      value: fatherFname,
+    },
+
+    {
+      key: "father_mname",
+      title: "Father Middle Name",
+      type: "text",
+      onChange: setFatherMname,
+      value: fatherMname,
+    },
+    {
+      key: "father_lname",
+      title: "Father Last Name",
+      type: "text",
+      onChange: setFatherLname,
+      value: fatherLname,
+    },
+    {
+      key: "father_bplace",
+      title: "Father Birth Place",
+      type: "text",
+      onChange: setFatherBirthPlace,
+      value: fatherBirthPlace,
+    },
+  ];
+
+  const [mainGodFatherFname, setMainGodFatherFname] = useState("");
+  const [mainGodFatherMname, setMainGodFatherMname] = useState("");
+  const [mainGodFatherLname, setMainGodFatherLname] = useState("");
+  const [mainGodMotherFname, setMainGodMotherFname] = useState("");
+  const [mainGodMotherMname, setMainGodMotherMname] = useState("");
+  const [mainGodMotherLname, setMainGodMotherLname] = useState("");
+
+  const inputGodParents = [
+     {
+      key: "main_godfather_fname",
+      title: "Main Godfather First Name",
+      type: "text",
+      onChange: setMainGodFatherFname,
+      value: mainGodFatherFname,
+    },
+    {
+      key: "main_godfather_mname",
+      title: "Main Godfather Middle Name",
+      type: "text",
+      onChange: setMainGodFatherMname,
+      value: mainGodFatherMname,
+    },
+    {
+      key: "main_godfather_lname",
+      title: "Main Godfather Last Name",
+      type: "text",
+      onChange: setMainGodFatherLname,
+      value: mainGodFatherLname,
+    },
+     {
+      key: "main_godmother_fname",
+      title: "Main Godmother First Name",
+      type: "text",
+      onChange: setMainGodMotherFname,
+      value: mainGodMotherFname,
+    },
+    {
+      key: "main_godmother_mname",
+      title: "Main Godmother Middle Name",
+      type: "text",
+      onChange: setMainGodMotherMname,
+      value: mainGodMotherMname,
+    },
+    {
+      key: "main_godmother_lname",
+      title: "Main Godmother Last Name",
+      type: "text",
+      onChange: setMainGodMotherLname,
+      value: mainGodMotherLname,
+    },
+  ];
+
+  const [additionalGodParents, setAdditionalGodParents] = useState([]);
+  const [godParentName, setGodParentName] = useState("");
+
+  const addGodParent = () => {
+    if (godParentName.trim() === "") return;
+
+    setAdditionalGodParents((prev) => [...prev, godParentName]);
+    setGodParentName("");
+    console.log(additionalGodParents);
+    
+  };
+
+
+  const [birthCertificateFile, setBirthCertificateFile] = useState("");
+  const [birthCertificatePreview, setBirthCertificatePreview] = useState("");
+
+  const [marriageCertFile, setMarriageCertFile] = useState("");
+  const [marriageCertPreview, setMarriageCertPreview] = useState("");
+
+  const [godparentConfirmationFile, setGodparentConfirmationFile] = useState("");
+  const [godparentConfirmationPreview, setGodparentConfirmationPreview] = useState("");
+
+  const [baptismalSeminarFile, setBaptismalSeminarFile] = useState("");
+  const [baptismalSeminarPreview, setBaptismalSeminarPreview] = useState("");
+
+  const uploadFiles = [
+    {
+      key: "birthcert",
+      title: "Birth Certificate",
+      fileSetter: setBirthCertificateFile,
+      preview: birthCertificatePreview,
+      previewSetter: setBirthCertificatePreview,
+    },
+    {
+      key: "parent_marriagecert",
+      title: "Parents Marriage Certificate",
+      fileSetter: setMarriageCertFile,
+      preview: marriageCertPreview,
+      previewSetter: setMarriageCertPreview,
+    },
+    {
+      key: "godparent_confirmation",
+      title: "God Parent Confirmation",
+      fileSetter: setGodparentConfirmationFile,
+      preview: godparentConfirmationPreview,
+      previewSetter: setGodparentConfirmationPreview,
+    },
+     {
+      key: "baptismal_seminar",
+      title: "Baptismal Seminar",
+      fileSetter: setBaptismalSeminarFile,
+      preview: baptismalSeminarPreview,
+      previewSetter: setBaptismalSeminarPreview,
+    },
+  ];
 
   async function uploadImage(file, namePrefix) {
     const ext = file.name.split(".").pop();
@@ -150,14 +320,11 @@ export default function Baptism() {
     return data.publicUrl;
   }
 
-  
-
-//   function generateTransactionID() {
-//     const random = Math.random().toString(36).substring(2, 8).toUpperCase();
-//     const timestamp = Date.now().toString().slice(-6); // last 6 digits of timestamp
-//     return `TX-${timestamp}-${random}`;
-//   }
-
+  //   function generateTransactionID() {
+  //     const random = Math.random().toString(36).substring(2, 8).toUpperCase();
+  //     const timestamp = Date.now().toString().slice(-6); // last 6 digits of timestamp
+  //     return `TX-${timestamp}-${random}`;
+  //   }
 
   return (
     <div className="main-holder">
@@ -227,6 +394,195 @@ export default function Baptism() {
         ))}
       </div>
 
+      <div className="form-container">
+        {inputText2.map((elem) => (
+          <div className="flex flex-col" key={elem.key}>
+            <h1>{elem.title}</h1>
+
+            {elem.type === "date" ? (
+              <>
+                <DatePicker
+                  selected={date ? new Date(date) : null}
+                  onChange={(v) => setDate(v ? v.toISOString() : "")}
+                  className="input-text"
+                  dateFormat="yyyy-MM-dd"
+                  excludeDates={occupiedDates}
+                />
+              </>
+            ) : elem.type === "time" ? (
+              <div className="time-container">
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                  <MobileTimePicker
+                    value={time ? dayjs(`2000-01-01 ${time}`) : null}
+                    onChange={(v) => {
+                      setTime(v ? dayjs(v).format("HH:mm") : "");
+                    }}
+                    slotProps={{
+                      textField: {
+                        className: "time-slot-props",
+                        InputProps: {
+                          sx: {
+                            padding: 0,
+                            height: "100%",
+                            "& fieldset": { border: "none" },
+                          },
+                        },
+                        sx: {
+                          padding: 0,
+                          margin: 0,
+                          height: "100%",
+                          "& .MuiInputBase-root": {
+                            height: "100%",
+                            padding: 0,
+                          },
+                          "& .MuiInputBase-input": {
+                            height: "100%",
+                            padding: 0,
+                          },
+                        },
+                      },
+                    }}
+                  />
+                </LocalizationProvider>
+              </div>
+            ) : (
+              <>
+                <input
+                  name={elem.key}
+                  type={elem.type}
+                  className="input-text"
+                  onChange={(e) => elem.onChange(e.target.value)}
+                  value={elem.value}
+                />
+              </>
+            )}
+          </div>
+        ))}
+        <select>
+          <option value="" disabled selected hidden>
+            Select the type of marriage
+          </option>
+          <option value="Catholic">Catholic</option>
+          <option value="Civil">Civil</option>
+          <option value="Natural">Natural</option>
+          <option value="Not married">Not married</option>
+        </select>
+
+
+      </div>
+      <div className="form-container">
+        {inputGodParents.map((elem) => (
+          <div className="flex flex-col" key={elem.key}>
+            <h1>{elem.title}</h1>
+
+            {elem.type === "date" ? (
+              <>
+                <DatePicker
+                  selected={date ? new Date(date) : null}
+                  onChange={(v) => setDate(v ? v.toISOString() : "")}
+                  className="input-text"
+                  dateFormat="yyyy-MM-dd"
+                  excludeDates={occupiedDates}
+                />
+              </>
+            ) : elem.type === "time" ? (
+              <div className="time-container">
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                  <MobileTimePicker
+                    value={time ? dayjs(`2000-01-01 ${time}`) : null}
+                    onChange={(v) => {
+                      setTime(v ? dayjs(v).format("HH:mm") : "");
+                    }}
+                    slotProps={{
+                      textField: {
+                        className: "time-slot-props",
+                        InputProps: {
+                          sx: {
+                            padding: 0,
+                            height: "100%",
+                            "& fieldset": { border: "none" },
+                          },
+                        },
+                        sx: {
+                          padding: 0,
+                          margin: 0,
+                          height: "100%",
+                          "& .MuiInputBase-root": {
+                            height: "100%",
+                            padding: 0,
+                          },
+                          "& .MuiInputBase-input": {
+                            height: "100%",
+                            padding: 0,
+                          },
+                        },
+                      },
+                    }}
+                  />
+                </LocalizationProvider>
+              </div>
+            ) : (
+              <>
+                <input
+                  name={elem.key}
+                  type={elem.type}
+                  className="input-text"
+                  onChange={(e) => elem.onChange(e.target.value)}
+                  value={elem.value}
+                />
+              </>
+            )}
+          </div>
+        ))}
+
+         <div className="flex gap-2">
+        <input
+          type="text"
+          className="input-text"
+          value={godParentName}
+          onChange={(e) => setGodParentName(e.target.value)}
+          placeholder="Godparent name"
+        />
+
+        <button
+          type="button"
+          onClick={addGodParent}
+          className="px-4 py-2 bg-red-400"
+        >
+          Add Additional Godparent
+        </button>
+      </div>
+
+
+      </div>
+
+      <div className="form-container">
+        {uploadFiles.map((elem) => (
+          <div key={elem.key} className="per-grid-container">
+            <div>
+              <h1>{elem.title}</h1>
+
+              <input
+                type="file"
+                accept="*/*"
+                className="inputFile-properties"
+                onChange={(e) => {
+                  const file = e.target.files[0];
+                  if (!file) return;
+
+                  elem.fileSetter(file);
+                  elem.previewSetter({
+                    url: URL.createObjectURL(file),
+                    type: file.type,
+                    name: file.name,
+                  });
+                }}
+              />
+            </div>
+
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
