@@ -57,7 +57,12 @@ const CustomCalendar = ({ events = [], onEventClick }) => {
               }}
               onClick={(e) => {
                 e.stopPropagation();
-                onEventClick && onEventClick(item);
+                if (dayEvents.length > 1) {
+                  onEventClick && onEventClick(dayEvents, item);
+                  
+                } else {
+                  onEventClick && onEventClick(item);
+                }
               }}
             />
           );

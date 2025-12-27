@@ -25,6 +25,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [calendarEvents, setCalendarEvents] = useState([]);
   const [selectedBooking, setSelectedBooking] = useState(null);
+  const [dayBookings, setDayBookings] = useState([]); 
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [donationReportData, setDonationReportData] = useState([]);
   const [bookingReportData, setBookingReportData] = useState([]);
@@ -222,14 +223,27 @@ export default function AdminDashboard() {
   const user = JSON.parse(localStorage.getItem("currentUser")) || null;
   const isPriest = user?.is_priest || false;
 
-  const handleBookingClick = (booking) => {
-    setSelectedBooking(booking);
+  const handleBookingClick = (bookingOrBookings, clickedBooking) => {
+    if (Array.isArray(bookingOrBookings)) {
+      setDayBookings(bookingOrBookings);
+      setSelectedBooking(clickedBooking || bookingOrBookings[0]);
+
+    } else {
+      setDayBookings([]);
+      setSelectedBooking(bookingOrBookings);
+    }
+    
     setIsModalVisible(true);
   };
 
   const handleModalClose = () => {
     setIsModalVisible(false);
     setSelectedBooking(null);
+    setDayBookings([]);
+  };
+
+  const handleSelectBooking = (booking) => {
+    setSelectedBooking(booking);
   };
 
   const quickActions = [
@@ -288,10 +302,31 @@ export default function AdminDashboard() {
 
     return (
       <div>
+        {/* Show booking selector if there are multiple bookings */}
+        {dayBookings.length > 1 && (
+          <div style={{ marginBottom: 20, padding: 12, backgroundColor: "#f5f5f5", borderRadius: 6 }}>
+            <Text strong style={{ display: "block", marginBottom: 8 }}>
+              Multiple bookings on this day ({dayBookings.length}):
+            </Text>
+            <Space wrap>
+              {dayBookings.map((booking, index) => (
+                <Button
+                  key={index}
+                  type={selectedBooking === booking ? "primary" : "default"}
+                  size="small"
+                  onClick={() => handleSelectBooking(booking)}
+                >
+                  {booking.bookingType || booking.type} {booking.time ? `(${booking.time})` : ""}
+                </Button>
+              ))}
+            </Space>
+          </div>
+        )}
+        
         <Row gutter={[16, 16]}>
           <Col span={24}>
             <Text strong>Booking Type:</Text>
-            <div>{selectedBooking.bookingType}</div>
+            <div>{selectedBooking.bookingType || selectedBooking.type}</div>
           </Col>
           <Col span={24}>
             <Text strong>Status:</Text>
