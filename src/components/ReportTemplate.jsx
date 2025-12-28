@@ -3,6 +3,7 @@ import { Card, Typography, Button, Row, Col, Tag, Empty, Statistic, Divider } fr
 import { DownloadOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { generateReport } from "../utils/reportGenerator";
+import Logo from "../assets/sagrada.png";
 import {
   LineChart,
   Line,
@@ -20,6 +21,31 @@ import {
   AreaChart,
   Area,
 } from "recharts";
+
+const imageToBase64 = (imagePath) => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+
+      try {
+        const dataURL = canvas.toDataURL('image/png');
+        resolve(dataURL);
+      } catch (e) {
+        reject(e);
+      }
+    };
+
+    img.onerror = reject;
+    const imageSrc = typeof imagePath === 'string' ? imagePath : (imagePath?.default || imagePath);
+    img.src = imageSrc;
+  });
+};
 
 const { Title, Text } = Typography;
 
@@ -51,7 +77,7 @@ export default function ReportTemplate({ title, columns, data, exportType = "pdf
     });
   }, [data]);
 
-  const handleExport = () => {
+  const handleExport = async () => {
     let titleText = 'Report';
     
     if (typeof title === 'string') {
@@ -76,12 +102,21 @@ export default function ReportTemplate({ title, columns, data, exportType = "pdf
         }
       }
     }
+
+    let logoBase64 = null;
+    try {
+      logoBase64 = await imageToBase64(Logo);
+      
+    } catch (error) {
+      console.warn('Could not convert logo to base64:', error);
+    }
     
-    generateReport({
+    await generateReport({
       type: exportType,
       title: titleText,
       columns,
       data: formattedData,
+      logoBase64,
     });
   };
 
