@@ -5,7 +5,6 @@ import {
   UserOutlined,
   TeamOutlined,
   CalendarOutlined,
-  DollarOutlined,
   UserAddOutlined,
   BookOutlined,
   HeartOutlined,
@@ -19,6 +18,10 @@ import CustomCalendar from "../../components/CustomCalendar";
 import ReportTemplate from "../../components/ReportTemplate";
 
 const { Title, Text } = Typography;
+
+const PesoIcon = ({ style }) => (
+  <span style={{ ...style, fontWeight: 'bold', fontFamily: 'Arial, sans-serif' }}>₱</span>
+);
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -264,14 +267,14 @@ export default function AdminDashboard() {
     {
       title: "View Donations",
       description: "Track donations",
-      icon: <DollarOutlined style={{ fontSize: 32, color: "#52c41a" }} />,
+      icon: <PesoIcon style={{ fontSize: 20, color: "#000000FF" }} />,
       path: "/admin/donations",
       color: "#52c41a",
     },
     {
       title: "View Volunteers",
       description: "Manage volunteers",
-      icon: <HeartOutlined style={{ fontSize: 32, color: "#f5222d" }} />,
+      icon: <HeartOutlined style={{ fontSize: 28, color: "#f5222d" }} />,
       path: "/admin/volunteers",
       color: "#f5222d",
     },
@@ -442,7 +445,7 @@ export default function AdminDashboard() {
                 <Statistic
                   title="Total Donations"
                   value={stats.totalDonations}
-                  prefix={<DollarOutlined style={{ marginRight: 8 }}/>}
+                  prefix={<PesoIcon style={{ marginRight: 8, fontSize: 24 }}/>}
                   precision={2}
                   valueStyle={{ color: "#52c41a" }}
                 />
