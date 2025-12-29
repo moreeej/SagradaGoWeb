@@ -62,6 +62,8 @@ export default function AccountManagement() {
     password: "",
     confirmPassword: "",
     is_priest: false,
+    previous_parish: "",
+    residency: "",
   });
 
   const [birthdayDisplay, setBirthdayDisplay] = useState("");
@@ -313,6 +315,8 @@ export default function AccountManagement() {
         password: formData.password,
         uid: uid,
         is_priest: formData.is_priest,
+        previous_parish: formData.previous_parish || "",
+        residency: formData.residency || "",
       });
 
       message.success("User created successfully!");
@@ -378,6 +382,8 @@ export default function AccountManagement() {
       password: "",
       confirmPassword: "",
       is_priest: user.is_priest || false,
+      previous_parish: user.previous_parish || "",
+      residency: user.residency || "",
     });
     setBirthdayDisplay(birthdayValue);
     setErrors({});
@@ -446,6 +452,8 @@ export default function AccountManagement() {
         birthday: formattedBirthday,
         email: formData.email,
         is_priest: formData.is_priest,
+        previous_parish: formData.previous_parish || "",
+        residency: formData.residency || "",
       });
 
       message.success("User updated successfully!");
@@ -480,6 +488,8 @@ export default function AccountManagement() {
       password: "",
       confirmPassword: "",
       is_priest: false,
+      previous_parish: "",
+      residency: "",
     });
 
     setBirthdayDisplay("");
@@ -830,6 +840,36 @@ export default function AccountManagement() {
                   </Checkbox>
                 </Form.Item>
               </Col>
+              {formData.is_priest && (
+                <>
+                  <Col xs={24} sm={12}>
+                    <Form.Item label="Previous Parish">
+                      <Input
+                        value={formData.previous_parish}
+                        onChange={(e) =>
+                          setFormData({ ...formData, previous_parish: e.target.value })
+                        }
+                        placeholder="Enter previous parish"
+                      />
+                    </Form.Item>
+                  </Col>
+                  <Col xs={24} sm={12}>
+                    <Form.Item label="Residency">
+                      <Select
+                        value={formData.residency}
+                        onChange={(value) =>
+                          setFormData({ ...formData, residency: value })
+                        }
+                        placeholder="Select residency"
+                        allowClear
+                      >
+                        <Option value="Permanent">Permanent</Option>
+                        <Option value="Temporary">Temporary</Option>
+                      </Select>
+                    </Form.Item>
+                  </Col>
+                </>
+              )}
             </Row>
             <div style={{ marginTop: 24, display: "flex", justifyContent: "flex-end", gap: 8 }}>
               <Button
@@ -1076,6 +1116,36 @@ export default function AccountManagement() {
                   </Checkbox>
                 </Form.Item>
               </Col>
+              {formData.is_priest && (
+                <>
+                  <Col xs={24} sm={12}>
+                    <Form.Item label="Previous Parish">
+                      <Input
+                        value={formData.previous_parish}
+                        onChange={(e) =>
+                          setFormData({ ...formData, previous_parish: e.target.value })
+                        }
+                        placeholder="Enter previous parish"
+                      />
+                    </Form.Item>
+                  </Col>
+                  <Col xs={24} sm={12}>
+                    <Form.Item label="Residency">
+                      <Select
+                        value={formData.residency}
+                        onChange={(value) =>
+                          setFormData({ ...formData, residency: value })
+                        }
+                        placeholder="Select residency"
+                        allowClear
+                      >
+                        <Option value="Permanent">Permanent</Option>
+                        <Option value="Temporary">Temporary</Option>
+                      </Select>
+                    </Form.Item>
+                  </Col>
+                </>
+              )}
             </Row>
             <div style={{ marginTop: 24, display: "flex", justifyContent: "flex-end", gap: 8 }}>
               <Button
