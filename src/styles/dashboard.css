@@ -272,7 +272,8 @@
 .filled-btn:hover,
 .filled-btn:focus {
   background: rgb(255, 201, 66) !important;
-  color: #FFC942 !important;
+  color: #fff !important;
+  font-weight: 600;
   border-color: #FFC942 !important;
 }
 
