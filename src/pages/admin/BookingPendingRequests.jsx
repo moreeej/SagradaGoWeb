@@ -34,6 +34,8 @@ import {
   FileImageOutlined,
   PlusOutlined,
   EditOutlined,
+  CheckOutlined,
+  CloseOutlined
 } from "@ant-design/icons";
 import axios from "axios";
 import { API_URL } from "../../Constants";
@@ -1112,18 +1114,18 @@ export default function BookingPendingRequests() {
     if (!booking.date) return false;
     const bookingDate = new Date(booking.date);
     if (isNaN(bookingDate.getTime())) return false;
-    
+
     if (booking.time) {
       const timeStr = String(booking.time).trim();
       const timeMatch = timeStr.match(/^(\d{1,2}):(\d{2})(?::\d{2})?(?:\.[\d]+)?$/);
-      
+
       if (timeMatch) {
         const hours = parseInt(timeMatch[1], 10);
         const minutes = parseInt(timeMatch[2], 10);
         bookingDate.setHours(hours, minutes, 0, 0);
       }
     }
-    
+
     const now = new Date();
     now.setSeconds(0, 0);
     return bookingDate < now;
@@ -1249,53 +1251,62 @@ export default function BookingPendingRequests() {
       key: "actions",
       render: (_, record) => (
         <Space>
+          {/* View Details */}
           <Tooltip title="View Details">
             <Button
               type="link"
               icon={<EyeOutlined />}
+              className="border-btn"
+              style={{ padding: '8px' }}
               onClick={() => {
                 setSelectedBooking(record);
                 setDetailModalVisible(true);
               }}
-            >
-              View
-            </Button>
+            />
           </Tooltip>
+
           {record.status === "pending" && (
             <>
               {isBookingDatePast(record) ? (
                 <Tooltip title="Cannot confirm booking that is past its scheduled date">
                   <Button
                     type="link"
-                    style={{ color: "#d9d9d9" }}
+                    icon={<CheckOutlined />}
+                    className="cancelborder-btn"
+                    style={{ padding: '8px' }}
                     disabled
-                  >
-                    Confirm
-                  </Button>
+                  />
                 </Tooltip>
               ) : (
+                <Tooltip title="Confirm Booking">
+                  <Button
+                    type="link"
+                    icon={<CheckOutlined />}
+                    className="border-btn"
+                    style={{ padding: '8px' }}
+                    onClick={() => handleStatusUpdate(record.transaction_id, record.bookingType, "confirmed")}
+                    loading={updateLoading}
+                  />
+                </Tooltip>
+              )}
+
+              <Tooltip title="Cancel Booking">
                 <Button
                   type="link"
-                  style={{ color: "#52c41a" }}
-                  onClick={() => handleStatusUpdate(record.transaction_id, record.bookingType, "confirmed")}
+                  icon={<CloseOutlined />}
+                  className="dangerborder-btn"
+                  style={{ padding: '8px' }}
+
+                  onClick={() => handleStatusUpdate(record.transaction_id, record.bookingType, "cancelled")}
                   loading={updateLoading}
-                >
-                  Confirm
-                </Button>
-              )}
-              <Button
-                type="link"
-                danger
-                onClick={() => handleStatusUpdate(record.transaction_id, record.bookingType, "cancelled")}
-                loading={updateLoading}
-              >
-                Cancel
-              </Button>
+                />
+              </Tooltip>
             </>
           )}
         </Space>
+
       ),
-      width: 180,
+      width: 80,
     },
   ];
 
@@ -1761,7 +1772,7 @@ export default function BookingPendingRequests() {
               <Statistic
                 title="Total Bookings"
                 value={stats.total}
-                prefix={<CalendarOutlined style={{ marginRight: 8 }}/>}
+                prefix={<CalendarOutlined style={{ marginRight: 8 }} />}
                 valueStyle={{ color: "#1890ff" }}
               />
             </Card>
@@ -1771,7 +1782,7 @@ export default function BookingPendingRequests() {
               <Statistic
                 title="Pending"
                 value={stats.pending}
-                prefix={<ClockCircleOutlined style={{ marginRight: 8 }}/>}
+                prefix={<ClockCircleOutlined style={{ marginRight: 8 }} />}
                 valueStyle={{ color: "#fa8c16" }}
               />
             </Card>
@@ -1781,7 +1792,7 @@ export default function BookingPendingRequests() {
               <Statistic
                 title="Confirmed"
                 value={stats.confirmed}
-                prefix={<CheckCircleOutlined style={{ marginRight: 8 }}/>}
+                prefix={<CheckCircleOutlined style={{ marginRight: 8 }} />}
                 valueStyle={{ color: "#52c41a" }}
               />
             </Card>
@@ -1791,7 +1802,7 @@ export default function BookingPendingRequests() {
               <Statistic
                 title="Cancelled"
                 value={stats.cancelled}
-                prefix={<CloseCircleOutlined style={{ marginRight: 8 }}/>}
+                prefix={<CloseCircleOutlined style={{ marginRight: 8 }} />}
                 valueStyle={{ color: "#f5222d" }}
               />
             </Card>
