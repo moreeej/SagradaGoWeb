@@ -25,6 +25,8 @@ import {
   Checkbox,
   Form,
   DatePicker,
+  Tabs,
+  Segmented,
 } from "antd";
 import dayjs from "dayjs";
 import {
@@ -48,6 +50,7 @@ export default function AccountManagement() {
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
+  const [activeTab, setActiveTab] = useState("all");
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
@@ -85,8 +88,16 @@ export default function AccountManagement() {
   }, [users, searchTerm, filterType]);
 
   useEffect(() => {
-    filterUsers();
-  }, [users, searchTerm, filterType]);
+    if (activeTab === "users") {
+      setFilterType("users");
+
+    } else if (activeTab === "priests") {
+      setFilterType("priests");
+      
+    } else {
+      setFilterType("all");
+    }
+  }, [activeTab]);
 
 
   const fetchUsers = async () => {
@@ -542,7 +553,7 @@ export default function AccountManagement() {
     }
   };
 
-  const resetForm = () => {
+  const resetForm = (isPriest = false) => {
     setFormData({
       first_name: "",
       middle_name: "",
@@ -552,7 +563,7 @@ export default function AccountManagement() {
       email: "",
       password: "",
       confirmPassword: "",
-      is_priest: false,
+      is_priest: isPriest,
       previous_parish: "",
       residency: "",
     });
@@ -560,6 +571,9 @@ export default function AccountManagement() {
     setBirthdayDisplay("");
     setErrors({});
   };
+
+  const userCount = users.filter((user) => !user.is_priest).length;
+  const priestCount = users.filter((user) => user.is_priest).length;
 
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
@@ -635,29 +649,68 @@ export default function AccountManagement() {
       <div style={{ maxWidth: "1550px", margin: "0 auto", marginTop: 20 }}>
         {/* Header */}
         <div style={{ marginBottom: 24 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
             <div>
               <Title level={2} style={{ margin: 0, color: "#262626", fontFamily: 'Poppins' }}>
                 Account Management
               </Title>
-              <Text type="secondary" style={{ fontSize: 16, fontFamily: 'Poppins' }}>
+              <Text type="secondary" style={{ fontSize: 16, fontFamily: 'Poppins', display: 'block', marginTop: 4 }}>
                 Manage users and priests
               </Text>
             </div>
-            <Space>
-              {/* <Button icon={<ArrowLeftOutlined />} onClick={() => navigate("/admin")} className="border-btn">
-                Back to Dashboard
-              </Button> */}
-              <Button
-                icon={<PlusOutlined />}
-                onClick={() => {
-                  resetForm();
-                  setShowAddModal(true);
-                }}
-                className="border-btn"
-              >
-                Add User/Priest
-              </Button>
+            <Space wrap>
+              {activeTab === "users" && (
+                <Button
+                  icon={<PlusOutlined />}
+                  onClick={() => {
+                    resetForm(false);
+                    setShowAddModal(true);
+                  }}
+                  className="border-btn"
+                  style={{ backgroundColor: "#1772FF", borderColor: "#1772FF", color: "white" }}
+                >
+                  Add User
+                </Button>
+              )}
+              {activeTab === "priests" && (
+                <Button
+                  icon={<PlusOutlined />}
+                  onClick={() => {
+                    resetForm(true);
+                    setShowAddModal(true);
+                  }}
+                  className="border-btn"
+                  style={{ backgroundColor: "#722ed1", borderColor: "#722ed1", color: "white" }}
+                >
+                  Add Priest
+                </Button>
+              )}
+              {activeTab === "all" && (
+                <>
+                  <Button
+                    icon={<PlusOutlined />}
+                    onClick={() => {
+                      resetForm(false);
+                      setShowAddModal(true);
+                    }}
+                    className="border-btn"
+                    style={{ backgroundColor: "#1772FF", borderColor: "#1772FF", color: "white" }}
+                  >
+                    Add User
+                  </Button>
+                  <Button
+                    icon={<PlusOutlined />}
+                    onClick={() => {
+                      resetForm(true);
+                      setShowAddModal(true);
+                    }}
+                    className="border-btn"
+                    style={{ backgroundColor: "#722ed1", borderColor: "#722ed1", color: "white" }}
+                  >
+                    Add Priest
+                  </Button>
+                </>
+              )}
               <Button
                 icon={<PlusOutlined />}
                 onClick={() => {
@@ -671,47 +724,74 @@ export default function AccountManagement() {
           </div>
         </div>
 
-        {/* Filters */}
-        <Card style={{ marginBottom: 24 }}>
-          <Row gutter={[16, 16]}>
-            <Col xs={24} sm={12} md={18}>
-              <Input
-                placeholder="Search by name, email, or contact number..."
-                prefix={<SearchOutlined style={{ marginRight: 8 }} />}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                allowClear
-                style={{
-                  fontFamily: 'Poppins, sans-serif',
-                  fontWeight: 500,
-                  padding: '10px 12px',
-                  height: '42px',
-                }}
-              />
-            </Col>
-            <Col xs={24} sm={12} md={6}>
-              <Select
-                value={filterType}
-                onChange={setFilterType}
-                placeholder="Filter by type"
-                style={{
-                  width: '100%',
-                  fontFamily: 'Poppins, sans-serif',
-                  fontWeight: 500,
-                  padding: '8px 12px',
-                  height: '42px',
-                }}
-              >
-                <Option value="all">All</Option>
-                <Option value="users">Users</Option>
-                <Option value="priests">Priests</Option>
-              </Select>
-            </Col>
-          </Row>
+        {/* Search Field and Tabs Combined */}
+        <Card style={{ marginBottom: 24, padding: 0 }}>
+          <div style={{ padding: "16px 24px", borderBottom: "1px solid #f0f0f0" }}>
+            <Input
+              placeholder="Search by name, email, or contact number..."
+              prefix={<SearchOutlined style={{ marginRight: 8 }} />}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              allowClear
+              style={{
+                fontFamily: 'Poppins, sans-serif',
+                fontWeight: 500,
+                padding: '10px 12px',
+                height: '42px',
+              }}
+            />
+          </div>
+          <div style={{ padding: "16px 24px" }}>
+            <Segmented
+              value={activeTab}
+              onChange={setActiveTab}
+              options={[
+                {
+                  label: (
+                    <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      All ({users.length})
+                    </span>
+                  ),
+                  value: "all",
+                },
+                {
+                  label: (
+                    <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <UserOutlined />
+                      Users ({userCount})
+                    </span>
+                  ),
+                  value: "users",
+                },
+                {
+                  label: (
+                    <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <TeamOutlined />
+                      Priests ({priestCount})
+                    </span>
+                  ),
+                  value: "priests",
+                },
+              ]}
+              style={{
+                width: "100%",
+                fontFamily: "Poppins, sans-serif",
+                fontWeight: 500,
+              }}
+              size="large"
+            />
+          </div>
         </Card>
 
         {/* Users Table */}
         <Card>
+          <div style={{ marginBottom: 16 }}>
+            <Text strong style={{ fontSize: 16, fontFamily: 'Poppins' }}>
+              {activeTab === "users" && `Users (${filteredUsers.length})`}
+              {activeTab === "priests" && `Priests (${filteredUsers.length})`}
+              {activeTab === "all" && `All Accounts (${filteredUsers.length})`}
+            </Text>
+          </div>
           <Table
             columns={columns}
             dataSource={filteredUsers}
@@ -720,11 +800,23 @@ export default function AccountManagement() {
             pagination={{
               pageSize: 20,
               showSizeChanger: true,
-              showTotal: (total) => `Total ${total} users`,
+              showTotal: (total) => {
+                if (activeTab === "users") return `Total ${total} users`;
+                if (activeTab === "priests") return `Total ${total} priests`;
+                return `Total ${total} accounts`;
+              },
             }}
             scroll={{ x: 1000 }}
             locale={{
-              emptyText: <Empty description="No users found" />,
+              emptyText: (
+                <Empty 
+                  description={
+                    activeTab === "users" ? "No users found" :
+                    activeTab === "priests" ? "No priests found" :
+                    "No accounts found"
+                  }
+                />
+              ),
             }}
           />
         </Card>
