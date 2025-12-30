@@ -1324,7 +1324,12 @@ export default function BookingPendingRequests() {
     });
 
     return (
-      <div>
+      <div style={{
+        height: '600px',
+        overflowY: 'auto',
+        overflowX: 'hidden',
+        width: '100%',
+      }}>
         <Row gutter={[16, 16]}>
           {/* Booking Type */}
           <Col span={24}>
@@ -1944,13 +1949,22 @@ export default function BookingPendingRequests() {
             setSelectedPriestId(null);
           }}
           footer={[
-            <Button key="close" onClick={() => setDetailModalVisible(false)}>
-              Close
-            </Button>,
+            selectedBooking?.status === "pending" && (
+              <Button
+                key="cancel"
+                className="cancelborder-btn"
+                style={{ padding: '10px' }}
+                onClick={() => handleStatusUpdate(selectedBooking.transaction_id, selectedBooking.bookingType, "cancelled")}
+                loading={updateLoading}
+              >
+                Cancel Booking
+              </Button>
+            ),
             selectedBooking?.status === "pending" && (
               <Button
                 key="edit"
-                type="default"
+                className="border-btn"
+                style={{ padding: '10px' }}
                 icon={<EditOutlined />}
                 onClick={() => {
                   // Edit booking function to be implemented
@@ -1973,25 +1987,15 @@ export default function BookingPendingRequests() {
               ) : (
                 <Button
                   key="confirm"
-                  type="primary"
-                  style={{ backgroundColor: "#52c41a", borderColor: "#52c41a" }}
+                  className="filled-btn"
+                  style={{ padding: '10px' }}
                   onClick={() => handleStatusUpdate(selectedBooking.transaction_id, selectedBooking.bookingType, "confirmed")}
                   loading={updateLoading}
                 >
                   Confirm Booking
                 </Button>
               )
-            ),
-            selectedBooking?.status === "pending" && (
-              <Button
-                key="cancel"
-                danger
-                onClick={() => handleStatusUpdate(selectedBooking.transaction_id, selectedBooking.bookingType, "cancelled")}
-                loading={updateLoading}
-              >
-                Cancel Booking
-              </Button>
-            ),
+            )
           ].filter(Boolean)}
           width={800}
         >

@@ -25,6 +25,9 @@ import {
   SearchOutlined,
   EyeOutlined,
   PictureOutlined,
+  EditOutlined,
+  CheckOutlined,
+  CloseOutlined
 } from "@ant-design/icons";
 import axios from "axios";
 import { API_URL } from "../../Constants";
@@ -234,21 +237,21 @@ export default function DonationsList() {
       title: "Donor Name",
       dataIndex: "user_name",
       key: "user_name",
-      width: 200,
+      width: 300,
       render: (_, record) => <Text strong>{record.name || record.user_name || "N/A"}</Text>,
     },
     {
       title: "Email",
       dataIndex: "user_email",
       key: "user_email",
-      width: 250,
+      width: 300,
       render: (_, record) => record.email || record.user_email || "N/A",
     },
     {
       title: "Amount",
       dataIndex: "amount",
       key: "amount",
-      width: 220,
+      width: 250,
       render: (amount) => (
         <Text strong style={{ color: "#52c41a", fontSize: "16px" }}>
           {formatCurrency(amount)}
@@ -293,32 +296,32 @@ export default function DonationsList() {
             <Button
               type="link"
               icon={<EyeOutlined />}
+              className="border-btn"
+              style={{ padding: '8px' }}
               onClick={() => {
                 setSelectedDonation(record);
                 setDetailModalVisible(true);
               }}
-            >
-              View
-            </Button>
+            />
           </Tooltip>
           {record.status === "pending" && (
             <>
               <Button
                 type="link"
-                style={{ color: "#52c41a" }}
+                icon={<CheckOutlined />}
+                className="border-btn"
+                style={{ padding: '8px' }}
                 onClick={() => handleStatusUpdate(record._id, "confirmed")}
                 loading={updateLoading}
-              >
-                Confirm
-              </Button>
+              />
               <Button
                 type="link"
-                danger
+                icon={<CloseOutlined />}
+                className="dangerborder-btn"
+                style={{ padding: '8px' }}
                 onClick={() => handleStatusUpdate(record._id, "cancelled")}
                 loading={updateLoading}
-              >
-                Cancel
-              </Button>
+              />
             </>
           )}
         </Space>
@@ -350,7 +353,7 @@ export default function DonationsList() {
               <Statistic
                 title="Total Donations"
                 value={stats.total}
-                prefix={<DollarOutlined style={{ marginRight: 8 }}/>}
+                prefix={<DollarOutlined style={{ marginRight: 8 }} />}
                 valueStyle={{ color: "#1890ff" }}
               />
             </Card>
@@ -360,7 +363,7 @@ export default function DonationsList() {
               <Statistic
                 title="Pending"
                 value={stats.pending}
-                prefix={<ClockCircleOutlined style={{ marginRight: 8 }}/>}
+                prefix={<ClockCircleOutlined style={{ marginRight: 8 }} />}
                 valueStyle={{ color: "#fa8c16" }}
               />
             </Card>
@@ -370,7 +373,7 @@ export default function DonationsList() {
               <Statistic
                 title="Confirmed"
                 value={stats.confirmed}
-                prefix={<CheckCircleOutlined style={{ marginRight: 8 }}/>}
+                prefix={<CheckCircleOutlined style={{ marginRight: 8 }} />}
                 valueStyle={{ color: "#52c41a" }}
               />
             </Card>
@@ -380,7 +383,7 @@ export default function DonationsList() {
               <Statistic
                 title="Cancelled"
                 value={stats.cancelled}
-                prefix={<CloseCircleOutlined style={{ marginRight: 8 }}/>}
+                prefix={<CloseCircleOutlined style={{ marginRight: 8 }} />}
                 valueStyle={{ color: "#f5222d" }}
               />
             </Card>
