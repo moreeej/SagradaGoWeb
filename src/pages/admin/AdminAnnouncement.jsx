@@ -180,9 +180,7 @@ export default function AdminAnnouncements() {
             className="border-btn"
             style={{ padding: "15px 14px" }}
             onClick={() => openEdit(record)}
-          >
-            Edit
-          </Button>
+          />
 
           <Popconfirm
             title="Delete this announcement?"
