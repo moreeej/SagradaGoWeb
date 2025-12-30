@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { Card, Typography, Table, message, Button, Spin, Popconfirm, Input, Select, Row, Col, Space } from "antd";
-import { SearchOutlined, FilterOutlined } from "@ant-design/icons";
+import { SearchOutlined, FilterOutlined, CloseOutlined, CheckOutlined } from "@ant-design/icons";
 import axios from "axios";
 import dayjs from "dayjs";
 import { API_URL } from "../../Constants";
@@ -163,11 +163,39 @@ export default function VolunteersList() {
       dataIndex: "status",
       key: "status",
       render: (status) => {
+        const normalized = status.toLowerCase();
         let color = "gray";
-        if (status === "confirmed") color = "green";
-        else if (status === "pending") color = "orange";
-        else if (status === "cancelled") color = "red";
-        return <span style={{ color, fontWeight: 500 }}>{status}</span>;
+        let bgColor = "#f0f0f0";
+
+        if (normalized === "confirmed") {
+          color = "green";
+          bgColor = "#f6ffed";
+        } else if (normalized === "pending") {
+          color = "orange";
+          bgColor = "#fff7e6";
+        } else if (normalized === "cancelled") {
+          color = "red";
+          bgColor = "#fff1f0";
+        }
+
+        const displayStatus = status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+
+        return (
+          <span
+            style={{
+              color,
+              backgroundColor: bgColor,
+              fontWeight: 500,
+              padding: "4px 10px",
+              borderRadius: "12px",
+              display: "inline-block",
+              minWidth: "80px",
+              textAlign: "center",
+            }}
+          >
+            {displayStatus}
+          </span>
+        );
       },
     },
     { title: "Event", dataIndex: "eventTitle", key: "eventTitle" },
@@ -184,9 +212,12 @@ export default function VolunteersList() {
               okText="Yes"
               cancelText="No"
             >
-              <Button type="primary" size="small" loading={updating}>
-                Approve
-              </Button>
+              <Button icon={<CheckOutlined />}
+                className="border-btn"
+                style={{ padding: '8px' }}
+                size="small"
+                loading={updating}
+              />
             </Popconfirm>
           )}
           {record.status !== "cancelled" && (
@@ -196,9 +227,13 @@ export default function VolunteersList() {
               okText="Yes"
               cancelText="No"
             >
-              <Button type="danger" size="small" loading={updating}>
-                Reject
-              </Button>
+              <Button
+                icon={<CloseOutlined />}
+                className="dangerborder-btn"
+                style={{ padding: '8px' }}
+                size="small"
+                loading={updating}
+              />
             </Popconfirm>
           )}
         </div>
@@ -213,6 +248,7 @@ export default function VolunteersList() {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <Title level={2} style={{ fontFamily: 'Poppins' }}>All Volunteers</Title>
           </div>
+
           {loading ? (
             <div style={{ textAlign: "center", padding: "50px 0" }}>
               <Spin size="large" />
@@ -220,78 +256,112 @@ export default function VolunteersList() {
           ) : (
             <Card>
               <div style={{ marginBottom: 16 }}>
-                <Row gutter={[16, 16]}>
-                  <Col xs={24} sm={12} md={8} lg={6}>
-                    <Search
-                      placeholder="Search volunteers..."
-                      allowClear
-                      enterButton={<SearchOutlined />}
-                      size="large"
-                      value={searchText}
-                      onChange={(e) => handleSearch(e.target.value)}
-                      onSearch={handleSearch}
-                    />
-                  </Col>
-                  <Col xs={24} sm={12} md={8} lg={4}>
-                    <Select
-                      placeholder="Filter by Status"
-                      allowClear
-                      size="large"
-                      style={{ width: "100%" }}
-                      value={statusFilter}
-                      onChange={handleStatusFilterChange}
-                      suffixIcon={<FilterOutlined />}
-                    >
-                      <Option value="confirmed">Confirmed</Option>
-                      <Option value="pending">Pending</Option>
-                      <Option value="cancelled">Cancelled</Option>
-                    </Select>
-                  </Col>
-                  <Col xs={24} sm={12} md={8} lg={4}>
-                    <Select
-                      placeholder="Filter by Role"
-                      allowClear
-                      size="large"
-                      style={{ width: "100%" }}
-                      value={roleFilter}
-                      onChange={handleRoleFilterChange}
-                      suffixIcon={<FilterOutlined />}
-                    >
-                      {uniqueRoles.map((role) => (
-                        <Option key={role} value={role}>
-                          {role}
-                        </Option>
-                      ))}
-                    </Select>
-                  </Col>
-                  <Col xs={24} sm={12} md={8} lg={6}>
-                    <Select
-                      placeholder="Filter by Month"
-                      allowClear
-                      size="large"
-                      style={{ width: "100%" }}
-                      value={monthFilter}
-                      onChange={handleMonthFilterChange}
-                      suffixIcon={<FilterOutlined />}
-                    >
-                      {monthOptions.map((month) => (
-                        <Option key={month.value} value={month.value}>
-                          {month.label}
-                        </Option>
-                      ))}
-                    </Select>
-                  </Col>
-                  <Col xs={24} sm={12} md={8} lg={4}>
-                    <Button
-                      size="large"
-                      onClick={clearAllFilters}
-                      style={{ width: "100%" }}
-                      disabled={!searchText && !statusFilter && !roleFilter && !monthFilter}
-                    >
-                      Clear Filters
-                    </Button>
-                  </Col>
-                </Row>
+                {/* Filters */}
+                <Card style={{ marginBottom: 24 }}>
+                  <Row gutter={[16, 16]}>
+                    {/* Search */}
+                    <Col xs={24} sm={12} md={12}>
+                      <Input
+                        placeholder="Search volunteers..."
+                        prefix={<SearchOutlined style={{ marginRight: 8 }} />}
+                        value={searchText}
+                        onChange={(e) => handleSearch(e.target.value)}
+                        allowClear
+                        style={{
+                          fontFamily: 'Poppins, sans-serif',
+                          fontWeight: 500,
+                          padding: '10px 12px',
+                          height: '42px',
+                        }}
+                      />
+                    </Col>
+
+                    {/* Status Filter */}
+                    <Col xs={24} sm={12} md={3}>
+                      <Select
+                        placeholder="Filter by status"
+                        allowClear
+                        value={statusFilter}
+                        onChange={handleStatusFilterChange}
+                        style={{
+                          width: '100%',
+                          fontFamily: 'Poppins, sans-serif',
+                          fontWeight: 500,
+                          padding: '8px 12px',
+                          height: '42px',
+                        }}
+                      >
+                        <Option value="all">All Status</Option>
+                        <Option value="confirmed">Confirmed</Option>
+                        <Option value="pending">Pending</Option>
+                        <Option value="cancelled">Cancelled</Option>
+                      </Select>
+                    </Col>
+
+                    {/* Role Filter */}
+                    <Col xs={24} sm={12} md={3}>
+                      <Select
+                        placeholder="Filter by role"
+                        allowClear
+                        value={roleFilter}
+                        onChange={handleRoleFilterChange}
+                        style={{
+                          width: '100%',
+                          fontFamily: 'Poppins, sans-serif',
+                          fontWeight: 500,
+                          padding: '8px 12px',
+                          height: '42px',
+                        }}
+                      >
+                        <Option value="all">All Roles</Option>
+                        {uniqueRoles.map((role) => (
+                          <Option key={role} value={role}>
+                            {role}
+                          </Option>
+                        ))}
+                      </Select>
+                    </Col>
+
+                    {/* Month Filter */}
+                    <Col xs={24} sm={12} md={3}>
+                      <Select
+                        placeholder="Filter by month"
+                        allowClear
+                        value={monthFilter}
+                        onChange={handleMonthFilterChange}
+                        style={{
+                          width: '100%',
+                          fontFamily: 'Poppins, sans-serif',
+                          fontWeight: 500,
+                          padding: '8px 12px',
+                          height: '42px',
+                        }}
+                        showSearch
+                        filterOption={(input, option) =>
+                          (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                        }
+                      >
+                        {monthOptions.map((month) => (
+                          <Option key={month.value} value={month.value}>
+                            {month.label}
+                          </Option>
+                        ))}
+                      </Select>
+                    </Col>
+
+                    {/* Clear Filters Button */}
+                    <Col xs={24} sm={12} md={3}>
+                      <Button
+                        className="border-btn"
+                        onClick={clearAllFilters}
+                        disabled={!searchText && !statusFilter && !roleFilter && !monthFilter}
+                      >
+                        Clear Filters
+                      </Button>
+                    </Col>
+                  </Row>
+                </Card>
+
               </div>
               <Table
                 columns={columns}
