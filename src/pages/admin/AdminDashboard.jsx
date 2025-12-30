@@ -681,15 +681,34 @@ export default function AdminDashboard() {
                   <Spin size="large" tip="Generating AI insights..." />
                 </div>
               ) : aiAnalysis ? (
-                <div style={{
-                  padding: "16px",
-                  backgroundColor: "#f5f5f5",
-                  borderRadius: "8px",
-                  whiteSpace: "pre-wrap",
-                  lineHeight: "1.8",
-                  fontSize: "14px"
-                }}>
-                  {aiAnalysis}
+                <div
+                  style={{
+                    padding: "20px",
+                    background: "#fafafa",
+                    borderRadius: "12px",
+                    fontSize: "15px",
+                    lineHeight: 1.7,
+                    height: "500px",
+                    overflowY: "auto",
+                    color: "#333",
+                  }}
+                >
+                  {aiAnalysis.split("\n").map((line, index) => {
+                    const isHeader = /^[📈💳📅📋⏱️💡]/.test(line);
+
+                    return (
+                      <div
+                        key={index}
+                        style={{
+                          marginBottom: isHeader ? 12 : 6,
+                          fontWeight: isHeader ? 600 : 400,
+                          fontSize: isHeader ? "16px" : "15px",
+                        }}
+                      >
+                        {line}
+                      </div>
+                    );
+                  })}
                 </div>
               ) : (
                 <Empty description="No AI analysis available" />
