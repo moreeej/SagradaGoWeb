@@ -38,6 +38,8 @@ import {
   EyeInvisibleOutlined,
   ArrowLeftOutlined,
   EditOutlined,
+  StopOutlined,
+  CheckCircleOutlined,
 } from "@ant-design/icons";
 
 const { Title, Text } = Typography;
@@ -93,7 +95,7 @@ export default function AccountManagement() {
 
     } else if (activeTab === "priests") {
       setFilterType("priests");
-      
+
     } else {
       setFilterType("all");
     }
@@ -358,7 +360,7 @@ export default function AccountManagement() {
         ? dayjs(formData.birthday).format("YYYY-MM-DD")
         : "";
 
-      await axios.post(`${API_URL}/createUser`, {
+      const createPayload = {
         first_name: formData.first_name,
         middle_name: formData.middle_name,
         last_name: formData.last_name,
@@ -368,9 +370,19 @@ export default function AccountManagement() {
         password: formData.password,
         uid: uid,
         is_priest: formData.is_priest,
-        previous_parish: formData.previous_parish || "",
-        residency: formData.residency || "",
-      });
+      };
+
+      if (formData.is_priest) {
+        if (formData.previous_parish) {
+          createPayload.previous_parish = formData.previous_parish;
+        }
+
+        if (formData.residency) {
+          createPayload.residency = formData.residency;
+        }
+      }
+
+      await axios.post(`${API_URL}/createUser`, createPayload);
 
       message.success("User created successfully!");
       setShowAddModal(false);
@@ -413,6 +425,43 @@ export default function AccountManagement() {
         } catch (error) {
           console.error("Error updating user role:", error);
           message.error(error.response?.data?.message || "Failed to update user role.");
+
+        } finally {
+          setLoading(false);
+        }
+      },
+    });
+  };
+
+  const handleToggleAccountStatus = async (uid, currentStatus, userName, userRecord = null) => {
+    const isCurrentlyActive = currentStatus === true;
+    const willEnable = !isCurrentlyActive; 
+
+    Modal.confirm({
+      title: willEnable ? "Enable Account" : "Disable Account",
+      content: willEnable 
+        ? `Are you sure you want to enable the account for ${userName}? The user will be able to log in again.`
+        : `Are you sure you want to disable the account for ${userName}? The user will not be able to log in until the account is re-enabled.`,
+      okText: willEnable ? "Enable" : "Disable",
+      okButtonProps: {
+        danger: !willEnable,
+        style: willEnable ? { backgroundColor: "#52c41a", borderColor: "#52c41a" } : undefined,
+      },
+      onOk: async () => {
+        try {
+          setLoading(true);
+
+          await axios.put(`${API_URL}/updateUserStatus`, {
+            uid: uid,
+            is_active: willEnable ? true : false,
+          });
+
+          message.success(`Account ${willEnable ? 'enabled' : 'disabled'} successfully!`);
+          fetchUsers();
+
+        } catch (error) {
+          console.error("Error updating account status:", error);
+          message.error(error.response?.data?.message || "Failed to update account status.");
 
         } finally {
           setLoading(false);
@@ -519,7 +568,7 @@ export default function AccountManagement() {
         ? dayjs(birthdayToValidate).format("YYYY-MM-DD")
         : "";
 
-      await axios.put(`${API_URL}/updateUser`, {
+      const updatePayload = {
         uid: editingUser.uid,
         first_name: formData.first_name,
         middle_name: formData.middle_name,
@@ -528,9 +577,23 @@ export default function AccountManagement() {
         birthday: formattedBirthday,
         email: formData.email,
         is_priest: formData.is_priest,
-        previous_parish: formData.previous_parish || "",
-        residency: formData.residency || "",
-      });
+      };
+
+      if (formData.is_priest) {
+        if (formData.previous_parish) {
+          updatePayload.previous_parish = formData.previous_parish;
+        }
+
+        if (formData.residency) {
+          updatePayload.residency = formData.residency;
+        }
+        
+      } else {
+        updatePayload.previous_parish = undefined;
+        updatePayload.residency = undefined;
+      }
+
+      await axios.put(`${API_URL}/updateUser`, updatePayload);
 
       message.success("User updated successfully!");
       setShowEditModal(false);
@@ -618,29 +681,61 @@ export default function AccountManagement() {
       ),
     },
     {
+      title: "Status",
+      dataIndex: "is_active",
+      key: "status",
+      render: (isActive, record) => {
+        const active = record.is_active === true;
+        return (
+          <Tag color={active ? "green" : "red"}>
+            {active ? "Active" : "Disabled"}
+          </Tag>
+        );
+      },
+    },
+    {
       title: "Actions",
       key: "actions",
-      render: (_, record) => (
-        <Space>
-          <Button
-            type="default"
-            icon={<EyeOutlined />}
-            onClick={() => handleViewDetails(record)}
-            className="border-btn"
-            style={{ padding: '10px' }}
-          />
+      render: (_, record) => {
+        const isActive = record.is_active === true;
+        const userName = `${record.first_name} ${record.last_name}`.trim() || record.email;
+        
+        return (
+          <Space>
+            <Button
+              type="default"
+              icon={<EyeOutlined />}
+              onClick={() => handleViewDetails(record)}
+              className="border-btn"
+              style={{ padding: '10px' }}
+              title="View Details"
+            />
 
-          <Button
-            type={record.is_priest ? "default" : "primary"}
-            className={record.is_priest ? "dangerborder-btn" : "border-btn"}
-            style={{ padding: '15px 14px' }}
-            onClick={() => handleUpdateRole(record.uid, !record.is_priest)}
-            loading={loading}
-          >
-            {record.is_priest ? "Remove Priest" : "Make Priest"}
-          </Button>
-        </Space>
-      )
+            <Button
+              type={record.is_priest ? "default" : "primary"}
+              className={record.is_priest ? "dangerborder-btn" : "border-btn"}
+              style={{ padding: '15px 14px' }}
+              onClick={() => handleUpdateRole(record.uid, !record.is_priest)}
+              loading={loading}
+            >
+              {record.is_priest ? "Remove Priest" : "Make Priest"}
+            </Button>
+
+            <Button
+              type={isActive ? "default" : "primary"}
+              danger={isActive}
+              icon={isActive ? <StopOutlined /> : <CheckCircleOutlined />}
+              onClick={() => handleToggleAccountStatus(record.uid, record.is_active, userName, record)}
+              loading={loading}
+              className={isActive ? "dangerborder-btn" : "border-btn"}
+              style={{ padding: '10px' }}
+              title={isActive ? "Disable Account" : "Enable Account"}
+            >
+              {isActive ? "Disable" : "Enable"}
+            </Button>
+          </Space>
+        );
+      }
     },
   ];
 
@@ -899,9 +994,14 @@ export default function AccountManagement() {
                     <Text strong style={{ display: "block", marginBottom: 4, color: "#666" }}>
                       Account Status
                     </Text>
-                    <Tag color={viewingUser.is_active !== false ? "green" : "red"}>
-                      {viewingUser.is_active !== false ? "Active" : "Inactive"}
+                    <Tag color={viewingUser.is_active === true ? "green" : "red"} style={{ fontSize: "14px", padding: "4px 12px" }}>
+                      {viewingUser.is_active === true ? "Active" : "Disabled"}
                     </Tag>
+                    {viewingUser.is_active !== true && (
+                      <Text type="secondary" style={{ display: "block", marginTop: 4, fontSize: "12px" }}>
+                        This account is disabled and cannot log in
+                      </Text>
+                    )}
                   </div>
                 </Col>
                 {viewingUser.is_priest && (
@@ -993,6 +1093,20 @@ export default function AccountManagement() {
                   }}
                 >
                   Close
+                </Button>
+                <Button
+                  type={viewingUser.is_active === true ? "default" : "primary"}
+                  danger={viewingUser.is_active === true}
+                  icon={viewingUser.is_active === true ? <StopOutlined /> : <CheckCircleOutlined />}
+                  onClick={() => handleToggleAccountStatus(
+                    viewingUser.uid, 
+                    viewingUser.is_active, 
+                    `${viewingUser.first_name} ${viewingUser.last_name}`.trim() || viewingUser.email,
+                    viewingUser
+                  )}
+                  loading={loading}
+                >
+                  {viewingUser.is_active === true ? "Disable Account" : "Enable Account"}
                 </Button>
                 <Button
                   type="primary"
