@@ -813,6 +813,10 @@ export default function BookingPendingRequests() {
   const [createBookingModalVisible, setCreateBookingModalVisible] = useState(false);
   const [selectedBookingType, setSelectedBookingType] = useState(null);
   const [dateFilterTab, setDateFilterTab] = useState("all");
+  const [adminComment, setAdminComment] = useState("");
+  const [confirmModalVisible, setConfirmModalVisible] = useState(false);
+  const [pendingAction, setPendingAction] = useState(null);
+  const [quickComment, setQuickComment] = useState("");
 
   useEffect(() => {
     fetchAllBookings();
@@ -978,7 +982,7 @@ export default function BookingPendingRequests() {
     ];
   };
 
-  const handleStatusUpdate = async (bookingId, bookingType, newStatus) => {
+  const handleStatusUpdate = async (bookingId, bookingType, newStatus, comment = null) => {
     try {
       if (newStatus === "confirmed") {
         const bookingToUpdate = bookings.find(
@@ -990,7 +994,7 @@ export default function BookingPendingRequests() {
           return;
         }
 
-        if (!selectedPriestId) {
+        if (!comment && !selectedPriestId) {
           message.warning("Please select a priest before confirming the booking.");
           return;
         }
@@ -1014,18 +1018,24 @@ export default function BookingPendingRequests() {
       }
 
       const selectedPriest = priests.find(p => p.uid === selectedPriestId);
+      const commentToUse = comment !== null ? comment : (adminComment || null);
 
       await axios.put(`${API_URL}/${endpoint}`, {
         transaction_id: bookingId,
         status: newStatus,
         priest_id: newStatus === "confirmed" ? selectedPriestId : null,
         priest_name: newStatus === "confirmed" && selectedPriest ? selectedPriest.full_name : null,
+        admin_comment: commentToUse,
       });
 
       message.success(`Booking ${newStatus === "confirmed" ? "confirmed" : newStatus === "cancelled" ? "cancelled" : "updated"} successfully.`);
       fetchAllBookings();
       setDetailModalVisible(false);
       setSelectedPriestId(null);
+      setAdminComment("");
+      setConfirmModalVisible(false);
+      setPendingAction(null);
+      setQuickComment("");
 
     } catch (error) {
       console.error("Error updating booking status:", error);
@@ -1034,6 +1044,39 @@ export default function BookingPendingRequests() {
     } finally {
       setUpdateLoading(false);
     }
+  };
+
+  const handleQuickAction = (bookingId, bookingType, status) => {
+    if (status === "confirmed") {
+      const bookingToUpdate = bookings.find(
+        (b) => b.transaction_id === bookingId && b.bookingType === bookingType
+      );
+
+      if (bookingToUpdate && isBookingDatePast(bookingToUpdate)) {
+        message.error("Cannot confirm booking that is past its scheduled date.");
+        return;
+      }
+    }
+    
+    setPendingAction({ bookingId, bookingType, status });
+    setConfirmModalVisible(true);
+    setQuickComment("");
+  };
+
+  const handleConfirmAction = async () => {
+    if (!pendingAction) return;
+
+    if (pendingAction.status === "confirmed" && !selectedPriestId) {
+      message.warning("Please select a priest before confirming the booking.");
+      return;
+    }
+
+    await handleStatusUpdate(
+      pendingAction.bookingId,
+      pendingAction.bookingType,
+      pendingAction.status,
+      quickComment || null
+    );
   };
 
   const formatDate = (dateString) => {
@@ -1284,7 +1327,7 @@ export default function BookingPendingRequests() {
                     icon={<CheckOutlined />}
                     className="border-btn"
                     style={{ padding: '8px' }}
-                    onClick={() => handleStatusUpdate(record.transaction_id, record.bookingType, "confirmed")}
+                    onClick={() => handleQuickAction(record.transaction_id, record.bookingType, "confirmed")}
                     loading={updateLoading}
                   />
                 </Tooltip>
@@ -1297,7 +1340,7 @@ export default function BookingPendingRequests() {
                   className="dangerborder-btn"
                   style={{ padding: '8px' }}
 
-                  onClick={() => handleStatusUpdate(record.transaction_id, record.bookingType, "cancelled")}
+                  onClick={() => handleQuickAction(record.transaction_id, record.bookingType, "cancelled")}
                   loading={updateLoading}
                 />
               </Tooltip>
@@ -1377,6 +1420,40 @@ export default function BookingPendingRequests() {
             <Col span={24}>
               <Text strong>Assigned Priest:</Text>
               <div>{selectedBooking.priest_name}</div>
+            </Col>
+          )}
+
+          {/* Admin Comment Input - Show when confirming or cancelling pending booking */}
+          {selectedBooking?.status === "pending" && (
+            <Col span={24}>
+              <Text strong>Admin Comment (Optional):</Text>
+              <Input.TextArea
+                rows={4}
+                placeholder="Add a comment for the user (optional)"
+                value={adminComment}
+                onChange={(e) => setAdminComment(e.target.value)}
+                style={{ marginTop: 8 }}
+                maxLength={500}
+                showCount
+              />
+            </Col>
+          )}
+
+          {/* Show admin comment if booking is confirmed or cancelled and has a comment */}
+          {(selectedBooking?.status === "confirmed" || selectedBooking?.status === "cancelled") && selectedBooking?.admin_comment && (
+            <Col span={24}>
+              <Text strong>Admin Comment:</Text>
+              <div style={{
+                marginTop: 8,
+                padding: 12,
+                backgroundColor: '#f5f5f5',
+                borderRadius: 4,
+                border: '1px solid #d9d9d9',
+                whiteSpace: 'pre-wrap',
+                wordWrap: 'break-word'
+              }}>
+                {selectedBooking.admin_comment}
+              </div>
             </Col>
           )}
 
@@ -1947,6 +2024,7 @@ export default function BookingPendingRequests() {
             setDetailModalVisible(false);
             setSelectedBooking(null);
             setSelectedPriestId(null);
+            setAdminComment("");
           }}
           footer={[
             selectedBooking?.status === "pending" && (
@@ -2108,6 +2186,61 @@ export default function BookingPendingRequests() {
               <Text type="secondary">Please select a sacrament type to create a booking</Text>
             </div>
           )}
+        </Modal>
+
+        {/* Quick Action Confirmation Modal */}
+        <Modal
+          title={pendingAction?.status === "confirmed" ? "Confirm Booking" : "Cancel Booking"}
+          open={confirmModalVisible}
+          onCancel={() => {
+            setConfirmModalVisible(false);
+            setPendingAction(null);
+            setQuickComment("");
+            setSelectedPriestId(null);
+          }}
+          onOk={handleConfirmAction}
+          okText={pendingAction?.status === "confirmed" ? "Confirm" : "Cancel Booking"}
+          okButtonProps={{
+            className: pendingAction?.status === "confirmed" ? "filled-btn" : "cancelborder-btn",
+            loading: updateLoading,
+          }}
+          cancelButtonProps={{ className: "border-btn" }}
+          width={500}
+        >
+          {pendingAction?.status === "confirmed" && (
+            <div style={{ marginBottom: 16 }}>
+              <Text strong>Assign Priest:</Text>
+              <Select
+                style={{ width: "100%", marginTop: 8 }}
+                placeholder="Select a priest"
+                value={selectedPriestId}
+                onChange={(value) => setSelectedPriestId(value)}
+                loading={loadingPriests}
+                showSearch
+                filterOption={(input, option) =>
+                  (option?.children?.toLowerCase() ?? '').includes(input.toLowerCase())
+                }
+              >
+                {priests.map((priest) => (
+                  <Option key={priest.uid} value={priest.uid}>
+                    {priest.full_name}
+                  </Option>
+                ))}
+              </Select>
+            </div>
+          )}
+          <div>
+            <Text strong>Admin Comment (Optional):</Text>
+            <Input.TextArea
+              rows={4}
+              placeholder="Add a comment for the user (optional)"
+              value={quickComment}
+              onChange={(e) => setQuickComment(e.target.value)}
+              style={{ marginTop: 8 }}
+              maxLength={500}
+              showCount
+            />
+          </div>
         </Modal>
       </div>
     </div>
