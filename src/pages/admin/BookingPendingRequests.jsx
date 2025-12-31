@@ -341,6 +341,7 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
               value={time ? dayjs(time) : null}
               onChange={(value) => setTime(value ? value.toDate() : null)}
               format="HH:mm"
+              minuteStep={10}
             />
           </Form.Item>
         </Col>
@@ -815,7 +816,7 @@ export default function BookingPendingRequests() {
   const [dateFilterTab, setDateFilterTab] = useState("all");
   const [adminComment, setAdminComment] = useState("");
   const [confirmModalVisible, setConfirmModalVisible] = useState(false);
-  const [pendingAction, setPendingAction] = useState(null); 
+  const [pendingAction, setPendingAction] = useState(null); // { bookingId, bookingType, status }
   const [quickComment, setQuickComment] = useState("");
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [editForm] = Form.useForm();
@@ -826,10 +827,14 @@ export default function BookingPendingRequests() {
   const [lastUpdateTime, setLastUpdateTime] = useState(null);
 
   useEffect(() => {
+    // Fetch priests when status filter changes
+    // Bookings are handled by the polling effect below
     fetchPriests();
   }, [statusFilter]);
 
+  // Real-time polling for bookings
   useEffect(() => {
+    // Don't poll if modals are open to avoid unnecessary requests
     if (detailModalVisible || createBookingModalVisible || editModalVisible || confirmModalVisible) {
       setIsPolling(false);
       return;
@@ -837,12 +842,15 @@ export default function BookingPendingRequests() {
 
     setIsPolling(true);
 
+    // Initial fetch
     fetchAllBookings(true);
 
+    // Set up polling interval (every 5 seconds)
     const pollInterval = setInterval(() => {
       fetchAllBookings(false);
     }, 5000);
 
+    // Cleanup interval on unmount or when modals open
     return () => {
       clearInterval(pollInterval);
       setIsPolling(false);
@@ -856,11 +864,9 @@ export default function BookingPendingRequests() {
       if (response.data && response.data.priests) {
         setPriests(response.data.priests);
       }
-
     } catch (error) {
       console.error("Error fetching priests:", error);
       message.error("Failed to load priests list");
-
     } finally {
       setLoadingPriests(false);
     }
@@ -885,18 +891,19 @@ export default function BookingPendingRequests() {
         axios.get(`${API_URL}/admin/getAllConfessions`).catch(() => ({ data: { bookings: [] } })),
       ]);
 
+      // Normalize confession bookings and fetch user data if missing
       const confessionBookings = confessions.data.bookings || [];
       const normalizedConfessions = await Promise.all(
         confessionBookings.map(async (b) => {
           let userData = b.user;
           
+          // If user object is missing but uid exists, fetch user data
           if (!userData && b.uid && b.uid !== 'admin') {
             try {
               const userResponse = await axios.post(`${API_URL}/findUser`, { uid: b.uid });
               if (userResponse.data && userResponse.data.user) {
                 userData = userResponse.data.user;
               }
-
             } catch (error) {
               console.error(`Error fetching user data for confession booking ${b.transaction_id}:`, error);
             }
@@ -909,7 +916,8 @@ export default function BookingPendingRequests() {
             date: b.date ? new Date(b.date).toISOString() : null,
             createdAt: b.createdAt ? new Date(b.createdAt).toISOString() : null,
             status: b.status || "pending",
-            user: userData || b.user, 
+            user: userData || b.user, // Use fetched user data or original
+            // Don't set full_name here - let getName() function handle it from user object
             transaction_id: b.transaction_id || `CONF-${Date.now()}`,
             time: b.time || null,
           };
@@ -955,7 +963,6 @@ export default function BookingPendingRequests() {
 
     } catch (error) {
       console.error("Error fetching bookings:", error);
-
       if (showLoading) {
         message.error("Failed to fetch bookings. Please try again.");
       }
@@ -1049,6 +1056,7 @@ export default function BookingPendingRequests() {
           return;
         }
 
+        // Only check for priest if not coming from quick action (which will have its own check)
         if (!comment && !selectedPriestId) {
           message.warning("Please select a priest before confirming the booking.");
           return;
@@ -1112,7 +1120,6 @@ export default function BookingPendingRequests() {
         return;
       }
     }
-
     setPendingAction({ bookingId, bookingType, status });
     setConfirmModalVisible(true);
     setQuickComment("");
@@ -1156,12 +1163,14 @@ export default function BookingPendingRequests() {
         return;
       }
 
+      // Handle time formatting - editTime is a dayjs object
       let timeString = selectedBooking.time;
       if (editTime) {
         const timeValue = editTime.toDate();
         timeString = `${timeValue.getHours().toString().padStart(2, '0')}:${timeValue.getMinutes().toString().padStart(2, '0')}`;
       }
 
+      // Handle date formatting - editDate is a dayjs object
       let dateISO = selectedBooking.date;
       if (editDate) {
         dateISO = editDate.toDate().toISOString();
@@ -1187,7 +1196,6 @@ export default function BookingPendingRequests() {
     } catch (error) {
       console.error("Error updating booking:", error);
       message.error(error.response?.data?.message || "Failed to update booking. Please try again.");
-    
     } finally {
       setEditLoading(false);
     }
@@ -1259,13 +1267,16 @@ export default function BookingPendingRequests() {
       );
 
     } else {
+      // For other booking types including Confession, prioritize user object with first_name/last_name
+      // This ensures profile updates are reflected immediately
       if (booking.user) {
+        // Try to construct name from first_name, middle_name, last_name
         const userFullName = `${booking.user.first_name || ""} ${booking.user.middle_name || ""} ${booking.user.last_name || ""}`.trim();
-        
         if (userFullName) return userFullName;
-
+        // Fallback to user.name if it exists
         if (booking.user.name) return booking.user.name;
       }
+      // Fallback to other fields
       return booking.name || booking.full_name || `${booking.first_name || ""} ${booking.last_name || ""}`.trim() || "N/A";
     }
   };
@@ -2452,6 +2463,7 @@ export default function BookingPendingRequests() {
                       value={editTime}
                       onChange={(value) => setEditTime(value ? dayjs(value) : null)}
                       format="HH:mm"
+                      minuteStep={10}
                     />
                   </Form.Item>
                 </Col>
