@@ -58,14 +58,46 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
 
   const [uploadedFiles, setUploadedFiles] = useState({});
   const [physicalRequirements, setPhysicalRequirements] = useState({});
+  const [selectedUserId, setSelectedUserId] = useState(null);
+  const [users, setUsers] = useState([]);
+  const [loadingUsers, setLoadingUsers] = useState(false);
 
   useEffect(() => {
     setPhysicalRequirements({});
   }, [bookingType]);
 
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = async () => {
+    try {
+      setLoadingUsers(true);
+      const response = await axios.get(`${API_URL}/getAllUsers`);
+      const regularUsers = (response.data || []).filter(
+        (user) => !user.is_priest && !user.is_admin && user.is_active !== false
+      );
+
+      setUsers(regularUsers);
+
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      message.error("Failed to load users list");
+
+    } finally {
+      setLoadingUsers(false);
+    }
+  };
+
   const handleSubmit = async (values) => {
     try {
       setLoading(true);
+
+      if (!selectedUserId) {
+        message.error("Please select a user for this booking");
+        setLoading(false);
+        return;
+      }
 
       const formData = new FormData();
 
@@ -77,7 +109,10 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
 
       const timeString = time ? `${time.getHours().toString().padStart(2, '0')}:${time.getMinutes().toString().padStart(2, '0')}` : '';
 
-      formData.append('uid', 'admin'); // Admin created bookings
+      console.log('Creating booking for user UID:', selectedUserId);
+      console.log('Booking type:', bookingType);
+      
+      formData.append('uid', selectedUserId); // Use selected user's UID
       formData.append('full_name', values.full_name || '');
       formData.append('email', values.email || '');
       formData.append('date', combinedDateTime.toISOString());
@@ -177,7 +212,7 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
 
       } else if (bookingType === 'Anointing') {
         const payload = {
-          uid: 'admin',
+          uid: selectedUserId,
           full_name: values.full_name || '',
           email: values.email || '',
           date: combinedDateTime.toISOString(),
@@ -194,7 +229,7 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
 
       } else if (bookingType === 'Confession') {
         const payload = {
-          uid: 'admin',
+          uid: selectedUserId, 
           full_name: values.full_name || '',
           email: values.email || '',
           date: combinedDateTime.toISOString(),
@@ -216,6 +251,7 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
       setBridePic(null);
       setUploadedFiles({});
       setPhysicalRequirements({});
+      setSelectedUserId(null);
       setBurialServices({
         funeral_mass: false,
         death_anniversary: false,
@@ -265,6 +301,28 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
     return today.add(1, 'day');
   };
 
+  const getUserDisplayName = (user) => {
+    if (!user) return '';
+    const firstName = user.first_name || '';
+    const middleName = user.middle_name || '';
+    const lastName = user.last_name || '';
+    const name = [firstName, middleName, lastName].filter(Boolean).join(' ');
+    return name || user.email || '';
+  };
+
+  const handleUserChange = (uid) => {
+    setSelectedUserId(uid);
+    const selectedUser = users.find(u => u.uid === uid);
+    if (selectedUser) {
+      const fullName = getUserDisplayName(selectedUser);
+      form.setFieldsValue({
+        full_name: fullName,
+        email: selectedUser.email || '',
+        contact_number: selectedUser.contact_number || '',
+      });
+    }
+  };
+
   return (
     <Form
       form={form}
@@ -272,6 +330,38 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
       onFinish={handleSubmit}
       style={{ marginTop: 20 }}
     >
+      <Row gutter={16}>
+        <Col span={24}>
+          <Form.Item
+            label="Select User"
+            required
+            help="Choose the user this booking will be assigned to"
+          >
+            <Select
+              placeholder="Select a user"
+              value={selectedUserId}
+              onChange={handleUserChange}
+              loading={loadingUsers}
+              showSearch
+              filterOption={(input, option) => {
+                const user = users.find(u => u.uid === option.value);
+                if (!user) return false;
+                const displayName = getUserDisplayName(user).toLowerCase();
+                const email = (user.email || '').toLowerCase();
+                const searchTerm = input.toLowerCase();
+                return displayName.includes(searchTerm) || email.includes(searchTerm);
+              }}
+              notFoundContent={loadingUsers ? <Spin size="small" /> : "No users found"}
+            >
+              {users.map((user) => (
+                <Option key={user.uid} value={user.uid}>
+                  {getUserDisplayName(user)} {user.email ? `(${user.email})` : ''}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+        </Col>
+      </Row>
       <Row gutter={16}>
         <Col span={12}>
           <Form.Item
