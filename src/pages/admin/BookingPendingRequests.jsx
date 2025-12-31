@@ -90,7 +90,6 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
     }
   };
 
-  // Contact number validation
   const validateContactNumber = (_, value) => {
     if (!value) {
       return Promise.reject(new Error('Contact number is required'));
@@ -113,14 +112,20 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
     return Promise.resolve();
   };
 
-  // Date formatting functions
+  const handleNameInput = (fieldName, value) => {
+    const filteredValue = value.replace(/[^a-zA-Z\s\-']/g, '');
+    form.setFieldsValue({ [fieldName]: filteredValue });
+  };
+
   const formatDateInput = (value) => {
     const numbers = value.replace(/\D/g, "");
 
     if (numbers.length <= 2) {
       return numbers;
+
     } else if (numbers.length <= 4) {
       return `${numbers.slice(0, 2)}/${numbers.slice(2)}`;
+
     } else {
       return `${numbers.slice(0, 2)}/${numbers.slice(2, 4)}/${numbers.slice(4, 8)}`;
     }
@@ -147,9 +152,7 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
       return Promise.reject(new Error('Birthday is required'));
     }
 
-    // Check if it's already in MM/DD/YYYY format
     if (/^\d{2}\/\d{2}\/\d{4}$/.test(value)) {
-      // Parse MM/DD/YYYY format
       const [month, day, year] = value.split('/');
       let date = dayjs(`${year}-${month}-${day}`, "YYYY-MM-DD", true);
       
@@ -171,7 +174,6 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
       return Promise.resolve();
     }
 
-    // If not in correct format, try to parse it anyway
     const dateString = parseDateInput(value);
     let date = dayjs(dateString, "YYYY-MM-DD", true);
     if (!date.isValid()) {
@@ -477,7 +479,10 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
             name="full_name"
             rules={[{ required: true, message: 'Please enter full name' }]}
           >
-            <Input placeholder="Enter full name" />
+            <Input 
+              placeholder="Enter full name"
+              onChange={(e) => handleNameInput('full_name', e.target.value)}
+            />
           </Form.Item>
         </Col>
         <Col span={12}>
@@ -505,7 +510,6 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
                 const value = e.target.value;
                 const numericOnly = value.replace(/\D/g, "");
                 const limited = numericOnly.slice(0, 11);
-                // Update form field value
                 form.setFieldsValue({ contact_number: limited });
               }}
             />
@@ -579,12 +583,12 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
                 name="groom_first_name"
                 rules={[{ required: true, message: 'Required' }]}
               >
-                <Input />
+                <Input onChange={(e) => handleNameInput('groom_first_name', e.target.value)} />
               </Form.Item>
             </Col>
             <Col span={8}>
               <Form.Item label="Groom Middle Name" name="groom_middle_name">
-                <Input />
+                <Input onChange={(e) => handleNameInput('groom_middle_name', e.target.value)} />
               </Form.Item>
             </Col>
             <Col span={8}>
@@ -593,7 +597,7 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
                 name="groom_last_name"
                 rules={[{ required: true, message: 'Required' }]}
               >
-                <Input />
+                <Input onChange={(e) => handleNameInput('groom_last_name', e.target.value)} />
               </Form.Item>
             </Col>
           </Row>
@@ -604,12 +608,12 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
                 name="bride_first_name"
                 rules={[{ required: true, message: 'Required' }]}
               >
-                <Input />
+                <Input onChange={(e) => handleNameInput('bride_first_name', e.target.value)} />
               </Form.Item>
             </Col>
             <Col span={8}>
               <Form.Item label="Bride Middle Name" name="bride_middle_name">
-                <Input />
+                <Input onChange={(e) => handleNameInput('bride_middle_name', e.target.value)} />
               </Form.Item>
             </Col>
             <Col span={8}>
@@ -618,7 +622,7 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
                 name="bride_last_name"
                 rules={[{ required: true, message: 'Required' }]}
               >
-                <Input />
+                <Input onChange={(e) => handleNameInput('bride_last_name', e.target.value)} />
               </Form.Item>
             </Col>
           </Row>
@@ -666,12 +670,12 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
                 name="candidate_first_name"
                 rules={[{ required: true }]}
               >
-                <Input />
+                <Input onChange={(e) => handleNameInput('candidate_first_name', e.target.value)} />
               </Form.Item>
             </Col>
             <Col span={8}>
               <Form.Item label="Middle Name" name="candidate_middle_name">
-                <Input />
+                <Input onChange={(e) => handleNameInput('candidate_middle_name', e.target.value)} />
               </Form.Item>
             </Col>
             <Col span={8}>
@@ -680,7 +684,7 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
                 name="candidate_last_name"
                 rules={[{ required: true }]}
               >
-                <Input />
+                <Input onChange={(e) => handleNameInput('candidate_last_name', e.target.value)} />
               </Form.Item>
             </Col>
           </Row>
@@ -747,12 +751,12 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
                 name="father_first_name"
                 rules={[{ required: true }]}
               >
-                <Input />
+                <Input onChange={(e) => handleNameInput('father_first_name', e.target.value)} />
               </Form.Item>
             </Col>
             <Col span={8}>
               <Form.Item label="Middle Name" name="father_middle_name">
-                <Input />
+                <Input onChange={(e) => handleNameInput('father_middle_name', e.target.value)} />
               </Form.Item>
             </Col>
             <Col span={8}>
@@ -761,7 +765,7 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
                 name="father_last_name"
                 rules={[{ required: true }]}
               >
-                <Input />
+                <Input onChange={(e) => handleNameInput('father_last_name', e.target.value)} />
               </Form.Item>
             </Col>
           </Row>
@@ -781,12 +785,12 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
                 name="mother_first_name"
                 rules={[{ required: true }]}
               >
-                <Input />
+                <Input onChange={(e) => handleNameInput('mother_first_name', e.target.value)} />
               </Form.Item>
             </Col>
             <Col span={8}>
               <Form.Item label="Middle Name" name="mother_middle_name">
-                <Input />
+                <Input onChange={(e) => handleNameInput('mother_middle_name', e.target.value)} />
               </Form.Item>
             </Col>
             <Col span={8}>
@@ -795,7 +799,7 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
                 name="mother_last_name"
                 rules={[{ required: true }]}
               >
-                <Input />
+                <Input onChange={(e) => handleNameInput('mother_last_name', e.target.value)} />
               </Form.Item>
             </Col>
           </Row>
@@ -836,7 +840,7 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
                 name="main_godfather_name"
                 rules={[{ required: true }]}
               >
-                <Input />
+                <Input onChange={(e) => handleNameInput('main_godfather_name', e.target.value)} />
               </Form.Item>
             </Col>
             <Col span={12}>
@@ -852,7 +856,7 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
                 name="main_godmother_name"
                 rules={[{ required: true }]}
               >
-                <Input />
+                <Input onChange={(e) => handleNameInput('main_godmother_name', e.target.value)} />
               </Form.Item>
             </Col>
             <Col span={12}>
@@ -872,7 +876,7 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
             name="deceased_name"
             rules={[{ required: true }]}
           >
-            <Input />
+            <Input onChange={(e) => handleNameInput('deceased_name', e.target.value)} />
           </Form.Item>
           <Row gutter={16}>
             <Col span={12}>
@@ -903,7 +907,7 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
             name="requested_by"
             rules={[{ required: true }]}
           >
-            <Input />
+            <Input onChange={(e) => handleNameInput('requested_by', e.target.value)} />
           </Form.Item>
           <Form.Item
             label="Relationship to Deceased"
@@ -959,7 +963,7 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
       {/* Confirmation-specific fields */}
       {bookingType === 'Confirmation' && (
         <Form.Item label="Sponsor Name" name="sponsor_name">
-          <Input />
+          <Input onChange={(e) => handleNameInput('sponsor_name', e.target.value)} />
         </Form.Item>
       )}
 
