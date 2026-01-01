@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { NavbarContext } from "../../context/AllContext";
 import "../../styles/booking/wedding.css";
 import DatePicker from "react-datepicker";
@@ -10,6 +10,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { supabase } from "../../config/supabase";
 import axios from "axios";
 import { API_URL } from "../../Constants";
+
 
 export default function Anointing() {
   // TO BE DELETE
@@ -30,6 +31,7 @@ export default function Anointing() {
   const [email, setEmail] = useState("");
   const [contactNumber, setContactNumber] = useState("");
   const [medicalCondition, setMedicalCondition] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const inputText = [
     {
@@ -88,6 +90,7 @@ export default function Anointing() {
       type: "text",
       onChange: setContactNumber,
       value: contactNumber,
+      maxLength: 11,
     },
     {
       key: "medical_condition",
@@ -99,7 +102,9 @@ export default function Anointing() {
   ];
 
   const [medicalCertificateFile, setMedicalCertificateFile] = useState(null);
-  const [medicalCertificatePreview, setMedicalCertificatePreview] = useState(null);
+  const [medicalCertificatePreview, setMedicalCertificatePreview] =
+    useState(null);
+  const fileInputRef = useRef(null);
 
   const uploadFiles = [
     {
@@ -129,22 +134,48 @@ export default function Anointing() {
     return data.publicUrl;
   }
 
-   function generateTransactionID() {
+  function generateTransactionID() {
     const random = Math.random().toString(36).substring(2, 8).toUpperCase();
     const timestamp = Date.now().toString().slice(-6);
     return `ANO-${timestamp}-${random}`;
   }
 
   async function handleSubmit() {
-
     const uploaded = {};
+    setIsLoading(true);
     try {
+      if (
+        fname.trim() === "" ||
+        lname.trim() === "" ||
+        email.trim() === "" ||
+        date.trim() === "" ||
+        time.trim() === "" ||
+        attendees <= 0 ||
+        contactNumber.trim() === "" ||
+        medicalCondition.trim() === ""
+      ) {
+        alert("Please fill in all required fields.");
+        setIsLoading(false);
+        return;
+      }
+      if (
+        contactNumber.trim().length !== 11 ||
+        !contactNumber.startsWith("09")
+      ) {
+        alert("Please enter a valid contact number.");
+        setIsLoading(false);
+        return;
+      }
 
-    if (medicalCertificateFile) {
+      if (medicalCertificateFile) {
         uploaded.medical_certificate = await uploadImage(
           medicalCertificateFile,
           "medical_certificate"
         );
+      } else {
+        alert("Please upload medical certificate.");
+        setIsLoading(false);
+        return;
       }
       const payload = {
         uid: "123123123",
@@ -162,6 +193,7 @@ export default function Anointing() {
       const res = await axios.post(`${API_URL}/createAnointing`, payload);
       alert("Anointing booking submitted successfully!");
       console.log("Saved:", res.data);
+      setIsLoading(false);
 
       setFname("");
       setMname("");
@@ -170,11 +202,14 @@ export default function Anointing() {
       setDate("");
       setTime("");
       setAttendees(0);
-        setContactNumber("");
-        setMedicalCondition("");
+      setContactNumber("");
+      setMedicalCondition("");
+      fileInputRef.current.value = "";
     } catch (err) {
       console.error("UPLOAD ERROR:", err);
       alert("Failed to submit confession booking");
+      setIsLoading(false);
+      
     }
   }
 
@@ -244,6 +279,7 @@ export default function Anointing() {
                     className="input-text"
                     onChange={(e) => elem.onChange(e.target.value)}
                     value={elem.value}
+                    maxLength={elem.maxLength}
                   />
                 </>
               )}
@@ -255,6 +291,7 @@ export default function Anointing() {
                 <h1>{elem.title}</h1>
 
                 <input
+                  ref={fileInputRef}
                   type="file"
                   accept="*/*"
                   className="inputFile-properties"
@@ -277,7 +314,7 @@ export default function Anointing() {
 
         <div>
           <button className="submit-button" onClick={handleSubmit}>
-            Submit
+            {isLoading ? `Submitting...` : `Submit Booking`}
           </button>
         </div>
       </div>
