@@ -9,27 +9,35 @@ export const generatePDFReport = async ({ title, columns, data, logoBase64 }) =>
     const currentDate = dayjs().format("MMMM DD, YYYY");
     
     const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.width;
+    const pageHeight = doc.internal.pageSize.height;
+    const marginLeft = 14;
+    const marginRight = pageWidth - 14;
+    const marginTop = 20;
     
     let logoLoaded = false;
-    let logoRight = 14;
+    let logoRight = marginLeft;
     
     if (logoBase64 && typeof logoBase64 === 'string' && logoBase64.startsWith('data:')) {
       try {
-        doc.addImage(logoBase64, 'PNG', 14, 10, 25, 25);
+        doc.addImage(logoBase64, 'PNG', marginLeft, marginTop, 25, 25);
         logoLoaded = true;
-        logoRight = 14 + 25 + 5;
+        logoRight = marginLeft + 25 + 8;
+
       } catch (logoError) {
         console.warn('Could not add logo to PDF:', logoError);
       }
     }
+  
+    doc.setFontSize(16);
+    doc.setFont(undefined, 'bold');
+    const headerY = marginTop + 12;
+    doc.text('Sagrada Familia', logoRight, headerY);
     
     doc.setFontSize(16);
     doc.setFont(undefined, 'bold');
-    doc.text('Sagrada Familia', logoRight, 20);
-    
-    doc.setFontSize(14);
-    doc.setFont(undefined, 'bold');
-    doc.text(titleStr, 14, 50);
+    const titleY = marginTop + 40;
+    doc.text(titleStr, marginLeft, titleY);
 
     if (!Array.isArray(columns) || columns.length === 0) {
       console.error('Invalid columns provided to generatePDFReport');
@@ -46,28 +54,44 @@ export const generatePDFReport = async ({ title, columns, data, logoBase64 }) =>
         if (typeof col === 'string') return col;
         return col.title || col.dataIndex || 'Column';
       })],
+
       body: data.map(row => columns.map(col => {
         if (typeof col === 'string') {
           return row[col] || '';
         }
+
         const value = row[col.dataIndex];
 
         if (value === null || value === undefined) return '';
         if (typeof value === 'object') return JSON.stringify(value);
         return value;
       })),
-      startY: 50,
-      styles: { fontSize: 10 },
+      startY: titleY + 10,
+      margin: { left: marginLeft, right: 14 },
+      styles: { 
+        fontSize: 9,
+        cellPadding: 3,
+      },
+      headStyles: {
+        fillColor: [24, 144, 255],
+        textColor: 255,
+        fontStyle: 'bold',
+      },
+      alternateRowStyles: {
+        fillColor: [245, 245, 245],
+      },
     });
 
     const finalY = doc.lastAutoTable && doc.lastAutoTable.finalY 
-      ? doc.lastAutoTable.finalY + 10 
-      : doc.internal.pageSize.height - 20;
-    doc.setFontSize(10);
+      ? doc.lastAutoTable.finalY + 15
+      : pageHeight - 25;
+    
+    const footerY = Math.min(finalY, pageHeight - 15);
+    
+    doc.setFontSize(9);
     doc.setFont(undefined, 'normal');
-    const pageWidth = doc.internal.pageSize.width;
     const textWidth = doc.getTextWidth(`Generated on: ${currentDate}`);
-    doc.text(`Generated on: ${currentDate}`, (pageWidth - textWidth) / 2, finalY);
+    doc.text(`Generated on: ${currentDate}`, (pageWidth - textWidth) / 2, footerY);
 
     doc.save(`${titleStr.replace(/\s+/g, "_")}.pdf`);
 
@@ -100,6 +124,7 @@ export const generateExcelReport = ({ fileName, data, columns }) => {
         return columns.map(col => {
           if (typeof col === 'string') {
             const value = row[col];
+
             if (value === null || value === undefined) return '';
             if (typeof value === 'object') return JSON.stringify(value);
             return value;
@@ -116,7 +141,7 @@ export const generateExcelReport = ({ fileName, data, columns }) => {
           return value;
         });
       });
-
+      
     } else {
       headers = data.length > 0 ? Object.keys(data[0]) : [];
       dataArray = data.map(row => {
