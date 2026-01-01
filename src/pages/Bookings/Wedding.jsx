@@ -39,6 +39,7 @@ export default function Wedding() {
   const [contact, setContact] = useState("");
   const [attendees, setAttendees] = useState(0);
   const [email, setEmail] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const inputText = [
     {
@@ -62,7 +63,7 @@ export default function Wedding() {
       onChange: setGroomLname,
       value: groomLname,
     },
-    { key: "date", title: "Date", type: "date", onChange: setDate },
+    { key: "date", title: "Date", type: "date", onChange: setDate, value: date },
 
     {
       key: "bride_first",
@@ -292,6 +293,7 @@ export default function Wedding() {
   }
 
   async function handleUpload() {
+    setIsLoading(true)
     try {
       if (
         !date ||
@@ -401,6 +403,19 @@ export default function Wedding() {
       });
 
       alert("Booking submitted successfully!");
+
+      setEmail("");
+      setDate("");
+      setTime("");
+      setAttendees(0);
+      setContact("");
+      setGroomFname("");
+      setGroomMname("");
+      setGroomLname("");
+      setBrideFname("");
+      setBrideMname("");
+      setBrideLname("");
+      
     } catch (err) {
       console.error(err);
       alert("Something went wrong during upload.");
@@ -426,7 +441,6 @@ export default function Wedding() {
                   showMonthDropdown
                   dropdownMode="select"
                   minDate={new Date(1900, 0, 1)}
-                  maxDate={new Date()}
                 />
               </>
             ) : elem.type === "time" ? (
@@ -673,9 +687,10 @@ export default function Wedding() {
 
       <input
         type="submit"
-        value="Submit"
+        value={`${isLoading ? "Submitting..." : "Submit Booking"}`}
         className="submit-button"
         onClick={handleUpload}
+        disabled={isLoading}
       />
     </div>
   );

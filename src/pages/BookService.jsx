@@ -3,6 +3,12 @@ import { NavbarContext } from "../context/AllContext";
 import SignInPage from "./SignInPage";
 import Wedding from "./Bookings/Wedding";
 import Baptism from "./Bookings/Baptism";
+import Confession from "./Bookings/Confession";
+import Anointing from "./Bookings/Anointing";
+import Communion from "./Bookings/Communion";
+import Burial from "./Bookings/Burial";
+
+
 
 
 
@@ -28,32 +34,24 @@ export default function BookService() {
 
         {
           bookingSelected === "confession" && 
-          <div>
-            <h1 className="text-black">confession</h1>
-          </div>
+          <Confession />
         }
 
 
         {
           bookingSelected === "anointing" && 
-          <div>
-            <h1 className="text-black">anointing</h1>
-          </div>
+          <Anointing /> 
         }
 
 
         {
           bookingSelected === "communion" && 
-          <div>
-            <h1 className="text-black">communion</h1>
-          </div>
+          <Communion /> 
         }
 
         {
           bookingSelected === "burial" && 
-          <div>
-            <h1 className="text-black">burial</h1>
-          </div>
+          <Burial />  
         }
 
 
