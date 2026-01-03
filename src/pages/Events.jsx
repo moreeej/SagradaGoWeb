@@ -50,11 +50,9 @@ export default function Events() {
     return () => clearInterval(interval);
   }, [banners.length]);
 
-  // Filtering logic
   useEffect(() => {
     let filtered = [...events];
 
-    // Search filter
     if (searchText) {
       filtered = filtered.filter(
         (e) =>
@@ -63,26 +61,14 @@ export default function Events() {
       );
     }
 
-    // Location filter
-    if (locationFilter) {
-      filtered = filtered.filter(
-        (e) => e.location.toLowerCase() === locationFilter.toLowerCase()
-      );
-    }
-
-    // Date filter
-    if (dateFilter) {
-      filtered = filtered.filter(
-        (e) =>
-          new Date(e.date).toISOString().split("T")[0] === dateFilter
-      );
-    }
-
     setFilteredEvents(filtered);
   }, [searchText, locationFilter, dateFilter, events]);
 
-  // Extract unique locations for dropdown
-  const locations = [...new Set(events.map((e) => e.location))];
+  // Near your other useState hooks
+  const [selectedEvent, setSelectedEvent] = useState(null);
+
+  // Function to close the eventmodal
+  const closeeventmodal = () => setSelectedEvent(null);
 
   return (
     <>
@@ -153,7 +139,8 @@ export default function Events() {
               <div
                 key={event._id}
                 className="event-card"
-                style={{ animationDelay: `${index * 0.1}s` }}
+                style={{ animationDelay: `${index * 0.1}s`, cursor: 'pointer' }} // Add pointer cursor
+                onClick={() => setSelectedEvent(event)} // Set the clicked event
               >
                 <div className="event-image">
                   <span>Event Image</span>
@@ -182,6 +169,34 @@ export default function Events() {
           </div>
         )}
       </section>
+
+      {selectedEvent && (
+        <div className="eventmodal-overlay" onClick={closeeventmodal}>
+          <div className="eventmodal-content" onClick={(e) => e.stopPropagation()}>
+            <button className="eventmodal-close" onClick={closeeventmodal}>&times;</button>
+
+            <div className="eventmodal-image-placeholder">
+              <span>Event Image</span>
+            </div>
+
+            <div className="eventmodal-body">
+              <h2>{selectedEvent.title}</h2>
+              <div className="eventmodal-meta">
+                <strong>Location:</strong> {selectedEvent.location} <br />
+                <strong>Date:</strong> {new Date(selectedEvent.date).toLocaleDateString("en-US", {
+                  month: "long", day: "numeric", year: "numeric"
+                })}
+              </div>
+              <hr className="eventmodal-divider" />
+              <p className="eventmodal-description-full">
+                {selectedEvent.description && selectedEvent.description.trim() !== ""
+                  ? selectedEvent.description
+                  : "No description displayed."}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showSignin && <SignInPage />}
     </>
