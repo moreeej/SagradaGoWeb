@@ -56,6 +56,19 @@
   font-family: 'Poppins', sans-serif;
 }
 
+.modal-input.input-error {
+  border-color: #dc3545;
+  border-width: 2px;
+}
+
+.error-message {
+  color: #dc3545;
+  font-size: 12px;
+  margin-top: -4px;
+  margin-bottom: 8px;
+  display: block;
+}
+
 .modal-password-wrapper {
   position: relative;
   width: 100%;

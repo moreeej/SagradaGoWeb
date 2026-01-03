@@ -27,12 +27,110 @@ export default function SignUpPage() {
   const [showPass, setShowPass] = useState(false);
   const [showRepass, setShowRepass] = useState(false);
 
-
+  const [errors, setErrors] = useState({
+    fname: "",
+    mname: "",
+    lname: "",
+    contactNumber: "",
+    password: "",
+    repass: ""
+  });
 
   const [loading, setLoading] = useState(false);
 
+  const validateName = (name) => {
+    if (/\d/.test(name)) {
+      return "Name cannot contain numbers";
+    }
+
+    return "";
+  };
+
+  const validateContactNumber = (contact) => {
+    const digitsOnly = contact.replace(/\D/g, "");
+    
+    if (contact && digitsOnly !== contact) {
+      return "Contact number must contain numbers only";
+    }
+
+    if (contact && !contact.startsWith("09")) {
+      return "Contact number must start with 09";
+    }
+
+    if (contact && contact.length !== 11) {
+      return "Contact number must be exactly 11 digits";
+    }
+
+    return "";
+  };
+
+  const validatePasswordMatch = (password, repass) => {
+    if (repass && password !== repass) {
+      return "Passwords do not match";
+    }
+
+    return "";
+  };
+
+  const handleFnameChange = (e) => {
+    const value = e.target.value;
+    const lettersOnly = value.replace(/\d/g, "");
+    setInputFname(lettersOnly);
+    setErrors(prev => ({ ...prev, fname: validateName(lettersOnly) }));
+  };
+
+  const handleMnameChange = (e) => {
+    const value = e.target.value;
+    const lettersOnly = value.replace(/\d/g, "");
+    setInputMname(lettersOnly);
+    setErrors(prev => ({ ...prev, mname: validateName(lettersOnly) }));
+  };
+
+  const handleLnameChange = (e) => {
+    const value = e.target.value;
+    const lettersOnly = value.replace(/\d/g, "");
+    setInputLname(lettersOnly);
+    setErrors(prev => ({ ...prev, lname: validateName(lettersOnly) }));
+  };
+
+  const handleContactNumberChange = (e) => {
+    const value = e.target.value;
+    const digitsOnly = value.replace(/\D/g, "");
+    setInputContactNumber(digitsOnly);
+    setErrors(prev => ({ ...prev, contactNumber: validateContactNumber(digitsOnly) }));
+  };
+
+  const handlePasswordChange = (e) => {
+    const value = e.target.value;
+    setInputPassword(value);
+    if (inputRepass) {
+      setErrors(prev => ({ ...prev, repass: validatePasswordMatch(value, inputRepass) }));
+    }
+  };
+
+  const handleRepassChange = (e) => {
+    const value = e.target.value;
+    setInputRepass(value);
+    setErrors(prev => ({ ...prev, repass: validatePasswordMatch(inputPassword, value) }));
+  };
+
   async function handleSignup() {
     try {
+      const validationErrors = {
+        fname: validateName(inputFname),
+        mname: validateName(inputMname),
+        lname: validateName(inputLname),
+        contactNumber: validateContactNumber(inputContactNumber),
+        repass: validatePasswordMatch(inputPassword, inputRepass)
+      };
+
+      setErrors(validationErrors);
+
+      const hasErrors = Object.values(validationErrors).some(error => error !== "");
+      if (hasErrors) {
+        alert("Please fix the validation errors before submitting.");
+        return;
+      }
 
       if (!inputEmail || !inputPassword || !inputFname || !inputLname) {
         alert("Please fill out all required fields.");
@@ -115,27 +213,30 @@ export default function SignUpPage() {
             <input
               type="text"
               value={inputFname}
-              onChange={(e) => setInputFname(e.target.value)}
-              className="modal-input"
+              onChange={handleFnameChange}
+              className={`modal-input ${errors.fname ? 'input-error' : ''}`}
             />
+            {errors.fname && <span className="error-message">{errors.fname}</span>}
           </div>
           <div>
             <label>Middle Name</label>
             <input
               type="text"
               value={inputMname}
-              onChange={(e) => setInputMname(e.target.value)}
-              className="modal-input"
+              onChange={handleMnameChange}
+              className={`modal-input ${errors.mname ? 'input-error' : ''}`}
             />
+            {errors.mname && <span className="error-message">{errors.mname}</span>}
           </div>
           <div>
             <label>Last Name</label>
             <input
               type="text"
               value={inputLname}
-              onChange={(e) => setInputLname(e.target.value)}
-              className="modal-input"
+              onChange={handleLnameChange}
+              className={`modal-input ${errors.lname ? 'input-error' : ''}`}
             />
+            {errors.lname && <span className="error-message">{errors.lname}</span>}
           </div>
           <div style={{ display: 'flex', gap: '16px' }}>
             <div style={{ flex: 1 }}>
@@ -143,9 +244,11 @@ export default function SignUpPage() {
               <input
                 type="text"
                 value={inputContactNumber}
-                onChange={(e) => setInputContactNumber(e.target.value)}
-                className="modal-input"
+                onChange={handleContactNumberChange}
+                maxLength={11}
+                className={`modal-input ${errors.contactNumber ? 'input-error' : ''}`}
               />
+              {errors.contactNumber && <span className="error-message">{errors.contactNumber}</span>}
             </div>
             <div style={{ flex: 1 }}>
               <label>Birthday</label>
@@ -173,8 +276,8 @@ export default function SignUpPage() {
               <input
                 type={showPass ? "text" : "password"}
                 value={inputPassword}
-                onChange={(e) => setInputPassword(e.target.value)}
-                className="modal-input"
+                onChange={handlePasswordChange}
+                className={`modal-input ${errors.password ? 'input-error' : ''}`}
               />
               <button
                 type="button"
@@ -184,6 +287,7 @@ export default function SignUpPage() {
                 {showPass ? "Hide" : "Show"}
               </button>
             </div>
+            {errors.password && <span className="error-message">{errors.password}</span>}
           </div>
           <div>
             <label>Re-type Password</label>
@@ -191,8 +295,8 @@ export default function SignUpPage() {
               <input
                 type={showRepass ? "text" : "password"}
                 value={inputRepass}
-                onChange={(e) => setInputRepass(e.target.value)}
-                className="modal-input"
+                onChange={handleRepassChange}
+                className={`modal-input ${errors.repass ? 'input-error' : ''}`}
               />
               <button
                 type="button"
@@ -202,6 +306,7 @@ export default function SignUpPage() {
                 {showRepass ? "Hide" : "Show"}
               </button>
             </div>
+            {errors.repass && <span className="error-message">{errors.repass}</span>}
           </div>
         </div>
 
