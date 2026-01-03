@@ -10,6 +10,13 @@ import banner1 from "../assets/SAGRADA-FAMILIA-PARISH.jpg";
 import banner2 from "../assets/christmas.jpg";
 import banner3 from "../assets/dyd.jpg";
 
+import {
+  SearchOutlined,
+  SortAscendingOutlined,
+  SortDescendingOutlined,
+  CloseOutlined
+} from "@ant-design/icons";
+
 export default function Events() {
   const { showSignin } = useContext(NavbarContext);
 
@@ -41,7 +48,6 @@ export default function Events() {
     fetchEvents();
   }, []);
 
-  // Banner slider
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrent((prev) => (prev + 1) % banners.length);
@@ -49,6 +55,11 @@ export default function Events() {
 
     return () => clearInterval(interval);
   }, [banners.length]);
+
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const closeeventmodal = () => setSelectedEvent(null);
+
+  const [sortOrder, setSortOrder] = useState("asc");
 
   useEffect(() => {
     let filtered = [...events];
@@ -61,14 +72,14 @@ export default function Events() {
       );
     }
 
+    filtered.sort((a, b) => {
+      const dateA = new Date(a.date);
+      const dateB = new Date(b.date);
+      return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
+    });
+
     setFilteredEvents(filtered);
-  }, [searchText, locationFilter, dateFilter, events]);
-
-  // Near your other useState hooks
-  const [selectedEvent, setSelectedEvent] = useState(null);
-
-  // Function to close the eventmodal
-  const closeeventmodal = () => setSelectedEvent(null);
+  }, [searchText, sortOrder, events]);
 
   return (
     <>
@@ -98,32 +109,25 @@ export default function Events() {
           <h2>Upcoming Events</h2>
           <span className="divider" />
 
-          {/* FILTER & SEARCH */}
           <div className="events-filter-container">
-            <input
-              type="text"
-              placeholder="Search events..."
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
-            />
+            <div className="search-input-wrapper">
+              <SearchOutlined className="search-icon" />
+              <input
+                type="text"
+                placeholder="Search events..."
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+              />
+            </div>
 
-            {/* <input
-                type="date"
-                value={dateFilter}
-                onChange={(e) => setDateFilter(e.target.value)}
-              /> */}
-
-            {/* <button
-                className="filled-btn"
-                style={{ padding: '10px 16px' }}
-                onClick={() => {
-                  setSearchText("");
-                  setLocationFilter("");
-                  setDateFilter("");
-                }}
-              >
-                Reset
-              </button> */}
+            <button
+              className="sort-toggle-btn"
+              onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+              title={sortOrder === "asc" ? "Sort by Newest" : "Sort by Oldest"}
+            >
+              {sortOrder === "asc" ? <SortAscendingOutlined /> : <SortDescendingOutlined />}
+              <span>{sortOrder === "asc" ? "Oldest First" : "Newest First"}</span>
+            </button>
           </div>
         </div>
 
@@ -139,8 +143,8 @@ export default function Events() {
               <div
                 key={event._id}
                 className="event-card"
-                style={{ animationDelay: `${index * 0.1}s`, cursor: 'pointer' }} // Add pointer cursor
-                onClick={() => setSelectedEvent(event)} // Set the clicked event
+                style={{ animationDelay: `${index * 0.1}s`, cursor: 'pointer' }}
+                onClick={() => setSelectedEvent(event)}
               >
                 <div className="event-image">
                   <span>Event Image</span>

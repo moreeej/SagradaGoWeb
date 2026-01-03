@@ -34,21 +34,57 @@ body {
 
 .events-filter-container {
     display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
+    gap: 12px;
     justify-content: center;
     align-items: center;
-    margin-top: 50px;
+    margin-top: 30px;
 }
 
-.events-filter-container input[type="text"],
-.events-filter-container input[type="date"],
-.events-filter-container select {
-    padding: 10px 15px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    font-size: 0.95rem;
-    min-width: 800px;
+.search-input-wrapper {
+    position: relative;
+    flex: 1;
+    max-width: 600px;
+}
+
+.search-icon {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #999;
+    font-size: 18px;
+}
+
+.search-input-wrapper input {
+    width: 100%;
+    padding: 12px 15px 12px 45px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    outline: none;
+    transition: border 0.3s ease;
+}
+
+.sort-toggle-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    color: #444;
+}
+
+.sort-toggle-btn:hover {
+    background: #FFC942;
+    border-color: #FFC942;
+}
+
+.sort-toggle-btn span {
+    font-size: 0.9rem;
 }
 
 .eventsheader-content {
