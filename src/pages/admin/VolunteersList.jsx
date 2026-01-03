@@ -232,6 +232,24 @@ export default function VolunteersList() {
         },
       },
       { title: "Event/Activity", dataIndex: "eventTitle", key: "eventTitle" },
+      {
+        title: "Time",
+        key: "time",
+        render: (_, record) => {
+          const event = record.event || {};
+          if (event.time_start && event.time_end) {
+            return `${event.time_start} - ${event.time_end}`;
+
+          } else if (event.time_start) {
+            return `${event.time_start} -`;
+
+          } else if (event.time_end) {
+            return `- ${event.time_end}`;
+          }
+
+          return "N/A";
+        },
+      },
       { title: "Signed Up", dataIndex: "createdAtFormatted", key: "createdAt" },
     ];
 
@@ -242,7 +260,7 @@ export default function VolunteersList() {
         render: (_, record) => {
           const eventType = record.eventType || record.event?.type;
           const isRegistration = eventType === "event";
-
+          
           if (isRegistration) {
             return <span style={{ color: "#999" }}>N/A</span>;
           }

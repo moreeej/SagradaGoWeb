@@ -5,6 +5,7 @@ import {
   Input,
   Button,
   DatePicker,
+  TimePicker,
   Upload,
   message,
   Typography,
@@ -111,6 +112,8 @@ export default function AddEvents() {
       formData.append("title", values.title);
       formData.append("type", values.type || "event");
       formData.append("date", values.date.format("YYYY-MM-DD"));
+      formData.append("time_start", values.time_start ? values.time_start.format("HH:mm") : "");
+      formData.append("time_end", values.time_end ? values.time_end.format("HH:mm") : "");
       formData.append("location", values.location);
 
       if (values.description) {
@@ -160,6 +163,8 @@ export default function AddEvents() {
       type: event.type || "event",
       title: event.title,
       date: event.date ? dayjs(event.date) : null,
+      time_start: event.time_start ? dayjs(event.time_start, "HH:mm") : null,
+      time_end: event.time_end ? dayjs(event.time_end, "HH:mm") : null,
       location: event.location,
       description: event.description || "",
     });
@@ -319,6 +324,19 @@ export default function AddEvents() {
       },
     },
     {
+      title: "Time",
+      key: "time",
+      width: 150,
+      render: (_, record) => {
+        if (record.time_start && record.time_end) {
+          return `${record.time_start} - ${record.time_end}`;
+        } else if (record.time_start) {
+          return `${record.time_start} -`;
+        }
+        return "N/A";
+      },
+    },
+    {
       title: "Status",
       key: "status",
       width: 110,
@@ -446,6 +464,35 @@ export default function AddEvents() {
                     }}
                   />
                 </Form.Item>
+
+                <Row gutter={16}>
+                  <Col span={12}>
+                    <Form.Item
+                      name="time_start"
+                      label="Start Time"
+                    >
+                      <TimePicker
+                        style={{ width: "100%" }}
+                        size="large"
+                        format="HH:mm"
+                        placeholder="Select start time"
+                      />
+                    </Form.Item>
+                  </Col>
+                  <Col span={12}>
+                    <Form.Item
+                      name="time_end"
+                      label="End Time"
+                    >
+                      <TimePicker
+                        style={{ width: "100%" }}
+                        size="large"
+                        format="HH:mm"
+                        placeholder="Select end time"
+                      />
+                    </Form.Item>
+                  </Col>
+                </Row>
 
                 <Form.Item
                   name="location"
