@@ -653,7 +653,7 @@ export default function AdminDashboard() {
         </Card> */}
 
         {/* AI Stats Analysis with System Overview Report and System Overview - Side by Side */}
-        <Row gutter={[16, 16]}>
+        <Row gutter={[4, 16]} align="top" style={{ marginBottom: 15 }}>
           <Col xs={24} lg={12}>
             <Card
               title={
@@ -664,7 +664,6 @@ export default function AdminDashboard() {
                   </Title>
                 </Space>
               }
-              className="dashboard-system-overview-card"
               extra={
                 <Button
                   type="link"
@@ -716,52 +715,53 @@ export default function AdminDashboard() {
             </Card>
           </Col>
           <Col xs={24} lg={12}>
-            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+            <div style={{ marginTop: -20, width: '103%' }}>
               <ReportTemplate
                 title={<span className="report-template-title">System Overview Report</span>}
                 columns={systemOverviewColumns}
                 data={systemReportData}
                 reportType="system"
               />
-              <Card title={<Title level={4} className="dashboard-system-overview-title">System Overview</Title>} className="dashboard-system-overview-card">
-                <Row gutter={[16, 16]}>
-                  <Col xs={24} sm={12} lg={12}>
-                    <div className="dashboard-system-overview-item">
-                      <Text>System Status</Text>
-                      <Tag color="success">Operational</Tag>
-                    </div>
-                  </Col>
-                  <Col xs={24} sm={12} lg={12}>
-                    <div className="dashboard-system-overview-item">
-                      <Text>Total Accounts</Text>
-                      <Text strong>{stats.totalUsers + stats.totalPriests}</Text>
-                    </div>
-                  </Col>
-                  <Col xs={24} sm={12} lg={12}>
-                    <div className="dashboard-system-overview-item">
-                      <Text>User Ratio</Text>
-                      <Text strong>
-                        {stats.totalUsers > 0
-                          ? ((stats.totalUsers / (stats.totalUsers + stats.totalPriests)) * 100).toFixed(1)
-                          : 0}%
-                      </Text>
-                    </div>
-                  </Col>
-                  <Col xs={24} sm={12} lg={12}>
-                    <div className="dashboard-system-overview-item">
-                      <Text>Priest Ratio</Text>
-                      <Text strong>
-                        {stats.totalPriests > 0
-                          ? ((stats.totalPriests / (stats.totalUsers + stats.totalPriests)) * 100).toFixed(1)
-                          : 0}%
-                      </Text>
-                    </div>
-                  </Col>
-                </Row>
-              </Card>
             </div>
           </Col>
         </Row>
+
+        <Card title={<Title level={4} className="dashboard-system-overview-title">System Overview</Title>} className="dashboard-system-overview-card">
+          <Row gutter={[120, 16]}>
+            <Col xs={24} sm={12} lg={12}>
+              <div className="dashboard-system-overview-item">
+                <Text>System Status</Text>
+                <Tag color="success">Operational</Tag>
+              </div>
+            </Col>
+            <Col xs={24} sm={12} lg={12}>
+              <div className="dashboard-system-overview-item">
+                <Text>Total Accounts</Text>
+                <Text strong>{stats.totalUsers + stats.totalPriests}</Text>
+              </div>
+            </Col>
+            <Col xs={24} sm={12} lg={12}>
+              <div className="dashboard-system-overview-item">
+                <Text>User Ratio</Text>
+                <Text strong>
+                  {stats.totalUsers > 0
+                    ? ((stats.totalUsers / (stats.totalUsers + stats.totalPriests)) * 100).toFixed(1)
+                    : 0}%
+                </Text>
+              </div>
+            </Col>
+            <Col xs={24} sm={12} lg={12}>
+              <div className="dashboard-system-overview-item">
+                <Text>Priest Ratio</Text>
+                <Text strong>
+                  {stats.totalPriests > 0
+                    ? ((stats.totalPriests / (stats.totalUsers + stats.totalPriests)) * 100).toFixed(1)
+                    : 0}%
+                </Text>
+              </div>
+            </Col>
+          </Row>
+        </Card>
 
         {/* System Overview */}
         <Card
@@ -783,7 +783,7 @@ export default function AdminDashboard() {
       </Modal>
 
       {/* Donation Report and Booking Report - Side by Side */}
-      <Row gutter={[16, 16]}>
+      <Row gutter={[0, 16]}>
         <Col xs={24} lg={12}>
           <ReportTemplate
             title={<span className="report-template-title">Donation Report</span>}
