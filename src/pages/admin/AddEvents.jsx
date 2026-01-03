@@ -442,7 +442,7 @@ export default function AddEvents() {
       title: "Location",
       dataIndex: "location",
       key: "location",
-      width: 160,
+      width: 120,
     },
     {
       title: "Created",
@@ -454,6 +454,7 @@ export default function AddEvents() {
     {
       title: "Actions",
       key: "actions",
+      width: 100,
       render: (_, record) => (
         <Space>
           <Button
@@ -494,7 +495,7 @@ export default function AddEvents() {
 
         <Row gutter={[24, 24]}>
           {/* Form Section */}
-          <Col xs={24} lg={8}>
+          <Col xs={24} lg={10}>
             <Card>
               <Form
                 form={form}
@@ -728,12 +729,13 @@ export default function AddEvents() {
                       size="large"
                       loading={loading}
                       icon={<PlusOutlined />}
-                      className="border-btn"
+                      className="filled-btn"
+                      style={{ alignContent: 'right' }}
                     >
                       {editingEvent ? "Update Event" : "Create Event"}
                     </Button>
                     {editingEvent && (
-                      <Button size="large" onClick={handleCancel}>
+                      <Button className="cancelborder-btn" size="large" onClick={handleCancel}>
                         Cancel
                       </Button>
                     )}
@@ -744,7 +746,7 @@ export default function AddEvents() {
           </Col>
 
           {/* Events List Section */}
-          <Col xs={24} lg={16}>
+          <Col xs={24} lg={14}>
             <Card
               title={
                 <Space>
