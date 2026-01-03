@@ -6,10 +6,18 @@ import { API_URL } from "../Constants";
 import LoadingAnimation from "../components/LoadingAnimation";
 import "../styles/events.css";
 
+import banner1 from "../assets/SAGRADA-FAMILIA-PARISH.jpg";
+import banner2 from "../assets/christmas.jpg";
+import banner3 from "../assets/dyd.jpg";
+
 export default function Events() {
   const { showSignin } = useContext(NavbarContext);
+
   const [events, setEvents] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [current, setCurrent] = useState(0);
+
+  const banners = [banner1, banner2, banner3];
 
   async function fetchEvents() {
     setIsLoading(true);
@@ -27,19 +35,38 @@ export default function Events() {
     fetchEvents();
   }, []);
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrent((prev) => (prev + 1) % banners.length);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [banners.length]);
+
   return (
     <>
-      {/* EVENTS HEADER SECTION */}
+      {/* EVENTS HEADER */}
       <section className="events-eventsheader">
+        {banners.map((img, index) => (
+          <div
+            key={index}
+            className={`eventsheader-bg ${index === current ? "active" : ""
+              }`}
+            style={{ backgroundImage: `url(${img})` }}
+          />
+        ))}
+
+        <div className="eventsheader-overlay" />
+
         <div className="eventsheader-content">
           <h1 className="eventsheader-title">Discover Our Events</h1>
           <p className="eventsheader-subtitle">
-            Stay updated with the latest happenings, programs, and activities
+            Stay updated with the latest happenings, programs, and activities.
           </p>
         </div>
       </section>
 
-      {/* EVENTS SECTION */}
+      {/* EVENTS LIST */}
       <section className="events-section">
         <div className="section-header">
           <h2>Upcoming Events</h2>
@@ -64,9 +91,7 @@ export default function Events() {
 
                 <div className="event-content">
                   <h3>{event.title}</h3>
-                  <p className="event-description">
-                    {event.description}
-                  </p>
+                  <p className="event-description">{event.description}</p>
 
                   <div className="event-meta">
                     <span>{event.location}</span>
