@@ -1,0 +1,133 @@
+.parish-footer {
+  background-color: #ffffff;
+  padding: 80px 0 20px 0;
+  border-top: 1px solid #f0f0f0;
+  width: 100%;
+  font-family: 'Poppins', sans-serif;
+}
+
+.footer-wrap {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr;
+  gap: 50px;
+  padding: 0 25px;
+}
+
+.footer-brand-logo {
+  width: 100px;
+  height: auto;
+  margin-bottom: 20px;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.05));
+}
+
+.footer-brand-name {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #2c3e50;
+  margin-bottom: 10px;
+}
+
+.footer-brand-tagline {
+  color: #7f8c8d;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  max-width: 300px;
+}
+
+.footer-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin-bottom: 25px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.footer-links {
+  list-style: none;
+  padding: 0;
+}
+
+.footer-links li {
+  margin-bottom: 12px;
+}
+
+.footer-links li a {
+  text-decoration: none;
+  color: #7f8c8d;
+  font-size: 0.9rem;
+  transition: color 0.3s;
+}
+
+.footer-links li a:hover {
+  color: #FFC942;
+}
+
+.footer-contact-details p {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #7f8c8d;
+  font-size: 0.9rem;
+  margin-bottom: 15px;
+}
+
+.f-icon {
+  color: #FFC942;
+}
+
+.footer-social-icons {
+  margin-top: 20px;
+  display: flex;
+  gap: 15px;
+}
+
+.footer-social-icons a {
+  font-size: 1.4rem;
+  color: #bdc3c7;
+  transition: transform 0.3s, color 0.3s;
+}
+
+.footer-social-icons a:hover {
+  color: #FFC942;
+  transform: translateY(-3px);
+}
+
+.footer-copyright {
+  margin-top: 60px;
+  padding-top: 20px;
+  border-top: 1px solid #f8f9fa;
+  text-align: center;
+}
+
+.footer-copyright p {
+  font-size: 0.8rem;
+  color: #bdc3c7;
+}
+
+@media (max-width: 768px) {
+  .footer-wrap {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+
+  .brand-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .footer-brand-tagline {
+    max-width: 100%;
+  }
+
+  .footer-contact-details p {
+    justify-content: center;
+  }
+
+  .footer-social-icons {
+    justify-content: center;
+  }
+}
