@@ -108,6 +108,7 @@ export default function AddEvents() {
       const formData = new FormData();
 
       formData.append("title", values.title);
+      formData.append("type", values.type || "event");
       formData.append("date", values.date.format("YYYY-MM-DD"));
       formData.append("location", values.location);
 
@@ -155,6 +156,7 @@ export default function AddEvents() {
   const handleEdit = (event) => {
     setEditingEvent(event);
     form.setFieldsValue({
+      type: event.type || "event",
       title: event.title,
       date: event.date ? dayjs(event.date) : null,
       location: event.location,
@@ -277,6 +279,22 @@ export default function AddEvents() {
       ),
     },
     {
+      title: "Type",
+      dataIndex: "type",
+      key: "type",
+      width: 120,
+      render: (type) => (
+        <Tag color={type === "event" ? "blue" : "green"}>
+          {type === "event" ? "Event" : "Activity"}
+        </Tag>
+      ),
+      filters: [
+        { text: "Event", value: "event" },
+        { text: "Activity", value: "activity" },
+      ],
+      onFilter: (value, record) => record.type === value,
+    },
+    {
       title: "Title",
       dataIndex: "title",
       key: "title",
@@ -381,10 +399,25 @@ export default function AddEvents() {
                 autoComplete="off"
               >
                 <Form.Item
+                  name="type"
+                  label="Type"
+                  rules={[{ required: true, message: "Please select type" }]}
+                  initialValue="event"
+                >
+                  <Select
+                    size="large"
+                    placeholder="Select type"
+                  >
+                    <Option value="event">Event (Volunteer & Register)</Option>
+                    <Option value="activity">Activity (Volunteer only)</Option>
+                  </Select>
+                </Form.Item>
+
+                <Form.Item
                   name="title"
-                  label="Event Title"
+                  label="Event/Activity Title"
                   rules={[
-                    { required: true, message: "Please enter event title" },
+                    { required: true, message: "Please enter event/activity title" },
                   ]}
                 >
                   <Input
@@ -395,8 +428,8 @@ export default function AddEvents() {
 
                 <Form.Item
                   name="date"
-                  label="Event Date"
-                  rules={[{ required: true, message: "Please select event date" }]}
+                  label="Date"
+                  rules={[{ required: true, message: "Please select date" }]}
                 >
                   <DatePicker
                     style={{ width: "100%" }}
