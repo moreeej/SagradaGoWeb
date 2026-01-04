@@ -8,6 +8,9 @@ import Cookies from "js-cookie";
 import { useLocation, useNavigate } from "react-router-dom";
 import Logo from "../assets/sagrada.png";
 
+import { Modal } from "antd";
+import { ExclamationCircleOutlined } from "@ant-design/icons";
+
 export default function Header() {
   const { setSelectedNavbar, setShowSignin, setShowSignup, currentUser, setActiveDropdown, setBookingSelected } =
     useContext(NavbarContext);
@@ -15,6 +18,7 @@ export default function Header() {
   const email = Cookies.get("email");
   const location = useLocation();
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const navbar = [
     { id: "home", text: "Home", path: "/" },
@@ -103,10 +107,21 @@ export default function Header() {
                 <button
                   className="dropdown-item"
                   onClick={() => {
-                    Cookies.remove("email");
-                    localStorage.removeItem("currentUser");
-                    navigate("/");
-                    window.location.reload();
+                    setShowProfileDropdown(false);
+                    Modal.confirm({
+                      title: 'Confirm Logout',
+                      icon: <ExclamationCircleOutlined />,
+                      content: 'Are you sure you want to log out?',
+                      okText: 'Logout',
+                      okType: 'danger',
+                      cancelText: 'Cancel',
+                      onOk() {
+                        Cookies.remove("email");
+                        localStorage.removeItem("currentUser");
+                        navigate("/");
+                        window.location.reload();
+                      },
+                    });
                   }}
                 >
                   Logout
@@ -127,6 +142,41 @@ export default function Header() {
           </button>
         )}
       </div>
+
+      <Modal
+        title="Confirm Logout"
+        open={showLogoutConfirm}
+        onCancel={() => setShowLogoutConfirm(false)}
+        footer={null}
+        centered
+      >
+        <div style={{ textAlign: 'center', padding: '20px 0' }}>
+          <ExclamationCircleOutlined style={{ fontSize: '42px', color: '#faad14', marginBottom: '16px' }} />
+          <p style={{ fontSize: '16px', color: '#555' }}>
+            Are you sure you want to log out of your account?
+          </p>
+
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', marginTop: '24px' }}>
+            <button
+              className="border-btn"
+              onClick={() => setShowLogoutConfirm(false)}
+            >
+              Cancel
+            </button>
+            <button
+              className="filled-btn"
+              onClick={() => {
+                Cookies.remove("email");
+                localStorage.removeItem("currentUser");
+                navigate("/");
+                window.location.reload();
+              }}
+            >
+              Logout
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }
