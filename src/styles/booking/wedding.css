@@ -267,6 +267,8 @@ select.input-text {
 .service-header h1 {
     color: #ffffff !important;
     text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    font-weight: 600;
+    font-size: 2.5rem;
 }
 
 .service-header p {
@@ -280,6 +282,7 @@ select.input-text {
     gap: 8px;
     padding: 10px 20px;
     margin-bottom: 20px;
+    margin-top: -35px;
 
     background: rgba(255, 255, 255, 0.15);
     backdrop-filter: blur(8px);
