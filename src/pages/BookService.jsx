@@ -19,7 +19,7 @@ import {
   ArrowLeftOutlined
 } from "@ant-design/icons";
 
-import parishHero from '../assets/SAGRADA-FAMILIA-PARISH.jpg';
+import parishHero from '../assets/360pews.jpg';
 
 export default function BookService() {
   const { showSignin, bookingSelected, setBookingSelected } = useContext(NavbarContext);

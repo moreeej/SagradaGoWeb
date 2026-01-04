@@ -238,7 +238,7 @@
 
 .tour-visual {
   height: 400px;
-  background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('../assets/SAGRADA-FAMILIA-PARISH.jpg');
+  background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('../assets/360altar.jpg');
   background-size: cover;
   border-radius: 20px;
   position: relative;
@@ -354,7 +354,6 @@
   }
 }
 
-/* Feature Grid Nudges */
 .feature-link {
   margin-top: 20px;
   display: inline-flex;
@@ -388,7 +387,6 @@
   margin-left: 10px;
 }
 
-/* About Section Stats */
 .stat-icon {
   font-size: 2rem;
   color: #FFC942;

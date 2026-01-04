@@ -140,7 +140,6 @@ export default function LandingPage() {
             <div className="tour-text">
               <CompassOutlined className="section-icon-top" />
               <span className="accent-label">Digital Sanctuary</span>
-              <h2>Experience the Interior</h2>
               <p>Take a spiritual journey through our sacred halls with our interactive 360° virtual tour, designed for those who cannot join us in person.</p>
               <button className="tour-cta">
                 <PlayCircleOutlined /> Enter Virtual Tour
