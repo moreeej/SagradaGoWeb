@@ -2,6 +2,9 @@ import "../styles/navButton.css";
 import { useContext } from "react";
 import { NavbarContext } from "../context/AllContext";
 import { useNavigate } from "react-router-dom";
+import Cookies from "js-cookie";
+
+
 
 export default function NavButton({
   id,
@@ -16,9 +19,13 @@ export default function NavButton({
     setActiveDropdown,
     setBookingSelected,
     setShowSignin,
-    setShowSignup
+    setShowSignup,
+
   } = useContext(NavbarContext);
   const navigate = useNavigate();
+
+  const email = Cookies.get("email");
+
 
 
   const dropdownServices = [
@@ -49,8 +56,15 @@ export default function NavButton({
           key={service.id}
           href={service.path}
           onClick={(e) => {
-            e.preventDefault();
-            handleDropdownClick(service.path, service.id);
+            if(email){
+              e.preventDefault();
+              handleDropdownClick(service.path, service.id);
+            }
+            else{
+              alert("Please sign in to continue.");
+              e.preventDefault();
+            }
+            
           }}
         >
           {service.name}

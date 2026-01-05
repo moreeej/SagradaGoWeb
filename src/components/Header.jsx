@@ -11,13 +11,16 @@ import { Modal } from "antd";
 import { ExclamationCircleOutlined } from "@ant-design/icons";
 
 export default function Header() {
-  const { setSelectedNavbar, setShowSignin, setShowSignup, currentUser, setActiveDropdown, setBookingSelected } =
+  const { setSelectedNavbar, setShowSignin, setShowSignup, setActiveDropdown, setBookingSelected } =
     useContext(NavbarContext);
   const navigate = useNavigate();
   const email = Cookies.get("email");
   const location = useLocation();
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  console.log("email", email);
+  
+  
 
   const navbar = [
     { id: "home", text: "Home", path: "/" },
@@ -72,11 +75,18 @@ export default function Header() {
             key={elem.text}
             text={elem.text}
             onClick={() => {
-              setSelectedNavbar(elem.id);
-              navigate(elem.path);
-              setShowSignin(false);
-              if (elem.id === "book") setBookingSelected(null);
-            }}
+            if (!email && elem.id === "volunteer") {
+              alert("Please sign in to continue.");
+              return; 
+            }
+
+            setSelectedNavbar(elem.id);
+            navigate(elem.path);
+            setShowSignin(false);
+
+            if (elem.id === "book") setBookingSelected(null);
+          }}
+
             onMouseEnter={() => handleMouseEnter(elem.id)}
             onMouseLeave={() => handleMouseLeave(elem.id)}
           />
