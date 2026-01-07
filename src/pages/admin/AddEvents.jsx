@@ -17,6 +17,9 @@ import {
   Popconfirm,
   Image,
   Select,
+  Modal,
+  List,
+  Badge,
 } from "antd";
 import {
   PlusOutlined,
@@ -26,6 +29,8 @@ import {
   EnvironmentOutlined,
   PictureOutlined,
   SearchOutlined,
+  TeamOutlined,
+  UserOutlined,
 } from "@ant-design/icons";
 import axios from "axios";
 import { API_URL } from "../../Constants";
@@ -48,6 +53,10 @@ export default function AddEvents() {
   const [monthFilter, setMonthFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [eventVolunteers, setEventVolunteers] = useState({});
+  const [loadingVolunteers, setLoadingVolunteers] = useState({});
+  const [volunteerModalVisible, setVolunteerModalVisible] = useState(false);
+  const [selectedEventForVolunteers, setSelectedEventForVolunteers] = useState(null);
 
   useEffect(() => {
     fetchEvents();
@@ -59,6 +68,16 @@ export default function AddEvents() {
 
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    if (events.length > 0) {
+      events.forEach(event => {
+        if (event._id && !eventVolunteers[event._id]) {
+          fetchEventVolunteersAndParticipants(event._id);
+        }
+      });
+    }
+  }, [events]);
 
   const fetchLocations = async () => {
     try {
@@ -90,6 +109,51 @@ export default function AddEvents() {
         setLoading(false);
       }
     }
+  };
+
+  const fetchEventVolunteersAndParticipants = async (eventId) => {
+    if (!eventId || loadingVolunteers[eventId]) return;
+
+    try {
+      setLoadingVolunteers(prev => ({ ...prev, [eventId]: true }));
+      const response = await axios.post(`${API_URL}/getEventVolunteers`, {
+        event_id: eventId,
+      });
+
+      const allVolunteers = response.data.volunteers || [];
+      const volunteers = allVolunteers.filter(v => v.registration_type === "volunteer");
+      const participants = allVolunteers.filter(v => v.registration_type === "participant");
+
+      setEventVolunteers(prev => ({
+        ...prev,
+        [eventId]: {
+          volunteers,
+          participants,
+        },
+      }));
+
+    } catch (error) {
+      console.error(`Error fetching volunteers for event ${eventId}:`, error);
+      setEventVolunteers(prev => ({
+        ...prev,
+        [eventId]: {
+          volunteers: [],
+          participants: [],
+        },
+      }));
+
+    } finally {
+      setLoadingVolunteers(prev => ({ ...prev, [eventId]: false }));
+    }
+  };
+
+  const handleViewVolunteers = (event) => {
+    setSelectedEventForVolunteers(event);
+    if (!eventVolunteers[event._id]) {
+      fetchEventVolunteersAndParticipants(event._id);
+    }
+
+    setVolunteerModalVisible(true);
   };
 
   const handleImageChange = (info) => {
@@ -196,14 +260,16 @@ export default function AddEvents() {
         formData.append("image", imageFile);
       }
 
+      let eventId;
       if (editingEvent) {
-        formData.append("eventId", editingEvent._id);
+        eventId = editingEvent._id;
+        formData.append("eventId", eventId);
         await axios.put(`${API_URL}/admin/updateEvent`, formData, {
           headers: {
             "Content-Type": "multipart/form-data",
           },
         });
-        await Logger.logUpdateEvent(editingEvent._id, values.title);
+        await Logger.logUpdateEvent(eventId, values.title);
         message.success("Event updated successfully!");
 
       } else {
@@ -213,7 +279,8 @@ export default function AddEvents() {
           },
         });
         const newEvent = response.data?.event || response.data;
-        await Logger.logCreateEvent(newEvent?._id || newEvent?.id, values.title);
+        eventId = newEvent?._id || newEvent?.id;
+        await Logger.logCreateEvent(eventId, values.title);
         message.success("Event created successfully!");
       }
 
@@ -221,7 +288,11 @@ export default function AddEvents() {
       setImageFile(null);
       setImagePreview(null);
       setEditingEvent(null);
-      fetchEvents();
+      await fetchEvents();
+ 
+      if (eventId) {
+        fetchEventVolunteersAndParticipants(eventId);
+      }
 
     } catch (error) {
       console.error("Error saving event:", error);
@@ -266,7 +337,14 @@ export default function AddEvents() {
       await axios.delete(`${API_URL}/admin/deleteEvent/${eventId}`);
       await Logger.logDeleteEvent(eventId, event?.title || "Unknown");
       message.success("Event deleted successfully!");
-      fetchEvents();
+      
+      setEventVolunteers(prev => {
+        const newData = { ...prev };
+        delete newData[eventId];
+        return newData;
+      });
+      
+      await fetchEvents();
 
     } catch (error) {
       console.error("Error deleting event:", error);
@@ -363,46 +441,30 @@ export default function AddEvents() {
       title: "Image",
       dataIndex: "image",
       key: "image",
-      width: 100,
+      width: 80,
       render: (image) => (
         <Image
           src={image || "/no-image.jpg"}
           alt="Event"
-          width={80}
-          height={60}
+          width={60}
+          height={45}
           style={{ objectFit: "cover", borderRadius: 4 }}
           fallback="/no-image.jpg"
         />
       ),
     },
     {
-      title: "Type",
-      dataIndex: "type",
-      key: "type",
-      width: 120,
-      render: (type) => (
-        <Tag color={type === "event" ? "blue" : "green"}>
-          {type === "event" ? "Event" : "Activity"}
-        </Tag>
-      ),
-      filters: [
-        { text: "Event", value: "event" },
-        { text: "Activity", value: "activity" },
-      ],
-      onFilter: (value, record) => record.type === value,
-    },
-    {
       title: "Title",
       dataIndex: "title",
       key: "title",
-      width: 200,
+      width: 250,
       render: (text) => <Text strong>{text}</Text>,
     },
     {
       title: "Date",
       dataIndex: "date",
       key: "date",
-      width: 130,
+      width: 120,
       render: (date) => formatDate(date),
       sorter: (a, b) => {
         if (!a.date) return 1;
@@ -411,22 +473,9 @@ export default function AddEvents() {
       },
     },
     {
-      title: "Time",
-      key: "time",
-      width: 150,
-      render: (_, record) => {
-        if (record.time_start && record.time_end) {
-          return `${record.time_start} - ${record.time_end}`;
-        } else if (record.time_start) {
-          return `${record.time_start} -`;
-        }
-        return "N/A";
-      },
-    },
-    {
       title: "Status",
       key: "status",
-      width: 110,
+      width: 100,
       render: (_, record) => {
         const statusInfo = getEventStatus(record.date);
         return (
@@ -443,19 +492,6 @@ export default function AddEvents() {
         const statusInfo = getEventStatus(record.date);
         return statusInfo.status === value;
       },
-    },
-    {
-      title: "Location",
-      dataIndex: "location",
-      key: "location",
-      width: 120,
-    },
-    {
-      title: "Created",
-      dataIndex: "createdAt",
-      key: "createdAt",
-      width: 130,
-      render: (date) => dayjs(date).format("MMM DD, YYYY"),
     },
     {
       title: "Actions",
@@ -820,11 +856,232 @@ export default function AddEvents() {
                 locale={{
                   emptyText: "No events found. Create your first event!",
                 }}
+                onRow={(record) => ({
+                  onClick: (e) => {
+                    const target = e.target;
+                    if (
+                      target.closest('button') ||
+                      target.closest('a') ||
+                      target.closest('.ant-btn') ||
+                      target.closest('.ant-popconfirm')
+                    ) {
+                      return;
+                    }
+                    handleViewVolunteers(record);
+                  },
+                  style: { cursor: 'pointer' },
+                })}
               />
             </Card>
           </Col>
         </Row>
       </div>
+
+      {/* Modal for viewing volunteers and participants */}
+      <Modal
+        title={
+          <Space>
+            <CalendarOutlined />
+            <span>Event Details - Volunteers & Participants</span>
+          </Space>
+        }
+        open={volunteerModalVisible}
+        onCancel={() => {
+          setVolunteerModalVisible(false);
+          setSelectedEventForVolunteers(null);
+        }}
+        footer={[
+          <Button key="close" onClick={() => {
+            setVolunteerModalVisible(false);
+            setSelectedEventForVolunteers(null);
+          }}>
+            Close
+          </Button>,
+        ]}
+        width={900}
+      >
+        {selectedEventForVolunteers && (
+          <div>
+            {/* Event Details Section */}
+            <Card
+              style={{ marginBottom: 16 }}
+              title={
+                <Space>
+                  <CalendarOutlined />
+                  <span>Event Information</span>
+                </Space>
+              }
+            >
+              <Row gutter={[16, 16]}>
+                {selectedEventForVolunteers.image && (
+                  <Col span={24}>
+                    <Image
+                      src={selectedEventForVolunteers.image}
+                      alt={selectedEventForVolunteers.title}
+                      style={{
+                        width: "100%",
+                        maxHeight: "300px",
+                        objectFit: "cover",
+                        borderRadius: 8,
+                      }}
+                      fallback="/no-image.jpg"
+                    />
+                  </Col>
+                )}
+                <Col span={24}>
+                  <Space direction="vertical" size="small" style={{ width: "100%" }}>
+                    <div>
+                      <Text strong style={{ fontSize: 18 }}>
+                        {selectedEventForVolunteers.title}
+                      </Text>
+                      <Tag
+                        color={selectedEventForVolunteers.type === "event" ? "blue" : "green"}
+                        style={{ marginLeft: 8 }}
+                      >
+                        {selectedEventForVolunteers.type === "event" ? "Event" : "Activity"}
+                      </Tag>
+                    </div>
+                    {selectedEventForVolunteers.description && (
+                      <div>
+                        <Text type="secondary">{selectedEventForVolunteers.description}</Text>
+                      </div>
+                    )}
+                  </Space>
+                </Col>
+                <Col span={24}>
+                  <Row gutter={[16, 8]}>
+                    <Col span={12}>
+                      <Space>
+                        <CalendarOutlined />
+                        <Text strong>Date:</Text>
+                        <Text>{formatDate(selectedEventForVolunteers.date)}</Text>
+                      </Space>
+                    </Col>
+                    <Col span={12}>
+                      <Space>
+                        <EnvironmentOutlined />
+                        <Text strong>Location:</Text>
+                        <Text>{selectedEventForVolunteers.location || "N/A"}</Text>
+                      </Space>
+                    </Col>
+                    {(selectedEventForVolunteers.time_start || selectedEventForVolunteers.time_end) && (
+                      <Col span={12}>
+                        <Space>
+                          <Text strong>Time:</Text>
+                          <Text>
+                            {selectedEventForVolunteers.time_start && selectedEventForVolunteers.time_end
+                              ? `${selectedEventForVolunteers.time_start} - ${selectedEventForVolunteers.time_end}`
+                              : selectedEventForVolunteers.time_start
+                              ? `${selectedEventForVolunteers.time_start} -`
+                              : "N/A"}
+                          </Text>
+                        </Space>
+                      </Col>
+                    )}
+                    <Col span={12}>
+                      <Space>
+                        <Text strong>Status:</Text>
+                        {(() => {
+                          const statusInfo = getEventStatus(selectedEventForVolunteers.date);
+                          return (
+                            <Tag color={statusInfo.color}>
+                              {statusInfo.text}
+                            </Tag>
+                          );
+                        })()}
+                      </Space>
+                    </Col>
+                  </Row>
+                </Col>
+              </Row>
+            </Card>
+
+            {/* Volunteers and Participants Section */}
+            <Row gutter={[16, 16]}>
+              <Col span={12}>
+                <Card
+                  title={
+                    <Space>
+                      <TeamOutlined />
+                      <span>
+                        Volunteers (
+                        {eventVolunteers[selectedEventForVolunteers._id]?.volunteers?.length || 0})
+                      </span>
+                    </Space>
+                  }
+                  size="small"
+                >
+                  {loadingVolunteers[selectedEventForVolunteers._id] ? (
+                    <div style={{ textAlign: "center", padding: "20px" }}>
+                      Loading...
+                    </div>
+                  ) : (
+                    <List
+                      dataSource={eventVolunteers[selectedEventForVolunteers._id]?.volunteers || []}
+                      locale={{ emptyText: "No volunteers registered for this event" }}
+                      renderItem={(volunteer) => (
+                        <List.Item>
+                          <List.Item.Meta
+                            title={volunteer.name}
+                            description={
+                              <Space>
+                                <Text type="secondary">{volunteer.contact}</Text>
+                                <Tag color={volunteer.status === "confirmed" ? "green" : "orange"}>
+                                  {volunteer.status}
+                                </Tag>
+                              </Space>
+                            }
+                          />
+                        </List.Item>
+                      )}
+                    />
+                  )}
+                </Card>
+              </Col>
+              <Col span={12}>
+                <Card
+                  title={
+                    <Space>
+                      <UserOutlined />
+                      <span>
+                        Participants (
+                        {eventVolunteers[selectedEventForVolunteers._id]?.participants?.length || 0})
+                      </span>
+                    </Space>
+                  }
+                  size="small"
+                >
+                  {loadingVolunteers[selectedEventForVolunteers._id] ? (
+                    <div style={{ textAlign: "center", padding: "20px" }}>
+                      Loading...
+                    </div>
+                  ) : (
+                    <List
+                      dataSource={eventVolunteers[selectedEventForVolunteers._id]?.participants || []}
+                      locale={{ emptyText: "No participants registered for this event" }}
+                      renderItem={(participant) => (
+                        <List.Item>
+                          <List.Item.Meta
+                            title={participant.name}
+                            description={
+                              <Space>
+                                <Text type="secondary">{participant.contact}</Text>
+                                <Tag color={participant.status === "confirmed" ? "green" : "orange"}>
+                                  {participant.status}
+                                </Tag>
+                              </Space>
+                            }
+                          />
+                        </List.Item>
+                      )}
+                    />
+                  )}
+                </Card>
+              </Col>
+            </Row>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }
