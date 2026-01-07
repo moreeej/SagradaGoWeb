@@ -107,7 +107,7 @@ export default function VolunteersList() {
     return filtered;
   }, []);
 
-  const fetchVolunteers = async () => {
+  const fetchVolunteers = useCallback(async () => {
     setLoading(true);
     try {
       const response = await axios.post(`${API_URL}/getAllVolunteers`, {});
@@ -151,7 +151,7 @@ export default function VolunteersList() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchText, statusFilter, monthFilter, activeTab, applyAllFilters]);
 
   const handleSearch = (value) => {
     setSearchText(value);
@@ -195,7 +195,15 @@ export default function VolunteersList() {
 
   useEffect(() => {
     fetchVolunteers();
-  }, []);
+  }, [fetchVolunteers]);
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      fetchVolunteers();
+    }, 5000); 
+
+    return () => clearInterval(intervalId);
+  }, [fetchVolunteers]);
 
   const getColumns = () => {
     const baseColumns = [
