@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Card,
   Table,
@@ -17,7 +17,6 @@ import {
 } from "antd";
 import {
   SearchOutlined,
-  ReloadOutlined,
   EyeOutlined,
   FilterOutlined,
 } from "@ant-design/icons";
@@ -46,11 +45,7 @@ export default function AdminLogs() {
     total: 0,
   });
 
-  useEffect(() => {
-    fetchLogs();
-  }, [filters, pagination.current, pagination.pageSize]);
-
-  const fetchLogs = async () => {
+  const fetchLogs = useCallback(async () => {
     try {
       setLoading(true);
       const params = {
@@ -84,15 +79,25 @@ export default function AdminLogs() {
         ...prev,
         total: response.data.total || 0,
       }));
-      
     } catch (error) {
       console.error("Error fetching logs:", error);
       message.error("Failed to load logs");
-
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters, pagination.current, pagination.pageSize]);
+
+  useEffect(() => {
+    fetchLogs();
+  }, [fetchLogs]);
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      fetchLogs();
+    }, 5000);
+
+    return () => clearInterval(intervalId);
+  }, [fetchLogs]);
 
   const handleFilterChange = (key, value) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
@@ -202,13 +207,6 @@ export default function AdminLogs() {
           <Title level={2} style={{ fontFamily: "Poppins" }}>
             Admin Activity Logs
           </Title>
-          <Button
-            icon={<ReloadOutlined />}
-            onClick={fetchLogs}
-            loading={loading}
-          >
-            Refresh
-          </Button>
         </div>
 
         {/* Filters */}
