@@ -7,6 +7,7 @@ import Logger from "../../utils/logger";
 import {
   createUserWithEmailAndPassword,
   sendEmailVerification,
+  sendPasswordResetEmail,
 } from "firebase/auth";
 import {
   Card,
@@ -43,6 +44,7 @@ import {
   CheckCircleOutlined,
   CalendarOutlined,
   InboxOutlined,
+  KeyOutlined,
 } from "@ant-design/icons";
 
 const { Title, Text } = Typography;
@@ -71,7 +73,9 @@ export default function AccountManagement() {
   const [eventsSearchTerm, setEventsSearchTerm] = useState("");
   const [eventsFilterType, setEventsFilterType] = useState("all"); 
   const [eventsStatusFilter, setEventsStatusFilter] = useState("all");
-  const [showArchived, setShowArchived] = useState(false); 
+  const [showArchived, setShowArchived] = useState(false);
+  const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
+  const [resettingPasswordUser, setResettingPasswordUser] = useState(null); 
 
   const [formData, setFormData] = useState({
     first_name: "",
@@ -688,6 +692,53 @@ export default function AccountManagement() {
     });
   };
 
+  const handleResetPassword = (user) => {
+    setResettingPasswordUser(user);
+    setShowResetPasswordModal(true);
+  };
+
+  const handleConfirmResetPassword = async () => {
+    if (!resettingPasswordUser || !resettingPasswordUser.email) {
+      message.error("User email not found.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await sendPasswordResetEmail(auth, resettingPasswordUser.email);
+
+      const userName = `${resettingPasswordUser.first_name} ${resettingPasswordUser.last_name}`.trim() || resettingPasswordUser.email;
+      await Logger.logUpdateUser(resettingPasswordUser.uid, userName, { action: "password_reset_email_sent" });
+
+      message.success(`Password reset email has been sent to ${resettingPasswordUser.email}`);
+      setShowResetPasswordModal(false);
+      setResettingPasswordUser(null);
+
+    } catch (error) {
+      console.error("Error sending password reset email:", error);
+      
+      let errorMessage = "Failed to send password reset email. Please try again.";
+      
+      if (error.code === "auth/invalid-email") {
+        errorMessage = "Invalid email address.";
+
+      } else if (error.code === "auth/user-not-found") {
+        errorMessage = "User not found in Firebase Authentication.";
+
+      } else if (error.code === "auth/too-many-requests") {
+        errorMessage = "Too many requests. Please try again later.";
+
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      message.error(errorMessage);
+
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleViewDetails = async (user) => {
     setViewingUser(user);
     setShowDetailsModal(true);
@@ -969,6 +1020,17 @@ export default function AccountManagement() {
                   loading={loading}
                 >
                   {record.is_priest ? "Remove Priest" : "Make Priest"}
+                </Button>
+
+                <Button
+                  type="default"
+                  icon={<KeyOutlined />}
+                  onClick={() => handleResetPassword(record)}
+                  className="border-btn"
+                  style={{ padding: '10px' }}
+                  title="Reset Password"
+                >
+                  Reset Password
                 </Button>
 
                 <Button
@@ -1461,6 +1523,14 @@ export default function AccountManagement() {
                 </Button>
                 {!viewingUser.is_archived && (
                   <>
+                    <Button
+                      type="default"
+                      icon={<KeyOutlined />}
+                      onClick={() => handleResetPassword(viewingUser)}
+                      style={{ padding: '10px' }}
+                    >
+                      Reset Password
+                    </Button>
                     <Button
                       type={viewingUser.is_active === true ? "default" : "primary"}
                       danger={viewingUser.is_active === true}
@@ -2437,6 +2507,54 @@ export default function AccountManagement() {
             <Text type="secondary" style={{ fontSize: 12 }}>
               Showing {filteredEvents.length} of {userVolunteers.length} event(s)
             </Text>
+          </div>
+        </Modal>
+
+        {/* Reset Password Modal */}
+        <Modal
+          title={
+            <div>
+              <Text strong style={{ fontSize: 18, fontFamily: 'Poppins' }}>
+                Reset Password - {resettingPasswordUser ? `${resettingPasswordUser.first_name} ${resettingPasswordUser.last_name}` : 'User'}
+              </Text>
+            </div>
+          }
+          open={showResetPasswordModal}
+          onCancel={() => {
+            setShowResetPasswordModal(false);
+            setResettingPasswordUser(null);
+          }}
+          footer={null}
+          width={500}
+          maskClosable={true}
+        >
+          <div style={{ padding: "16px 0" }}>
+            <Text style={{ display: "block", marginBottom: 16, fontSize: 14, color: "#666" }}>
+              Are you sure you want to send a password reset email to{" "}
+              <Text strong>{resettingPasswordUser?.email}</Text>?
+            </Text>
+            <Text style={{ display: "block", fontSize: 13, color: "#999", fontStyle: "italic" }}>
+              The user will receive an email with instructions to reset their password.
+            </Text>
+          </div>
+          <div style={{ marginTop: 24, display: "flex", justifyContent: "flex-end", gap: 8 }}>
+            <Button
+              onClick={() => {
+                setShowResetPasswordModal(false);
+                setResettingPasswordUser(null);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="primary"
+              icon={<KeyOutlined />}
+              onClick={handleConfirmResetPassword}
+              loading={loading}
+              style={{ backgroundColor: "#b87d3e", borderColor: "#b87d3e" }}
+            >
+              Send Reset Email
+            </Button>
           </div>
         </Modal>
 
