@@ -197,7 +197,7 @@ export default function AdminSidebar() {
       </div>
 
       {/* Download App Box */}
-      <div className="admin-download-app">
+      {/* <div className="admin-download-app">
         <div className="download-title">Download our mobile app</div>
         <div className="download-subtitle">
           Get faster access on your phone!
@@ -205,7 +205,7 @@ export default function AdminSidebar() {
         <Button type="primary" block className="download-btn">
           Download
         </Button>
-      </div>
+      </div> */}
 
       {/* Logout Confirmation Modal */}
       <Modal
