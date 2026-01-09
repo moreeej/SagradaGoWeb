@@ -76,7 +76,10 @@ function App() {
   const [selectedNavbar, setSelectedNavbar] = useState("Home");
   const [showSignin, setShowSignin] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
-  const [currentUser, setCurrentUser] = useState({});
+  const [currentUser, setCurrentUser] = useState(() => {
+  const storedUser = localStorage.getItem("currentUser");
+    return storedUser ? JSON.parse(storedUser) : null;
+  });
   const [activeDropdown, setActiveDropdown] = useState(false);
   const [bookingSelected, setBookingSelected] = useState(false);
 

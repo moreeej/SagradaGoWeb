@@ -234,6 +234,7 @@ export default function SignInPage() {
           setCurrentUser(adminUser);
           localStorage.setItem("currentUser", JSON.stringify(adminUser));
           Cookies.set("email", inputEmail, { expires: 7 });
+          
           navigate("/admin/dashboard");
           setShowSignin(false);
           setLoading(false);
@@ -246,7 +247,6 @@ export default function SignInPage() {
       }
 
       try {
-          console.log("napasok sa user");
 
           const loginResponse = await axios.post(`${API_URL}/login`, {
             email: inputEmail,
@@ -255,8 +255,14 @@ export default function SignInPage() {
           console.log("user", loginResponse);
 
           setCurrentUser(loginResponse.data.user);
+          
           Cookies.set("email", inputEmail, { expires: 7 });
-          navigate("/dashboard");
+          Cookies.set("uid", loginResponse.data.user.uid, { expires: 7 });
+          Cookies.set("fullname", `${loginResponse.data.user.first_name} ${loginResponse.data.user.middle_name} ${loginResponse.data.user.last_name}`,  { expires: 7 });
+          Cookies.set("contact", loginResponse.data.user.contact_number, { expires: 7 });
+          navigate("/");
+          setShowSignin(false);
+          return;
         } catch (err) {
           console.error("Backend login failed:", err);
           setError("No account found with this email.");

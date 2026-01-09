@@ -5,20 +5,20 @@ import axios from "axios";
 import { API_URL } from "../Constants";
 import LoadingAnimation from "../components/LoadingAnimation";
 import "../styles/events.css";
+import Cookies from "js-cookie";
 
-
-import Footer from '../components/Footer';
+import Footer from "../components/Footer";
 
 import banner1 from "../assets/SAGRADA-FAMILIA-PARISH.jpg";
 import banner2 from "../assets/christmas.jpg";
 import banner3 from "../assets/dyd.jpg";
-import noImage from "../assets/blank-image.jpg"
+import noImage from "../assets/blank-image.jpg";
 
 import {
   SearchOutlined,
   SortAscendingOutlined,
   SortDescendingOutlined,
-  CloseOutlined
+  CloseOutlined,
 } from "@ant-design/icons";
 
 export default function Events() {
@@ -31,9 +31,12 @@ export default function Events() {
 
   const [searchText, setSearchText] = useState("");
   const [locationFilter, setLocationFilter] = useState("");
-  const [dateFilter, setDateFilter] = useState(""); // YYYY-MM-DD
+  const [dateFilter, setDateFilter] = useState(""); 
+
+  
 
   const banners = [banner1, banner2, banner3];
+  
 
   async function fetchEvents() {
     setIsLoading(true);
@@ -85,6 +88,49 @@ export default function Events() {
     setFilteredEvents(filtered);
   }, [searchText, sortOrder, events]);
 
+
+  const uid = Cookies.get("uid");
+  const fullName = Cookies.get("fullname");
+  const contact = Cookies.get("contact");
+
+  
+
+  
+
+async function handleRegisterEvent(eventId, eventTitle) {
+  if (!uid || !fullName || !contact) {
+    alert("Please sign in to register for this event.");
+    return;
+  }
+
+  try {
+    const payload = {
+      user_id: uid,
+      name: fullName.trim(),
+      contact: contact.toString().trim(),
+      eventId: eventId || null,
+      eventTitle: eventTitle || "General Volunteer",
+      registration_type: "participant"
+    };
+
+    console.log("Register payload:", payload);
+
+    await axios.post(`${API_URL}/addVolunteerWeb`, payload);
+
+    alert("Successfully registered for the event!");
+
+  } catch (err) {
+    console.error("Registration error:", err);
+
+    const message =
+      err.response?.data?.message ||
+      "Failed to register. Please try again.";
+
+    alert(message);
+  }
+}
+
+
   return (
     <>
       {/* EVENTS HEADER */}
@@ -130,8 +176,14 @@ export default function Events() {
               onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
               title={sortOrder === "asc" ? "Sort by Newest" : "Sort by Oldest"}
             >
-              {sortOrder === "asc" ? <SortAscendingOutlined /> : <SortDescendingOutlined />}
-              <span>{sortOrder === "asc" ? "Oldest First" : "Newest First"}</span>
+              {sortOrder === "asc" ? (
+                <SortAscendingOutlined />
+              ) : (
+                <SortDescendingOutlined />
+              )}
+              <span>
+                {sortOrder === "asc" ? "Oldest First" : "Newest First"}
+              </span>
             </button>
           </div>
         </div>
@@ -145,36 +197,50 @@ export default function Events() {
         ) : (
           <div className="events-grid">
             {filteredEvents.map((event, index) => (
-              <div
-                key={event._id}
-                className="event-card p-4!"
-                style={{ animationDelay: `${index * 0.1}s`, cursor: 'pointer' }}
-                onClick={() => setSelectedEvent(event)}
-              >
-                <div className="event-image">
-                  <img src={event.image ? event.image : noImage} alt={event.title} className="w-full h-full" />
-                </div>
+              <div className="flex flex-col event-card">
+                <div
+                  key={event._id}
+                  className=""
+                  style={{
+                    animationDelay: `${index * 0.1}s`,
+                    cursor: "pointer",
+                  }}
+                  onClick={() => setSelectedEvent(event)}
+                >
+                  <div className="event-image">
+                    <img
+                      src={event.image ? event.image : noImage}
+                      alt={event.title}
+                      className="w-full h-full"
+                    />
+                  </div>
 
-                <div className="event-content">
-                  <h3>{event.title}</h3>
-                  <p className="event-description">
-                    {event.description.length > 50
-                      ? event.description.substring(0, 80) + ".."
-                      : event.description}
-                  </p>
-                  <div className="event-meta">
-                    <span>{event.location}</span>
-                    <span>
-                      {new Date(event.date).toLocaleDateString("en-US", {
-                        month: "long",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
-                    </span>
+                  <div className="event-content">
+                    <h3>{event.title}</h3>
+                    <p className="event-description">
+                      {event.description.length > 50
+                        ? event.description.substring(0, 80) + ".."
+                        : event.description}
+                    </p>
+                    <div className="event-meta">
+                      <span>{event.location}</span>
+                      <span>
+                        {new Date(event.date).toLocaleDateString("en-US", {
+                          month: "long",
+                          day: "numeric",
+                          year: "numeric",
+                        })}
+                      </span>
+                    </div>
                   </div>
                 </div>
                 <div className="w-full h-10 flex justify-center">
-                  <button className="bg-blue-300 h-full px-7! cursor-pointer rounded-xl">Volunteer</button>
+                  <button
+                    className="bg-blue-300 h-full px-7! cursor-pointer rounded-xl"
+                    onClick={() => handleRegisterEvent(event._id, event.title)}
+                  >
+                    Register
+                  </button>
                 </div>
               </div>
             ))}
@@ -184,24 +250,37 @@ export default function Events() {
 
       {selectedEvent && (
         <div className="eventmodal-overlay" onClick={closeeventmodal}>
-          <div className="eventmodal-content" onClick={(e) => e.stopPropagation()}>
-            <button className="eventmodal-close" onClick={closeeventmodal}>&times;</button>
+          <div
+            className="eventmodal-content"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button className="eventmodal-close" onClick={closeeventmodal}>
+              &times;
+            </button>
 
             <div className="eventmodal-image-placeholder">
-              <img src={selectedEvent.image ? selectedEvent.image : noImage} alt={selectedEvent.title} className='h-full aspect-square'/>
+              <img
+                src={selectedEvent.image ? selectedEvent.image : noImage}
+                alt={selectedEvent.title}
+                className="h-full aspect-square"
+              />
             </div>
 
             <div className="eventmodal-body">
               <h2>{selectedEvent.title}</h2>
               <div className="eventmodal-meta">
                 <strong>Location:</strong> {selectedEvent.location} <br />
-                <strong>Date:</strong> {new Date(selectedEvent.date).toLocaleDateString("en-US", {
-                  month: "long", day: "numeric", year: "numeric"
+                <strong>Date:</strong>{" "}
+                {new Date(selectedEvent.date).toLocaleDateString("en-US", {
+                  month: "long",
+                  day: "numeric",
+                  year: "numeric",
                 })}
               </div>
               <hr className="eventmodal-divider" />
               <p className="eventmodal-description-full">
-                {selectedEvent.description && selectedEvent.description.trim() !== ""
+                {selectedEvent.description &&
+                selectedEvent.description.trim() !== ""
                   ? selectedEvent.description
                   : "No description displayed."}
               </p>
