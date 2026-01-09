@@ -1,6 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Modal } from 'antd';
-import { CloseOutlined, ExpandOutlined, LeftOutlined, RightOutlined } from '@ant-design/icons';
+import {
+  CloseOutlined,
+  ExpandOutlined,
+  LeftOutlined,
+  RightOutlined,
+  FullscreenExitOutlined
+} from '@ant-design/icons';
 import facadeImage from '../assets/360facade.jpg';
 import altarImage from '../assets/360altar.jpg';
 import pewsImage from '../assets/360pews.jpg';
@@ -10,11 +16,11 @@ export default function VirtualTour({ isOpen, onClose }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState(0);
-  const [translateX, setTranslateX] = useState(-33.33); 
+  const [translateX, setTranslateX] = useState(-33.33);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
-  const imageContainerRef = useRef(null);
   const isMouseDownRef = useRef(false);
+
 
   const tourImages = [
     {
@@ -44,164 +50,115 @@ export default function VirtualTour({ isOpen, onClose }) {
     setImageLoaded(false);
   }, [currentImageIndex]);
 
-  const handleMouseDown = (e) => {
-    e.preventDefault();
-    setIsDragging(true);
-    isMouseDownRef.current = true;
-    setDragStart(e.clientX);
-  };
-
-  const handleMouseMove = (e) => {
-    if (!isDragging || !isMouseDownRef.current) return;
-    e.preventDefault();
-
-    const deltaX = dragStart - e.clientX;
-    const sensitivity = 0.3; 
-    const newTranslateX = translateX + (deltaX * sensitivity);
-    
-    const clampedX = Math.max(-66.66, Math.min(0, newTranslateX));
-    setTranslateX(clampedX);
-    setDragStart(e.clientX);
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-    isMouseDownRef.current = false;
-  };
-
-  const handleTouchStart = (e) => {
-    setIsDragging(true);
-    setDragStart(e.touches[0].clientX);
-  };
-
-  const handleTouchMove = (e) => {
+  const handleDrag = (clientX) => {
     if (!isDragging) return;
-
-    const deltaX = dragStart - e.touches[0].clientX;
+    const deltaX = dragStart - clientX;
     const sensitivity = 0.3;
     const newTranslateX = translateX + (deltaX * sensitivity);
-    
-    const clampedX = Math.max(-66.66, Math.min(0, newTranslateX));
-    setTranslateX(clampedX);
-    setDragStart(e.touches[0].clientX);
-  };
-
-  const handleTouchEnd = () => {
-    setIsDragging(false);
-  };
-
-  const handleNextImage = () => {
-    setCurrentImageIndex((prev) => (prev + 1) % tourImages.length);
-  };
-
-  const handlePrevImage = () => {
-    setCurrentImageIndex((prev) => (prev - 1 + tourImages.length) % tourImages.length);
-  };
-
-  const toggleFullscreen = () => {
-    setIsFullscreen(!isFullscreen);
-  };
-
-  const handleImageLoad = () => {
-    setImageLoaded(true);
+    setTranslateX(Math.max(-66.66, Math.min(0, newTranslateX)));
+    setDragStart(clientX);
   };
 
   return (
-    <>
-      <Modal
-        open={isOpen}
-        onCancel={onClose}
-        footer={null}
-        width={isFullscreen ? '100%' : 900}
-        style={{ 
-          top: isFullscreen ? 0 : 20,
-          maxWidth: isFullscreen ? '100vw' : 900,
-          paddingBottom: 0,
-        }}
-        className={`virtual-tour-modal ${isFullscreen ? 'fullscreen' : ''}`}
-        closeIcon={<CloseOutlined style={{ color: '#fff', fontSize: '24px', zIndex: 1001 }} />}
-        styles={{
-          body: { padding: 0, height: isFullscreen ? '100vh' : 'auto', maxHeight: isFullscreen ? '100vh' : 'none' },
-          content: { backgroundColor: '#000', maxHeight: isFullscreen ? '100vh' : 'none' },
-        }}
-        maskStyle={{ backgroundColor: isFullscreen ? 'rgba(0, 0, 0, 0.95)' : 'rgba(0, 0, 0, 0.45)' }}
-      >
-        <div className="virtual-tour-container">
+    <Modal
+      open={isOpen}
+      onCancel={onClose}
+      footer={null}
+      closeIcon={false}
+      width={isFullscreen ? '100vw' : 900}
+      centered
+      className={`virtual-tour-modal ${isFullscreen ? 'fullscreen-mode' : ''}`}
+      styles={{
+        body: { padding: 0 },
+        content: { borderRadius: isFullscreen ? 0 : '12px', overflow: 'hidden', backgroundColor: '#fff' }
+      }}
+    >
+      <div className="virtual-tour-wrapper">
+
+        {!isFullscreen && (
           <div className="virtual-tour-header">
             <div className="virtual-tour-title">
               <h2>{currentImage.name}</h2>
               <p>Virtual Tour - 360° Experience</p>
             </div>
-            <button className="fullscreen-toggle-btn" onClick={toggleFullscreen}>
-              <ExpandOutlined />
-            </button>
+            <div className="header-button-group">
+              <button className="header-icon-btn" onClick={() => setIsFullscreen(true)}>
+                <ExpandOutlined />
+              </button>
+              <button className="header-icon-btn close-btn" onClick={onClose}>
+                <CloseOutlined />
+              </button>
+            </div>
           </div>
+        )}
+
+        <div
+          className={`virtual-tour-image-container ${isFullscreen ? 'image-only-fs' : ''}`}
+          onMouseDown={(e) => { setIsDragging(true); setDragStart(e.clientX); isMouseDownRef.current = true; }}
+          onMouseMove={(e) => isMouseDownRef.current && handleDrag(e.clientX)}
+          onMouseUp={() => { setIsDragging(false); isMouseDownRef.current = false; }}
+          onMouseLeave={() => { setIsDragging(false); isMouseDownRef.current = false; }}
+          onTouchStart={(e) => { setIsDragging(true); setDragStart(e.touches[0].clientX); }}
+          onTouchMove={(e) => handleDrag(e.touches[0].clientX)}
+          onTouchEnd={() => setIsDragging(false)}
+        >
+          {isFullscreen && (
+            <button className="exit-fs-overlay" onClick={() => setIsFullscreen(false)}>
+              <FullscreenExitOutlined /> Exit Fullscreen
+            </button>
+          )}
+
+          {!imageLoaded && (
+            <div className="virtual-tour-loading">
+              <div className="loading-spinner"></div>
+            </div>
+          )}
 
           <div
-            className="virtual-tour-image-container"
-            ref={imageContainerRef}
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-            onMouseLeave={handleMouseUp}
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
+            className="virtual-tour-panorama-wrapper"
+            style={{
+              transform: `translateX(${translateX}%)`,
+              transition: isDragging ? 'none' : 'transform 0.2s ease-out',
+            }}
           >
-            {!imageLoaded && (
-              <div className="virtual-tour-loading">
-                <div className="loading-spinner"></div>
-                <p>Loading...</p>
-              </div>
-            )}
-            <div
-              className="virtual-tour-panorama-wrapper"
-              style={{
-                transform: `translateX(${translateX}%)`,
-                transition: isDragging ? 'none' : 'transform 0.1s ease-out',
-              }}
-            >
-              <img
-                src={currentImage.image}
-                alt={currentImage.name}
-                className="virtual-tour-panorama-image"
-                onLoad={handleImageLoad}
-                draggable={false}
-              />
-            </div>
-            <div className="virtual-tour-instruction">
-              <span>👆 Drag left or right to explore the 360° view</span>
-            </div>
-          </div>
-
-          <div className="virtual-tour-description">
-            <p>{currentImage.description}</p>
-          </div>
-
-          <div className="virtual-tour-controls">
-            <button className="virtual-tour-nav-btn" onClick={handlePrevImage}>
-              <LeftOutlined />
-              <span>Previous</span>
-            </button>
-
-            <div className="virtual-tour-dots">
-              {tourImages.map((_, index) => (
-                <button
-                  key={index}
-                  className={`virtual-tour-dot ${index === currentImageIndex ? 'active' : ''}`}
-                  onClick={() => setCurrentImageIndex(index)}
-                />
-              ))}
-            </div>
-
-            <button className="virtual-tour-nav-btn" onClick={handleNextImage}>
-              <span>Next</span>
-              <RightOutlined />
-            </button>
+            <img
+              src={currentImage.image}
+              alt={currentImage.name}
+              className="virtual-tour-panorama-image"
+              onLoad={() => setImageLoaded(true)}
+              draggable={false}
+            />
           </div>
         </div>
-      </Modal>
-    </>
+
+        {!isFullscreen && (
+          <>
+            <div className="virtual-tour-description">
+              <p>{currentImage.description}</p>
+            </div>
+
+            <div className="virtual-tour-controls">
+              <button className="virtual-tour-nav-btn" onClick={() => setCurrentImageIndex((p) => (p - 1 + tourImages.length) % tourImages.length)}>
+                <LeftOutlined /> Previous
+              </button>
+
+              <div className="virtual-tour-dots">
+                {tourImages.map((_, index) => (
+                  <button
+                    key={index}
+                    className={`virtual-tour-dot ${index === currentImageIndex ? 'active' : ''}`}
+                    onClick={() => setCurrentImageIndex(index)}
+                  />
+                ))}
+              </div>
+
+              <button className="virtual-tour-nav-btn" onClick={() => setCurrentImageIndex((p) => (p + 1) % tourImages.length)}>
+                Next <RightOutlined />
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    </Modal>
   );
 }
-
