@@ -38,17 +38,23 @@ const CustomCalendar = ({ events = [], onEventClick }) => {
               case "Burial": badgeStatus = "error"; break;
               case "Communion": badgeStatus = "warning"; break;
               case "Confirmation": badgeStatus = "processing"; break;
+              case "Event": badgeStatus = "processing"; break;
+              case "Activity": badgeStatus = "warning"; break;
               case "Anointing":
               case "Confession":
               default: badgeStatus = "default"; break;
             }
           }
 
+          const displayText = item.title || item.bookingType || item.type;
+    
+          const truncatedText = displayText.length > 20 ? displayText.substring(0, 17) + "..." : displayText;
+
           return (
             <Badge
               key={index}
               status={badgeStatus}
-              text={item.type}
+              text={truncatedText}
               style={{
                 display: "block",
                 marginBottom: 2,
@@ -64,6 +70,7 @@ const CustomCalendar = ({ events = [], onEventClick }) => {
                   onEventClick && onEventClick(item);
                 }
               }}
+              title={displayText} 
             />
           );
         })}

@@ -241,7 +241,7 @@ export default function AdminDashboard() {
     try {
       setLoading(true);
 
-      const [usersResponse, allDonationsRes, monthlyDonationRes, donationsListRes, bookingsRes] = await Promise.all([
+      const [usersResponse, allDonationsRes, monthlyDonationRes, donationsListRes, bookingsRes, eventsRes] = await Promise.all([
         axios.get(`${API_URL}/getAllUsers`),
         axios.get(`${API_URL}/admin/getDonationStatistics`).catch((error) => {
           console.error("Error fetching donation statistics:", error);
@@ -267,6 +267,11 @@ export default function AdminDashboard() {
           axios.get(`${API_URL}/admin/getAllAnointings`).catch(() => ({ data: { anointings: [] } })),
           axios.get(`${API_URL}/admin/getAllConfessions`).catch(() => ({ data: { bookings: [] } })),
         ]),
+
+        axios.get(`${API_URL}/getAllEvents`).catch((error) => {
+          console.error("Error fetching events:", error);
+          return { data: { events: [] } };
+        }),
       ]);
 
       const users = usersResponse.data || [];
@@ -342,7 +347,31 @@ export default function AdminDashboard() {
         };
       }).filter(Boolean);
 
-      setCalendarEvents(eventsForCalendar);
+      const allEvents = eventsRes?.data?.events || [];
+      const eventsForCalendarFromEvents = allEvents.map((evt) => {
+        if (!evt.date) return null;
+        const eventDate = dayjs(evt.date);
+
+        if (!eventDate.isValid()) return null;
+        const eventType = evt.type === "event" ? "Event" : "Activity";
+
+        return {
+          date: eventDate.format("YYYY-MM-DD"),
+          name: evt.title || eventType,
+          type: eventType,
+          status: "confirmed", 
+          title: evt.title,
+          description: evt.description,
+          location: evt.location,
+          time_start: evt.time_start,
+          time_end: evt.time_end,
+          image: evt.image,
+          _id: evt._id,
+        };
+      }).filter(Boolean);
+
+      const allCalendarEvents = [...eventsForCalendar, ...eventsForCalendarFromEvents];
+      setCalendarEvents(allCalendarEvents);
 
       const pendingBookingsCount = allBookings.filter((b) => b.status === "pending").length;
       const recentUsers = users.slice().reverse().slice(0, 5);
@@ -467,8 +496,10 @@ export default function AdminDashboard() {
     if (!selectedBooking) return null;
     const details = [];
 
+    const isEvent = selectedBooking.title && (selectedBooking.type === "Event" || selectedBooking.type === "Activity");
+
     Object.keys(selectedBooking).forEach((key) => {
-      if (["_id", "__v", "user"].includes(key)) return;
+      if (["_id", "__v", "user", "name"].includes(key)) return;
 
       const value = selectedBooking[key];
 
@@ -483,7 +514,7 @@ export default function AdminDashboard() {
         {dayBookings.length > 1 && (
           <div style={{ marginBottom: 20, padding: 12, backgroundColor: "#f5f5f5", borderRadius: 6 }}>
             <Text strong style={{ display: "block", marginBottom: 8 }}>
-              Multiple bookings on this day ({dayBookings.length}):
+              Multiple items on this day ({dayBookings.length}):
             </Text>
             <Space wrap>
               {dayBookings.map((booking, index) => (
@@ -495,7 +526,7 @@ export default function AdminDashboard() {
                   size="small"
                   onClick={() => handleSelectBooking(booking)}
                 >
-                  {booking.bookingType || booking.type} {booking.time ? `(${booking.time})` : ""}
+                  {booking.title || booking.bookingName || booking.bookingType || booking.type} {booking.time || (booking.time_start && booking.time_end ? `(${booking.time_start} - ${booking.time_end})` : booking.time_start ? `(${booking.time_start})` : "")}
                 </Button>
               ))}
             </Space>
@@ -504,19 +535,43 @@ export default function AdminDashboard() {
 
         <Row gutter={[16, 16]}>
           <Col span={24}>
-            <Text strong>Booking Type:</Text>
-            <div>{selectedBooking.bookingType || selectedBooking.type}</div>
+            <Text strong>{isEvent ? "Type:" : "Booking Type:"}</Text>
+            <div>{isEvent ? (selectedBooking.title || selectedBooking.type) : (selectedBooking.bookingType || selectedBooking.type)}</div>
           </Col>
-          <Col span={24}>
-            <Text strong>Status:</Text>
-            <div>{selectedBooking.status}</div>
-          </Col>
-          {details.map(({ key, value }) => (
-            <Col span={12} key={key}>
-              <Text strong>{key.replace(/_/g, " ")}</Text>
-              <div>{value}</div>
+          {isEvent && selectedBooking.title && (
+            <Col span={24}>
+              <Text strong>Title:</Text>
+              <div>{selectedBooking.title}</div>
             </Col>
-          ))}
+          )}
+          {selectedBooking.status && (
+            <Col span={24}>
+              <Text strong>Status:</Text>
+              <div>{selectedBooking.status}</div>
+            </Col>
+          )}
+          {details.map(({ key, value }) => {
+            // Skip fields that are already displayed above
+            if (isEvent && ["title", "type"].includes(key)) return null;
+            if (!isEvent && ["bookingType", "type", "status"].includes(key)) return null;
+            
+            // Format display names
+            let displayKey = key.replace(/_/g, " ");
+            displayKey = displayKey.replace(/\b\w/g, l => l.toUpperCase());
+            
+            // Format date values
+            let displayValue = value;
+            if (key === "date" && value) {
+              displayValue = dayjs(value).format("MMMM DD, YYYY");
+            }
+            
+            return (
+              <Col span={12} key={key}>
+                <Text strong>{displayKey}:</Text>
+                <div>{displayValue}</div>
+              </Col>
+            );
+          })}
         </Row>
       </div>
     );
@@ -790,7 +845,7 @@ export default function AdminDashboard() {
       </div>
 
       <Modal
-        title={selectedBooking ? selectedBooking.bookingName : "Booking Details"}
+        title={selectedBooking ? (selectedBooking.title || selectedBooking.bookingName || `${selectedBooking.type || "Item"} Details`) : "Details"}
         open={isModalVisible}
         onCancel={handleModalClose}
         footer={null}
