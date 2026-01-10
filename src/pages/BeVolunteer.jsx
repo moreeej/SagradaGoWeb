@@ -97,7 +97,7 @@ export default function BeVolunteer() {
 
   
 
-async function handleRegisterEvent(eventId, eventTitle) {
+async function handleVolunteerEvent(eventId, eventTitle) {
   if (!uid || !fullName || !contact) {
     alert("Please sign in to register for this event.");
     return;
@@ -110,13 +110,14 @@ async function handleRegisterEvent(eventId, eventTitle) {
       contact: contact.toString().trim(),
       eventId: eventId || null,
       eventTitle: eventTitle || "General Volunteer",
+      registration_type: "volunteer"
     };
 
     console.log("Register payload:", payload);
 
     await axios.post(`${API_URL}/addVolunteerWeb`, payload);
 
-    alert("Successfully registered for the event!");
+    alert("Successfully volunteered for the event!");
 
   } catch (err) {
     console.error("Registration error:", err);
@@ -236,7 +237,7 @@ async function handleRegisterEvent(eventId, eventTitle) {
                 <div className="w-full h-10 flex justify-center">
                   <button
                     className="bg-blue-300 h-full px-7! cursor-pointer rounded-xl"
-                    onClick={() => handleRegisterEvent(event._id, event.title)}
+                    onClick={() => handleVolunteerEvent(event._id, event.title)}
                   >
                     Volunteer
                   </button>
