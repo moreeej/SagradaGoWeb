@@ -234,39 +234,39 @@ export default function SignInPage() {
           setCurrentUser(adminUser);
           localStorage.setItem("currentUser", JSON.stringify(adminUser));
           Cookies.set("email", inputEmail, { expires: 7 });
-          
+
           navigate("/admin/dashboard");
           setShowSignin(false);
           setLoading(false);
           return;
         }
 
-        
+
       } catch (err) {
         console.error("Admin check failed:", err);
       }
 
       try {
 
-          const loginResponse = await axios.post(`${API_URL}/login`, {
-            email: inputEmail,
-            password: inputPassword,
-          });
-          console.log("user", loginResponse);
+        const loginResponse = await axios.post(`${API_URL}/login`, {
+          email: inputEmail,
+          password: inputPassword,
+        });
+        console.log("user", loginResponse);
 
-          setCurrentUser(loginResponse.data.user);
-          
-          Cookies.set("email", inputEmail, { expires: 7 });
-          Cookies.set("uid", loginResponse.data.user.uid, { expires: 7 });
-          Cookies.set("fullname", `${loginResponse.data.user.first_name} ${loginResponse.data.user.middle_name} ${loginResponse.data.user.last_name}`,  { expires: 7 });
-          Cookies.set("contact", loginResponse.data.user.contact_number, { expires: 7 });
-          navigate("/");
-          setShowSignin(false);
-          return;
-        } catch (err) {
-          console.error("Backend login failed:", err);
-          setError("No account found with this email.");
-        }
+        setCurrentUser(loginResponse.data.user);
+
+        Cookies.set("email", inputEmail, { expires: 7 });
+        Cookies.set("uid", loginResponse.data.user.uid, { expires: 7 });
+        Cookies.set("fullname", `${loginResponse.data.user.first_name} ${loginResponse.data.user.middle_name} ${loginResponse.data.user.last_name}`, { expires: 7 });
+        Cookies.set("contact", loginResponse.data.user.contact_number, { expires: 7 });
+        navigate("/");
+        setShowSignin(false);
+        return;
+      } catch (err) {
+        console.error("Backend login failed:", err);
+        setError("No account found with this email.");
+      }
     } catch (err) {
       console.error("Firebase login failed:", err);
 
@@ -440,20 +440,21 @@ export default function SignInPage() {
             {error && <p className="modal-error">{error}</p>}
 
             <button
+              onClick={() => setShowForgotPassword(true)}
+              className="modal-link"
+              style={{ marginTop: -10, marginBottom: 10, textAlign: 'right' }}
+              disabled={loading}
+            >
+              Forgot Password?
+            </button>
+
+            <button
               className="filled-btn"
               style={{ padding: "8px", fontSize: "14px" }}
               onClick={SignIn}
               disabled={loading}
             >
               {loading ? "Signing in..." : "Sign In"}
-            </button>
-
-            <button
-              onClick={() => setShowForgotPassword(true)}
-              className="modal-link"
-              disabled={loading}
-            >
-              Forgot Password?
             </button>
 
             <button onClick={() => setShowSignup(true)} className="modal-link">
