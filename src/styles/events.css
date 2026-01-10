@@ -342,3 +342,67 @@ body {
         font-size: 2.4rem;
     }
 }
+
+.events-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+    padding: 20px;
+}
+
+.event-content {
+    padding: 1.5rem;
+}
+
+.event-actions {
+    padding: 0 1.5rem 1.5rem 1.5rem;
+    margin-top: auto;
+}
+
+.register-btn {
+    width: 100%;
+    padding: 12px;
+    background-color: #FFC942;
+    color: #424242;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.register-btn:hover {
+    background-color: #424242;
+    color: #fff;
+}
+
+.event-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: #666;
+}
+
+.event-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.event-header-row h2 {
+    margin: 0;
+    flex: 1;
+}
+
+.register-btn-sm {
+    white-space: nowrap;
+    padding: 10px 16px;
+    background-color: #FFC942;
+    color: #424242;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+}
