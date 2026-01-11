@@ -9,6 +9,7 @@ import {
 import "../styles/signup.css";
 import axios from "axios";
 import { API_URL } from "../Constants";
+import { EyeInvisibleOutlined, EyeTwoTone } from '@ant-design/icons';
 
 export default function SignUpPage() {
   const { setShowSignup, setShowSignin } = useContext(NavbarContext);
@@ -48,7 +49,7 @@ export default function SignUpPage() {
 
   const validateContactNumber = (contact) => {
     const digitsOnly = contact.replace(/\D/g, "");
-    
+
     if (contact && digitsOnly !== contact) {
       return "Contact number must contain numbers only";
     }
@@ -284,11 +285,12 @@ export default function SignUpPage() {
                 onClick={() => setShowPass(!showPass)}
                 className="password-toggle"
               >
-                {showPass ? "Hide" : "Show"}
+                {showPass ? <EyeTwoTone twoToneColor="#555" /> : <EyeInvisibleOutlined />}
               </button>
             </div>
             {errors.password && <span className="error-message">{errors.password}</span>}
           </div>
+
           <div>
             <label>Re-type Password</label>
             <div className="modal-password-wrapper">
@@ -303,7 +305,7 @@ export default function SignUpPage() {
                 onClick={() => setShowRepass(!showRepass)}
                 className="password-toggle"
               >
-                {showRepass ? "Hide" : "Show"}
+                {showRepass ? <EyeTwoTone twoToneColor="#555" /> : <EyeInvisibleOutlined />}
               </button>
             </div>
             {errors.repass && <span className="error-message">{errors.repass}</span>}
