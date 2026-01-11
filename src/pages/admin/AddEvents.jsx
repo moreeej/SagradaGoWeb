@@ -627,6 +627,7 @@ export default function AddEvents() {
                     <Form.Item
                       name="time_start"
                       label="Start Time"
+                      rules={[{ required: true, message: "Please select start time" }]}
                     >
                       <TimePicker
                         style={{ width: "100%" }}
@@ -655,6 +656,7 @@ export default function AddEvents() {
                       label="End Time"
                       dependencies={['time_start']}
                       rules={[
+                        { required: true, message: "Please select end time" },
                         ({ getFieldValue }) => ({
                           validator(_, value) {
                             if (!value) {
@@ -744,10 +746,14 @@ export default function AddEvents() {
                   />
                 </Form.Item>
 
-                <Form.Item name="description" label="Description">
+                <Form.Item 
+                  name="description" 
+                  label="Description"
+                  rules={[{ required: true, message: "Please enter event description" }]}
+                >
                   <TextArea
                     rows={6}
-                    placeholder="Event description (optional)"
+                    placeholder="Event description"
                     size="large"
                     style={{
                       resize: "none",
