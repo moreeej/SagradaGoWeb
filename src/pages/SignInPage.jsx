@@ -188,6 +188,7 @@ import { useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
 import axios from "axios";
 import { API_URL } from "../Constants";
+import { EyeInvisibleOutlined, EyeTwoTone } from '@ant-design/icons';
 
 export default function SignInPage() {
   const navigate = useNavigate();
@@ -433,7 +434,7 @@ export default function SignInPage() {
                 onClick={() => setShowPass(!showPass)}
                 className="password-toggle"
               >
-                {showPass ? "Hide" : "Show"}
+                {showPass ? <EyeTwoTone twoToneColor="#555" /> : <EyeInvisibleOutlined />}
               </button>
             </div>
 
