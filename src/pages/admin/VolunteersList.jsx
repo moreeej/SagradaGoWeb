@@ -107,8 +107,8 @@ export default function VolunteersList() {
     return filtered;
   }, []);
 
-  const fetchVolunteers = useCallback(async (silent = false) => {
-    if (!silent) {
+  const fetchVolunteers = async (showLoading = true) => {
+    if (showLoading) {
       setLoading(true);
     }
     try {
@@ -148,16 +148,16 @@ export default function VolunteersList() {
 
     } catch (err) {
       console.error("Error fetching volunteers:", err);
-      if (!silent) {
+      if (showLoading) {
         message.error("Failed to fetch volunteers. Please try again.");
       }
 
     } finally {
-      if (!silent) {
+      if (showLoading) {
         setLoading(false);
       }
     }
-  }, [searchText, statusFilter, monthFilter, activeTab, applyAllFilters]);
+  };
 
   const handleSearch = (value) => {
     setSearchText(value);
@@ -188,7 +188,7 @@ export default function VolunteersList() {
     try {
       await axios.put(`${API_URL}/updateVolunteerStatus`, { volunteer_id, status: newStatus });
       message.success(`Status updated to ${newStatus} successfully.`);
-      fetchVolunteers(true);
+      fetchVolunteers(false);
 
     } catch (err) {
       console.error("Error updating volunteer:", err);
@@ -201,15 +201,13 @@ export default function VolunteersList() {
 
   useEffect(() => {
     fetchVolunteers(true);
-  }, [fetchVolunteers]);
 
-  useEffect(() => {
     const intervalId = setInterval(() => {
       fetchVolunteers(false);
-    }, 5000); 
+    }, 5000);
 
     return () => clearInterval(intervalId);
-  }, [fetchVolunteers]);
+  }, []);
 
   const getColumns = () => {
     const baseColumns = [
