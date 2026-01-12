@@ -1,7 +1,8 @@
 import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
 import { NavbarContext } from "./context/AllContext";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./App.css";
+import SessionTimeout from "./components/SessionTimeout";
 
 import LandingPage from "./pages/LandingPage";
 import SignUpPage from "./pages/SignUpPage";
@@ -31,7 +32,6 @@ import ProfilePage from "./pages/ProfilePage";
 function AppContent() {
   const location = useLocation();
 
-  // Hide header on admin routes
   const isAdminRoute = location.pathname.startsWith("/admin");
 
   return (
@@ -77,11 +77,71 @@ function App() {
   const [showSignin, setShowSignin] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
   const [currentUser, setCurrentUser] = useState(() => {
-  const storedUser = localStorage.getItem("currentUser");
+    const storedUser = localStorage.getItem("currentUser");
     return storedUser ? JSON.parse(storedUser) : null;
   });
   const [activeDropdown, setActiveDropdown] = useState(false);
   const [bookingSelected, setBookingSelected] = useState(false);
+
+  useEffect(() => {
+    const checkSession = () => {
+      const storedUser = localStorage.getItem("currentUser");
+      const sessionTimeout = localStorage.getItem("sessionTimeout");
+
+      if (!storedUser || !sessionTimeout) {
+        if (storedUser || sessionTimeout) {
+          localStorage.removeItem("currentUser");
+          localStorage.removeItem("sessionTimeout");
+          setCurrentUser(null);
+        }
+
+        return;
+      }
+
+      const timeoutTime = parseInt(sessionTimeout);
+      if (isNaN(timeoutTime) || Date.now() >= timeoutTime) {
+        localStorage.removeItem("currentUser");
+        localStorage.removeItem("sessionTimeout");
+        localStorage.removeItem("userEmail");
+        localStorage.removeItem("userPosition");
+        setCurrentUser(null);
+
+        document.cookie.split(";").forEach((c) => {
+          document.cookie = c
+            .replace(/^ +/, "")
+            .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+        });
+        return;
+      }
+
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        if (JSON.stringify(parsedUser) !== JSON.stringify(currentUser)) {
+          setCurrentUser(parsedUser);
+        }
+
+      } catch (error) {
+        console.error("Error parsing currentUser:", error);
+        localStorage.removeItem("currentUser");
+        localStorage.removeItem("sessionTimeout");
+        setCurrentUser(null);
+      }
+    };
+
+    checkSession();
+
+    const handleStorageChange = (e) => {
+      if (e.key === "currentUser" || e.key === "sessionTimeout") {
+        checkSession();
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, []);
 
   return (
     <NavbarContext.Provider
@@ -101,6 +161,7 @@ function App() {
       }}
     >
       <BrowserRouter>
+        <SessionTimeout />
         <AppContent />
       </BrowserRouter>
     </NavbarContext.Provider>
