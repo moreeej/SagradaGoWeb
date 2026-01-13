@@ -8,6 +8,7 @@ import "../styles/events.css";
 import Cookies from "js-cookie";
 
 import Footer from "../components/Footer";
+import SignInAlert from "../components/SignInAlert";
 
 import banner1 from "../assets/SAGRADA-FAMILIA-PARISH.jpg";
 import banner2 from "../assets/christmas.jpg";
@@ -32,6 +33,8 @@ export default function BeVolunteer() {
   const [searchText, setSearchText] = useState("");
   const [locationFilter, setLocationFilter] = useState("");
   const [dateFilter, setDateFilter] = useState("");
+
+  const [showSignInAlert, setShowSignInAlert] = useState(false);
 
 
 
@@ -99,7 +102,7 @@ export default function BeVolunteer() {
 
   async function handleVolunteerEvent(eventId, eventTitle) {
     if (!uid || !fullName || !contact) {
-      alert("Please sign in to register for this event.");
+      setShowSignInAlert(true);
       return;
     }
 
@@ -290,6 +293,12 @@ export default function BeVolunteer() {
       )}
 
       {showSignin && <SignInPage />}
+
+      <SignInAlert 
+        open={showSignInAlert} 
+        onClose={() => setShowSignInAlert(false)} 
+        message="Please sign in to register for this event." 
+      />
 
       <Footer />
     </>
