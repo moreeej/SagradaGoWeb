@@ -1259,6 +1259,61 @@ export default function BookingPendingRequests() {
         })));
       }
 
+      const rejectedCount = await autoRejectPastDueBookings(allBookings);
+
+      if (rejectedCount > 0) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+        const [weddings2, baptisms2, burials2, communions2, confirmations2, anointings2, confessions2] = await Promise.all([
+          axios.get(`${API_URL}/admin/getAllWeddings`).catch(() => ({ data: { weddings: [] } })),
+          axios.get(`${API_URL}/admin/getAllBaptisms`).catch(() => ({ data: { baptisms: [] } })),
+          axios.get(`${API_URL}/admin/getAllBurials`).catch(() => ({ data: { burials: [] } })),
+          axios.get(`${API_URL}/admin/getAllCommunions`).catch(() => ({ data: { communions: [] } })),
+          axios.get(`${API_URL}/admin/getAllConfirmations`).catch(() => ({ data: { confirmations: [] } })),
+          axios.get(`${API_URL}/admin/getAllAnointings`).catch(() => ({ data: { anointings: [] } })),
+          axios.get(`${API_URL}/admin/getAllConfessions`).catch(() => ({ data: { bookings: [] } })),
+        ]);
+
+        const confessionBookings2 = confessions2.data.bookings || [];
+        const normalizedConfessions2 = await Promise.all(
+          confessionBookings2.map(async (b) => {
+            let userData = b.user;
+            if (!userData && b.uid && b.uid !== 'admin') {
+              try {
+                const userResponse = await axios.post(`${API_URL}/findUser`, { uid: b.uid });
+                if (userResponse.data && userResponse.data.user) {
+                  userData = userResponse.data.user;
+                }
+
+              } catch (error) {
+                console.error(`Error fetching user data for confession booking ${b.transaction_id}:`, error);
+              }
+            }
+
+            return {
+              ...b,
+              bookingType: "Confession",
+              typeLabel: "Confession",
+              date: b.date ? new Date(b.date).toISOString() : null,
+              createdAt: b.createdAt ? new Date(b.createdAt).toISOString() : null,
+              status: b.status || "pending",
+              user: userData || b.user,
+              transaction_id: b.transaction_id || `CONF-${Date.now()}`,
+              time: b.time || null,
+            };
+          })
+        );
+
+        allBookings = [
+          ...(weddings2.data.weddings || []).map((b) => ({ ...b, bookingType: "Wedding", typeLabel: "Wedding" })),
+          ...(baptisms2.data.baptisms || []).map((b) => ({ ...b, bookingType: "Baptism", typeLabel: "Baptism" })),
+          ...(burials2.data.burials || []).map((b) => ({ ...b, bookingType: "Burial", typeLabel: "Burial" })),
+          ...(communions2.data.communions || []).map((b) => ({ ...b, bookingType: "Communion", typeLabel: "Communion" })),
+          ...(confirmations2.data.confirmations || []).map((b) => ({ ...b, bookingType: "Confirmation", typeLabel: "Confirmation" })),
+          ...(anointings2.data.anointings || []).map((b) => ({ ...b, bookingType: "Anointing", typeLabel: "Anointing of the Sick" })),
+          ...normalizedConfessions2
+        ];
+      }
+
       let filtered = allBookings;
 
       if (statusFilter !== "all") {
@@ -1487,6 +1542,54 @@ export default function BookingPendingRequests() {
     } finally {
       setUpdateLoading(false);
     }
+  };
+
+  const autoRejectPastDueBookings = async (allBookings) => {
+    const endpointMap = {
+      Wedding: "updateWeddingStatus",
+      Baptism: "updateBaptismStatus",
+      Burial: "updateBurialStatus",
+      Communion: "updateCommunionStatus",
+      Confirmation: "updateConfirmationStatus",
+      Anointing: "updateAnointingStatus",
+      Confession: "updateConfessionStatus",
+    };
+
+    const pastDuePendingBookings = allBookings.filter(
+      (booking) => booking.status === "pending" && isBookingDatePast(booking)
+    );
+
+    if (pastDuePendingBookings.length === 0) {
+      return 0;
+    }
+
+    const rejectionPromises = pastDuePendingBookings.map(async (booking) => {
+      try {
+        const endpoint = endpointMap[booking.bookingType];
+        if (!endpoint) {
+          console.error(`Invalid booking type: ${booking.bookingType}`);
+          return false;
+        }
+
+        await axios.put(`${API_URL}/${endpoint}`, {
+          transaction_id: booking.transaction_id,
+          status: "cancelled",
+          priest_id: null,
+          priest_name: null,
+          admin_comment: "Automatically rejected due to past due date",
+        });
+
+        await Logger.logRejectBooking(booking.transaction_id, booking.bookingType);
+        return true;
+        
+      } catch (error) {
+        console.error(`Error auto-rejecting booking ${booking.transaction_id}:`, error);
+        return false;
+      }
+    });
+
+    await Promise.all(rejectionPromises);
+    return pastDuePendingBookings.length;
   };
 
   const handleQuickAction = (bookingId, bookingType, status) => {
