@@ -123,7 +123,7 @@ export default function Header() {
                     setShowProfileDropdown(false);
                   }}
                 >
-                  Settings
+                  Profile
                 </button>
                 <button
                   className="dropdown-item"
