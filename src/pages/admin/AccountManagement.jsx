@@ -1015,14 +1015,14 @@ export default function AccountManagement() {
                 <Button
                   type={record.is_priest ? "default" : "primary"}
                   className={record.is_priest ? "dangerborder-btn" : "border-btn"}
-                  style={{ padding: '15px 14px' }}
+                  style={{ padding: '15px 14px', width: '130px' }}
                   onClick={() => handleUpdateRole(record.uid, !record.is_priest)}
                   loading={loading}
                 >
                   {record.is_priest ? "Remove Priest" : "Make Priest"}
                 </Button>
 
-                <Button
+                {/* <Button
                   type="default"
                   icon={<KeyOutlined />}
                   onClick={() => handleResetPassword(record)}
@@ -1031,9 +1031,9 @@ export default function AccountManagement() {
                   title="Reset Password"
                 >
                   Reset Password
-                </Button>
+                </Button> */}
 
-                <Button
+                {/* <Button
                   type={isActive ? "default" : "primary"}
                   danger={isActive}
                   icon={isActive ? <StopOutlined /> : <CheckCircleOutlined />}
@@ -1044,9 +1044,9 @@ export default function AccountManagement() {
                   title={isActive ? "Disable Account" : "Enable Account"}
                 >
                   {isActive ? "Disable" : "Enable"}
-                </Button>
+                </Button> */}
 
-                <Button
+                {/* <Button
                   type="default"
                   danger
                   icon={<InboxOutlined />}
@@ -1057,7 +1057,7 @@ export default function AccountManagement() {
                   title="Archive Account"
                 >
                   Archive
-                </Button>
+                </Button> */}
               </>
             )}
 
