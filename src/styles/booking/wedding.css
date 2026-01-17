@@ -618,7 +618,6 @@ select.input-text {
 .hero-eyebrow {
     display: block;
     color: #FFC942;
-    /* Parish Yellow */
     text-transform: uppercase;
     letter-spacing: 3px;
     font-weight: 800;
@@ -647,4 +646,237 @@ select.input-text {
     max-width: 600px;
     margin: 0 auto;
     line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+    .main-holder {
+        padding: 10px;
+    }
+
+    .form-wrapper {
+        max-width: none;
+    }
+
+    .form-section {
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+
+    .section-title {
+        font-size: 1.2rem;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+
+    .section-title::after {
+        display: none;
+    }
+
+    .grid-layout {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .radio-group {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .submit-btn-container {
+        padding-bottom: 30px;
+    }
+
+    .service-header {
+        padding: 60px 20px;
+    }
+
+    .service-header h1 {
+        font-size: 2rem;
+    }
+
+    .landing-container {
+        padding: 60px 10px;
+    }
+
+    .landing-title {
+        font-size: 2.5rem !important;
+    }
+
+    .hero-subtitle {
+        font-size: 1rem;
+    }
+
+    .services-hero-wrapper {
+        height: 350px;
+    }
+
+    .services-hero-content {
+        padding: 0 10px;
+    }
+
+    .landing-title {
+        font-size: 2.5rem !important;
+    }
+
+    .hero-subtitle {
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .form-section {
+        padding: 15px;
+    }
+
+    .section-title {
+        font-size: 1rem;
+    }
+
+    .input-group h1 {
+        font-size: 0.8rem;
+    }
+
+    .input-text,
+    .time-container {
+        height: 36px;
+        font-size: 0.9rem;
+    }
+
+    .service-header {
+        padding: 40px 15px;
+    }
+
+    .service-header h1 {
+        font-size: 1.8rem;
+    }
+
+    .service-header p {
+        font-size: 0.9rem;
+    }
+
+    .landing-title {
+        font-size: 2rem !important;
+    }
+
+    .hero-subtitle {
+        font-size: 0.9rem;
+    }
+
+    .services-hero-wrapper {
+        height: 300px;
+    }
+
+    .info-text h2 {
+        font-size: 2rem;
+    }
+
+    .step-card {
+        gap: 15px;
+    }
+
+    .step-num {
+        width: 40px;
+        height: 40px;
+        font-size: 0.9rem;
+    }
+
+    .info-image img {
+        height: 250px;
+    }
+
+    .service-card {
+        padding: 40px 15px 20px;
+    }
+
+    .floating-icon-wrapper {
+        width: 60px;
+        height: 60px;
+        font-size: 24px;
+    }
+}
+
+.services-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+    width: 100%;
+    max-width: 1200px;
+    margin: -80px auto 0;
+    padding: 20px;
+    justify-items: center;
+}
+
+.service-card {
+    position: relative;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    padding: 50px 30px 30px;
+    border-radius: 24px;
+    text-align: center;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    cursor: pointer;
+}
+
+@media (max-width: 768px) {
+    .services-hero-wrapper {
+        height: 400px;
+    }
+
+    .landing-title {
+        font-size: 2.5rem !important;
+    }
+
+    .services-grid {
+        margin-top: -40px;
+        grid-template-columns: 1fr;
+    }
+}
+
+.grid-layout {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+@media (max-width: 768px) {
+    .grid-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .form-section {
+        padding: 20px;
+        border-radius: 0;
+    }
+
+    .back-button {
+        position: relative;
+        margin-top: 0;
+        margin-bottom: 20px;
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 992px) {
+    .info-container {
+        grid-template-columns: 1fr;
+        gap: 30px;
+    }
+
+    .info-image {
+        order: -1;
+    }
+
+    .info-image img {
+        height: 250px;
+    }
+
+    .info-text h2 {
+        font-size: 2rem;
+        text-align: center;
+    }
 }

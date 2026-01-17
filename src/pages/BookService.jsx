@@ -81,7 +81,6 @@ export default function BookService() {
             />
             <div className="services-hero-overlay" />
             <div className="services-hero-content">
-              <span className="hero-eyebrow">Sacramental Life</span>
               <h1 className="landing-title">Parish Services</h1>
               <div className="accent-separator" />
               <p className="hero-subtitle">
@@ -233,9 +232,9 @@ export default function BookService() {
         </div>
       )}
 
-      <SignInAlert 
-        open={showSignInAlert} 
-        onClose={() => setShowSignInAlert(false)} 
+      <SignInAlert
+        open={showSignInAlert}
+        onClose={() => setShowSignInAlert(false)}
       />
 
       <Footer />
