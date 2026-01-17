@@ -3,7 +3,7 @@ import axios from "axios";
 import { API_URL } from "../Constants";
 import Cookies from "js-cookie";
 
-export default function ChatBot() {
+export default function ChatBot({ isOpen, onClose }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -17,9 +17,10 @@ export default function ChatBot() {
     }
   }, [messages, loading]);
 
+  if (!isOpen) return null; // Don't render if closed
+
   const sendMessage = async () => {
     if (!input.trim() || loading) return;
-
     const userMessage = { role: "user", text: input.trim() };
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
@@ -30,7 +31,6 @@ export default function ChatBot() {
         userId: uid,
         message: userMessage.text,
       });
-
       const aiMessage = { role: "ai", text: res.data.message };
       setMessages((prev) => [...prev, aiMessage]);
     } catch (error) {
@@ -43,38 +43,55 @@ export default function ChatBot() {
     }
   };
 
-  // dito nalang baka magoverlap pa sa iba
   const styles = {
-    container: {
-      display: "flex",
-      flexDirection: "column",
-      width: "100%",
-      height: "550px",
-      backgroundColor: "#fff",
+    floatingWrapper: {
+      position: "fixed",
+      bottom: "90px",
+      right: "24px",
+      width: "360px",
+      zIndex: 2000,
+      boxShadow: "0 12px 48px rgba(0,0,0,0.15)",
+      borderRadius: "16px",
       overflow: "hidden",
+      backgroundColor: "#fff",
       fontFamily: "Inter, system-ui, sans-serif",
+      border: "1px solid #eaeaea",
     },
     header: {
-      padding: "16px 24px",
+      padding: "16px 20px",
       borderBottom: "1px solid #eee",
       display: "flex",
       alignItems: "center",
-      gap: "12px",
+      justifyContent: "space-between",
+      backgroundColor: "#fff",
+    },
+    headerInfo: {
+      display: "flex",
+      alignItems: "center",
+      gap: "10px",
     },
     statusDot: {
-      width: "10px",
-      height: "10px",
+      width: "8px",
+      height: "8px",
       backgroundColor: "#22c55e",
       borderRadius: "50%",
     },
+    closeBtn: {
+      background: "none",
+      border: "none",
+      fontSize: "20px",
+      cursor: "pointer",
+      color: "#999",
+      padding: "4px",
+    },
     chatArea: {
-      flex: 1,
+      height: "400px",
       overflowY: "auto",
-      padding: "20px",
-      backgroundColor: "#fff",
+      padding: "15px",
+      backgroundColor: "#f9f9f9",
       display: "flex",
       flexDirection: "column",
-      gap: "16px",
+      gap: "12px",
     },
     messageRow: (role) => ({
       display: "flex",
@@ -83,19 +100,19 @@ export default function ChatBot() {
       textAlign: 'justify'
     }),
     bubble: (role) => ({
-      maxWidth: "85%",
-      padding: "10px 16px",
+      maxWidth: "80%",
+      padding: "10px 14px",
       fontSize: "13px",
-      lineHeight: "1.5",
-      borderRadius: "18px",
-      backgroundColor: role === "user" ? "#000" : "#f1f1f1",
+      lineHeight: "1.4",
+      borderRadius: "15px",
+      backgroundColor: role === "user" ? "#000" : "#fff",
       color: role === "user" ? "#fff" : "#333",
-      borderTopRightRadius: role === "user" ? "2px" : "18px",
-      borderTopLeftRadius: role === "ai" ? "2px" : "18px",
-      boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
+      borderBottomRightRadius: role === "user" ? "2px" : "15px",
+      borderBottomLeftRadius: role === "ai" ? "2px" : "15px",
+      border: role === "ai" ? "1px solid #eee" : "none",
     }),
     inputContainer: {
-      padding: "20px",
+      padding: "15px",
       borderTop: "1px solid #eee",
       backgroundColor: "#fff",
     },
@@ -106,17 +123,17 @@ export default function ChatBot() {
     },
     inputField: {
       width: "100%",
-      padding: "12px 50px 12px 20px",
-      backgroundColor: "#f4f4f4",
+      padding: "10px 45px 10px 15px",
+      backgroundColor: "#f0f0f0",
       border: "none",
-      borderRadius: "25px",
-      fontSize: "14px",
+      borderRadius: "20px",
+      fontSize: "13px",
       outline: "none",
     },
     sendButton: {
       position: "absolute",
-      right: "6px",
-      padding: "8px",
+      right: "5px",
+      padding: "6px",
       backgroundColor: "#000",
       color: "#fff",
       border: "none",
@@ -126,48 +143,40 @@ export default function ChatBot() {
       alignItems: "center",
       justifyContent: "center",
       opacity: loading || !input.trim() ? 0.3 : 1,
-      transition: "opacity 0.2s",
-    },
+    }
   };
 
   return (
-    <div style={styles.container}>
-      {/* Header */}
+    <div style={styles.floatingWrapper}>
       <div style={styles.header}>
-        <div style={styles.statusDot}></div>
-        <div>
-          <h3 style={{ margin: 0, fontSize: "14px", fontWeight: 600 }}>SagradaBot</h3>
-          <p style={{ margin: 0, fontSize: "10px", color: "#999", textTransform: "uppercase" }}>
-            Always Online
-          </p>
+        <div style={styles.headerInfo}>
+          <div style={styles.statusDot}></div>
+          <div>
+            <h3 style={{ margin: 0, fontSize: "14px", fontWeight: 600 }}>SagradaBot</h3>
+            <p style={{ margin: 0, fontSize: "10px", color: "#22c55e" }}>Online</p>
+          </div>
         </div>
+        <button style={styles.closeBtn} onClick={onClose}>&times;</button>
       </div>
 
-      {/* Chat Area */}
       <div ref={scrollRef} style={styles.chatArea}>
         {messages.length === 0 && (
-          <div style={{ textAlign: "center", marginTop: "100px", color: "#ccc" }}>
-            <div style={{ fontSize: "24px" }}>👋</div>
-            <p style={{ fontSize: "12px", fontStyle: "italic" }}>How can I help you today?</p>
+          <div style={{ textAlign: "center", marginTop: "40px", color: "#aaa" }}>
+            <p style={{ fontSize: "12px" }}>Hello! How can I help you today?</p>
           </div>
         )}
-
         {messages.map((msg, index) => (
           <div key={index} style={styles.messageRow(msg.role)}>
             <div style={styles.bubble(msg.role)}>{msg.text}</div>
           </div>
         ))}
-
         {loading && (
           <div style={styles.messageRow("ai")}>
-            <div style={{ ...styles.bubble("ai"), fontStyle: "italic", color: "#999" }}>
-              AI is typing...
-            </div>
+            <span style={{ color: "#999", fontSize: "11px", marginLeft: "10px" }}>Typing...</span>
           </div>
         )}
       </div>
 
-      {/* Input Area */}
       <div style={styles.inputContainer}>
         <div style={styles.inputWrapper}>
           <input
@@ -176,14 +185,10 @@ export default function ChatBot() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-            placeholder="Write a message..."
+            placeholder="Type a message..."
           />
-          <button
-            onClick={sendMessage}
-            disabled={loading || !input.trim()}
-            style={styles.sendButton}
-          >
-            <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
+          <button onClick={sendMessage} disabled={loading || !input.trim()} style={styles.sendButton}>
+            <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 10.5 12 3m0 0 7.5 7.5M12 3v18" />
             </svg>
           </button>

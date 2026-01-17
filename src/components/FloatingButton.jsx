@@ -155,7 +155,7 @@ const FloatingButton = () => {
         <FloatButton
           icon={<CommentOutlined />}
           tooltip={<div>Chat</div>}
-          onClick={() => setIsChatOpen(true)}
+          onClick={() => setIsChatOpen(!isChatOpen)}
         />
         <FloatButton
           icon={<HeartOutlined />}
@@ -392,20 +392,7 @@ const FloatingButton = () => {
         </div>
       </Modal>
 
-      <Modal
-        open={isChatOpen}
-        onCancel={() => setIsChatOpen(false)}
-        footer={null}
-        centered
-        width={450}
-        bodyStyle={{ padding: 0 }}
-        closable={true}
-        destroyOnClose={true}
-      >
-        <div style={{ paddingTop: '20px' }}>
-          <ChatBot />
-        </div>
-      </Modal>
+      <ChatBot isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
 
       <SignInAlert
         open={showSignInAlert}
