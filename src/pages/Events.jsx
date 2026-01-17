@@ -302,7 +302,7 @@ export default function Events() {
             <div className="eventmodal-body">
               <div className="event-header-row">
                 <h2>{selectedEvent.title}</h2>
-                <button
+                {/* <button
                   className="register-btn"
                   style={{ width: '20%' }}
                   onClick={() => {
@@ -311,7 +311,7 @@ export default function Events() {
                   }}
                 >
                   Register Now
-                </button>
+                </button> */}
               </div>
               <div className="eventmodal-meta">
                 <strong>Location:</strong> {selectedEvent.location} <br />
@@ -339,7 +339,7 @@ export default function Events() {
       <Modal
         open={!!showChoicesModal}
         onCancel={() => setShowChoicesModal(null)}
-        footer={null} // Removes default OK/Cancel buttons
+        footer={null}
         centered
         width={400}
         bodyStyle={{ padding: '20px' }}
@@ -353,7 +353,7 @@ export default function Events() {
             color: '#a0a0a0',
             marginBottom: '8px'
           }}>
-            Selection
+            Event Selection
           </span>
           <h2 className="choicesmodal-title" style={{ fontSize: '1.25rem', fontWeight: '500', margin: 0 }}>
             {showChoicesModal?.title}
