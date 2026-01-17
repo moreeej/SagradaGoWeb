@@ -304,6 +304,7 @@ export default function Events() {
                 <h2>{selectedEvent.title}</h2>
                 <button
                   className="register-btn"
+                  style={{ width: '20%' }}
                   onClick={() => {
 
                     setShowChoicesModal(true);
