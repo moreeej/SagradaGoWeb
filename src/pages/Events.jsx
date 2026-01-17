@@ -269,15 +269,17 @@ export default function Events() {
                 <div className="event-actions">
                   <button
                     className="register-btn"
-                    // onClick={() => handleRegisterEvent(event._id, event.title)}
                     onClick={() => {
-                      setShowChoicesModal({
-                        id: event._id,
-                        title: event.title,
-                        location: event.location,
-                        date: event.date
-                      })
-
+                      if (!uid || !fullName || !contact) {
+                        setShowSignInAlert(true);
+                      } else {
+                        setShowChoicesModal({
+                          id: event._id,
+                          title: event.title,
+                          location: event.location,
+                          date: event.date
+                        });
+                      }
                     }}
                   >
                     Register Now
