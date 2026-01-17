@@ -273,7 +273,9 @@ export default function Events() {
                     onClick={() => {
                       setShowChoicesModal({
                         id: event._id,
-                        title: event.title
+                        title: event.title,
+                        location: event.location,
+                        date: event.date
                       })
 
                     }}
@@ -348,22 +350,17 @@ export default function Events() {
         footer={null}
         centered
         width={400}
-        bodyStyle={{ padding: '20px' }}
       >
         <div className="choicesmodal-header" style={{ textAlign: 'center', marginBottom: '24px' }}>
-          <span className="choicesmodal-label" style={{
-            display: 'block',
-            fontSize: '11px',
-            textTransform: 'uppercase',
-            letterSpacing: '2px',
-            color: '#a0a0a0',
-            marginBottom: '8px'
-          }}>
+          <span className="choicesmodal-label" style={{ display: 'block', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '2px', color: '#a0a0a0', marginBottom: '8px' }}>
             Event Selection
           </span>
-          <h2 className="choicesmodal-title" style={{ fontSize: '1.25rem', fontWeight: '500', margin: 0 }}>
+          <h2 className="choicesmodal-title" style={{ fontSize: '1.25rem', fontWeight: '500', margin: '0 0 8px 0' }}>
             {showChoicesModal?.title}
           </h2>
+          <p style={{ fontSize: '13px', color: '#666', margin: 0 }}>
+            {showChoicesModal?.location} • {showChoicesModal?.date && new Date(showChoicesModal.date).toLocaleDateString()}
+          </p>
         </div>
 
         <div className="choicesmodal-actions" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -371,15 +368,17 @@ export default function Events() {
             className="border-btn"
             onClick={() => {
               setRegistrationData({
-                role: "participant",
+                role: "attendee",
                 eventId: showChoicesModal.id,
-                eventTitle: showChoicesModal.title
+                eventTitle: showChoicesModal.title,
+                location: showChoicesModal.location,
+                date: showChoicesModal.date
               });
               setShowChoicesModal(null);
               setShowDetailsModal(true);
             }}
           >
-            Participate
+            Attendee
           </button>
 
           <button
@@ -388,7 +387,9 @@ export default function Events() {
               setRegistrationData({
                 role: "volunteer",
                 eventId: showChoicesModal.id,
-                eventTitle: showChoicesModal.title
+                eventTitle: showChoicesModal.title,
+                location: showChoicesModal.location,
+                date: showChoicesModal.date
               });
               setShowChoicesModal(null);
               setShowDetailsModal(true);
@@ -411,6 +412,11 @@ export default function Events() {
           <p style={{ fontSize: '12px', color: '#888', marginBottom: '20px' }}>
             Please review your details before submitting for <strong>{registrationData.eventTitle}</strong>.
           </p>
+
+          <div style={{ marginBottom: '20px', padding: '12px', borderLeft: '4px solid #FFC942', background: '#fafafa' }}>
+            <div style={{ fontSize: '13px' }}><strong>Place:</strong> {registrationData.location}</div>
+            <div style={{ fontSize: '13px' }}><strong>Time:</strong> {registrationData.date && new Date(registrationData.date).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</div>
+          </div>
 
           <div className="detail-item" style={{ marginBottom: '15px' }}>
             <label style={{ fontWeight: '600', display: 'block', fontSize: '13px' }}>Full Name</label>
@@ -441,7 +447,7 @@ export default function Events() {
               className="border-btn"
               style={{ padding: '8px' }}
               onClick={() => {
-                if (registrationData.role === "participant") {
+                if (registrationData.role === "attendee") {
                   handleRegisterEvent(registrationData.eventId, registrationData.eventTitle);
                 } else {
                   handleVolunteerEvent(registrationData.eventId, registrationData.eventTitle);
