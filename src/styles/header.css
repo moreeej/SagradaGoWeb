@@ -204,4 +204,38 @@
     z-index: 1000;
     backdrop-filter: blur(4px);
   }
+
+  .mobile-list-content .logout-red {
+    color: #ff4d4f !important;
+    font-weight: 600;
+  }
+
+  .mobile-auth-wrapper {
+    display: flex;
+    justify-content: flex-start;
+    margin-top: 10px;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+    width: 100%;
+    padding-left: 20px;
+  }
+
+  .mobile-list-content {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    width: 100%;
+    gap: 5px;
+  }
+
+  .mobile-list-content .dropdown-item {
+    text-align: left;
+    font-size: 18px;
+    padding: 8px 0;
+    background: none;
+    border: none;
+    width: 100%;
+    color: #333;
+  }
 }

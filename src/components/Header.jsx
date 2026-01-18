@@ -67,12 +67,15 @@ export default function Header() {
   const AuthSection = ({ isMobile = false }) => (
     <div className={isMobile ? "mobile-auth-wrapper" : "signin-container"}>
       {email ? (
-        <div className="profile-dropdown-container">
-          <div className="profile-pic" onClick={() => setShowProfileDropdown(!showProfileDropdown)}>
-            <FaUser size={18} />
-          </div>
-          {showProfileDropdown && (
-            <div className="profile-dropdown">
+        <div className={isMobile ? "mobile-profile-list" : "profile-dropdown-container"}>
+          {!isMobile && (
+            <div className="profile-pic" onClick={() => setShowProfileDropdown(!showProfileDropdown)}>
+              <FaUser size={18} />
+            </div>
+          )}
+
+          {(showProfileDropdown || isMobile) && (
+            <div className={isMobile ? "mobile-list-content" : "profile-dropdown"}>
               <button className="dropdown-item" onClick={() => { navigate("/profile"); setShowProfileDropdown(false); setIsMenuOpen(false); }}>Profile</button>
               <button className="dropdown-item" onClick={() => { navigate("/activity"); setShowProfileDropdown(false); setIsMenuOpen(false); }}>Activity</button>
               <button className="dropdown-item logout-red" onClick={handleLogout}>Logout</button>
