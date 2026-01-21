@@ -469,6 +469,8 @@ export default function Events() {
         message="Please sign in to register for this event."
       />
 
+      {showSignin && <SignInPage />}
+
       <Footer />
     </>
   );

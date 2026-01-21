@@ -24,7 +24,7 @@ import {
 import parishHero from "../assets/360pews.jpg";
 
 export default function BookService() {
-  const { bookingSelected, setBookingSelected } =
+  const { bookingSelected, setBookingSelected, showSignin } =
     useContext(NavbarContext);
   const email = Cookies.get("email");
 
@@ -236,6 +236,8 @@ export default function BookService() {
         open={showSignInAlert}
         onClose={() => setShowSignInAlert(false)}
       />
+
+      {showSignin && <SignInPage />}
 
       <Footer />
     </div>
