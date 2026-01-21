@@ -88,7 +88,7 @@ export default function Anointing() {
       key: "contact_number",
       title: "Contact Number",
       type: "text",
-      onChange: setContactNumber,
+      onChange: (value) => setContactNumber(value.replace(/\D/g, "")),
       value: contactNumber,
       maxLength: 11,
     },

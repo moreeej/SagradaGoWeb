@@ -108,7 +108,7 @@ export default function Wedding() {
       key: "contact_number",
       title: "Contact Number",
       type: "text",
-      onChange: setContact,
+      onChange: (value) => setContact(value.replace(/\D/g, "")),
       value: contact,
       maxLength: 11,
     },
