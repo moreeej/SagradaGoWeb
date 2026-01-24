@@ -41,32 +41,32 @@ export default function ChatBot({ isOpen, onClose }) {
 
   if (!isOpen) return null;
 
-  // const sendMessage = async () => {
-  //   if (!inputBot.trim() || loading) return;
-  //   const userMessage = { role: "user", text: inputBot.trim() };
-  //   setMessages((prev) => [...prev, userMessage]);
-  //   setInputBot("");
-  //   setLoading(true);
+  const sendMessage = async () => {
+    if (!inputBot.trim() || loading) return;
+    const userMessage = { role: "user", text: inputBot.trim() };
+    setMessages((prev) => [...prev, userMessage]);
+    setInputBot("");
+    setLoading(true);
 
-  //   try {
-  //     const res = await axios.post(`${API_URL}/chat/ai/response`, {
-  //       userId: uid,
-  //       message: userMessage.text,
-  //     });
-  //     const aiMessage = { role: "ai", text: res.data.message };
-  //     setMessages((prev) => [...prev, aiMessage]);
-  //   } catch (error) {
-  //     setMessages((prev) => [
-  //       ...prev,
-  //       {
-  //         role: "ai",
-  //         text: "I'm having trouble connecting. Please try again later." + error,
-  //       },
-  //     ]);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
+    try {
+      const res = await axios.post(`${API_URL}/chat/ai/response`, {
+        userId: uid,
+        message: userMessage.text,
+      });
+      const aiMessage = { role: "ai", text: res.data.message };
+      setMessages((prev) => [...prev, aiMessage]);
+    } catch (error) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "ai",
+          text: "I'm having trouble connecting. Please try again later." + error,
+        },
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   async function sendAdminMessage(){
     try{
