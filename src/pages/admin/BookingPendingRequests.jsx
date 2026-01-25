@@ -2455,7 +2455,7 @@ export default function BookingPendingRequests() {
           }
         }
       `}</style>
-      <div style={{ maxWidth: "1550px", margin: "0 auto", marginTop: 20 }}>
+      <div style={{ maxWidth: "95%", margin: "0 auto", marginTop: 20 }}>
         {/* Header */}
         <div style={{ marginBottom: 24 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>

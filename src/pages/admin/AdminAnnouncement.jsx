@@ -216,7 +216,7 @@ export default function AdminAnnouncements() {
 
   return (
     <div style={{ padding: "24px", background: "#f0f2f5", minHeight: "100vh" }}>
-      <div style={{ maxWidth: "1550px", margin: "0 auto", marginTop: 20 }}>
+      <div style={{ maxWidth: "95%", margin: "0 auto", marginTop: 20 }}>
         <div>
           {/* Header */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>

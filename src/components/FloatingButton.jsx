@@ -321,7 +321,7 @@ const FloatingButton = () => {
             prefix="PHP"
             placeholder="0.00"
             className="form-input"
-            size="large"
+            size="large" 
             onChange={(e) => {
               const value = e.target.value;
               const filteredValue = value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');

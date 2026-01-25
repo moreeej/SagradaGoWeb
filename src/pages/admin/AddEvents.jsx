@@ -522,7 +522,7 @@ export default function AddEvents() {
 
   return (
     <div style={{ padding: "24px", background: "#f0f2f5", minHeight: "100vh" }}>
-      <div style={{ maxWidth: "1550px", margin: "0 auto", marginTop: 20 }}>
+      <div style={{ maxWidth: "95%", margin: "0 auto", marginTop: 20 }}>
         {/* Header */}
         <div style={{ marginBottom: 24 }}>
           <Title level={2} style={{ margin: 0, color: "#262626", fontFamily: 'Poppins' }}>
