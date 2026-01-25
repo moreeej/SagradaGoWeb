@@ -1696,6 +1696,8 @@ export default function AccountManagement() {
                     format="MM/DD/YYYY"
                     placeholder="Select birthday"
                     style={{ width: "100%" }}
+                    inputReadOnly={true}
+                    allowClear={true}
                     disabledDate={(current) => {
                       return current && (current > dayjs().endOf('day') || current < dayjs().subtract(120, 'years'));
                     }}
@@ -1902,6 +1904,8 @@ export default function AccountManagement() {
                     format="MM/DD/YYYY"
                     placeholder="Select birthday"
                     style={{ width: "100%" }}
+                    inputReadOnly={true}
+                    allowClear={true}
                     disabledDate={(current) => {
                       return current && (current > dayjs().endOf('day') || current < dayjs().subtract(120, 'years'));
                     }}
@@ -2171,6 +2175,8 @@ export default function AccountManagement() {
                     format="MM/DD/YYYY"
                     placeholder="Select birthday"
                     style={{ width: "100%" }}
+                    inputReadOnly={true}
+                    allowClear={true}
                     disabledDate={(current) => {
                       return current && (current > dayjs().endOf('day') || current < dayjs().subtract(120, 'years'));
                     }}
