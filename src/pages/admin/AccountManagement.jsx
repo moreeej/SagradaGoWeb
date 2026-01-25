@@ -1676,55 +1676,29 @@ export default function AccountManagement() {
                     </>
                   }
                   validateStatus={errors.birthday ? "error" : ""}
-                  help={errors.birthday || "Format: MM/DD/YYYY"}
+                  help={errors.birthday}
                 >
-                  <Input
-                    value={birthdayDisplay}
-                    onChange={(e) => {
-                      const inputValue = e.target.value;
-                      if (inputValue.length < birthdayDisplay.length) {
-                        setBirthdayDisplay(inputValue);
-
-                        if (inputValue.length === 0) {
-                          setFormData({ ...formData, birthday: "" });
-                          setErrors((prev) => ({ ...prev, birthday: "" }));
-                        }
-                        return;
-                      }
-
-                      const formatted = formatDateInput(inputValue);
-                      setBirthdayDisplay(formatted);
-
-                      if (/^\d{2}\/\d{2}\/\d{4}$/.test(formatted)) {
-                        const parsed = parseDateInput(formatted);
-                        setFormData({ ...formData, birthday: parsed });
-
-                        const error = validateBirthday(parsed);
+                  <DatePicker
+                    value={formData.birthday ? dayjs(formData.birthday) : null}
+                    onChange={(date) => {
+                      if (date) {
+                        const formatted = date.format("YYYY-MM-DD");
+                        setFormData({ ...formData, birthday: formatted });
+                        setBirthdayDisplay(date.format("MM/DD/YYYY"));
+                        const error = validateBirthday(formatted);
                         setErrors((prev) => ({ ...prev, birthday: error }));
-
-                      } else if (formatted.length === 0) {
+                      } else {
                         setFormData({ ...formData, birthday: "" });
-                        setErrors((prev) => ({ ...prev, birthday: "" }));
+                        setBirthdayDisplay("");
+                        setErrors((prev) => ({ ...prev, birthday: "Birthday is required" }));
                       }
                     }}
-                    onBlur={() => {
-                      if (birthdayDisplay) {
-                        if (/^\d{2}\/\d{2}\/\d{4}$/.test(birthdayDisplay)) {
-                          const parsed = parseDateInput(birthdayDisplay);
-                          const error = validateBirthday(parsed);
-                          setErrors((prev) => ({ ...prev, birthday: error }));
-
-                        } else {
-                          setErrors((prev) => ({ ...prev, birthday: "Please enter a complete date (MM/DD/YYYY)" }));
-                        }
-
-                      } else if (formData.birthday) {
-                        const error = validateBirthday(formData.birthday);
-                        setErrors((prev) => ({ ...prev, birthday: error }));
-                      }
+                    format="MM/DD/YYYY"
+                    placeholder="Select birthday"
+                    style={{ width: "100%" }}
+                    disabledDate={(current) => {
+                      return current && (current > dayjs().endOf('day') || current < dayjs().subtract(120, 'years'));
                     }}
-                    placeholder="MM/DD/YYYY"
-                    maxLength={10}
                   />
                 </Form.Item>
               </Col>
@@ -1908,55 +1882,29 @@ export default function AccountManagement() {
                     </>
                   }
                   validateStatus={errors.birthday ? "error" : ""}
-                  help={errors.birthday || "Format: MM/DD/YYYY"}
+                  help={errors.birthday}
                 >
-                  <Input
-                    value={birthdayDisplay}
-                    onChange={(e) => {
-                      const inputValue = e.target.value;
-                      if (inputValue.length < birthdayDisplay.length) {
-                        setBirthdayDisplay(inputValue);
-
-                        if (inputValue.length === 0) {
-                          setFormData({ ...formData, birthday: "" });
-                          setErrors((prev) => ({ ...prev, birthday: "" }));
-                        }
-                        return;
-                      }
-
-                      const formatted = formatDateInput(inputValue);
-                      setBirthdayDisplay(formatted);
-
-                      if (/^\d{2}\/\d{2}\/\d{4}$/.test(formatted)) {
-                        const parsed = parseDateInput(formatted);
-                        setFormData({ ...formData, birthday: parsed });
-
-                        const error = validateBirthday(parsed);
+                  <DatePicker
+                    value={formData.birthday ? dayjs(formData.birthday) : null}
+                    onChange={(date) => {
+                      if (date) {
+                        const formatted = date.format("YYYY-MM-DD");
+                        setFormData({ ...formData, birthday: formatted });
+                        setBirthdayDisplay(date.format("MM/DD/YYYY"));
+                        const error = validateBirthday(formatted);
                         setErrors((prev) => ({ ...prev, birthday: error }));
-
-                      } else if (formatted.length === 0) {
+                      } else {
                         setFormData({ ...formData, birthday: "" });
-                        setErrors((prev) => ({ ...prev, birthday: "" }));
+                        setBirthdayDisplay("");
+                        setErrors((prev) => ({ ...prev, birthday: "Birthday is required" }));
                       }
                     }}
-                    onBlur={() => {
-                      if (birthdayDisplay) {
-                        if (/^\d{2}\/\d{2}\/\d{4}$/.test(birthdayDisplay)) {
-                          const parsed = parseDateInput(birthdayDisplay);
-                          const error = validateBirthday(parsed);
-                          setErrors((prev) => ({ ...prev, birthday: error }));
-
-                        } else {
-                          setErrors((prev) => ({ ...prev, birthday: "Please enter a complete date (MM/DD/YYYY)" }));
-                        }
-
-                      } else if (formData.birthday) {
-                        const error = validateBirthday(formData.birthday);
-                        setErrors((prev) => ({ ...prev, birthday: error }));
-                      }
+                    format="MM/DD/YYYY"
+                    placeholder="Select birthday"
+                    style={{ width: "100%" }}
+                    disabledDate={(current) => {
+                      return current && (current > dayjs().endOf('day') || current < dayjs().subtract(120, 'years'));
                     }}
-                    placeholder="MM/DD/YYYY"
-                    maxLength={10}
                   />
                 </Form.Item>
               </Col>
@@ -2211,12 +2159,21 @@ export default function AccountManagement() {
               </Col>
               <Col xs={24} sm={8}>
                 <Form.Item label="Birthday">
-                  <Input
-                    type="date"
-                    value={adminFormData.birthday}
-                    onChange={(e) =>
-                      setAdminFormData({ ...adminFormData, birthday: e.target.value })
-                    }
+                  <DatePicker
+                    value={adminFormData.birthday ? dayjs(adminFormData.birthday) : null}
+                    onChange={(date) => {
+                      if (date) {
+                        setAdminFormData({ ...adminFormData, birthday: date.format("YYYY-MM-DD") });
+                      } else {
+                        setAdminFormData({ ...adminFormData, birthday: "" });
+                      }
+                    }}
+                    format="MM/DD/YYYY"
+                    placeholder="Select birthday"
+                    style={{ width: "100%" }}
+                    disabledDate={(current) => {
+                      return current && (current > dayjs().endOf('day') || current < dayjs().subtract(120, 'years'));
+                    }}
                   />
                 </Form.Item>
               </Col>
