@@ -1,37 +1,41 @@
-import { useContext, useEffect, useRef, useState } from "react";
-import { NavbarContext } from "../../context/AllContext";
+import { useRef, useState } from "react";
+import { API_URL } from "../../Constants";
 import "../../styles/booking/wedding.css";
+import axios from "axios";
+import { supabase } from "../../config/supabase";
+import { useNavigate } from "react-router-dom";
+
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import dayjs from "dayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { MobileTimePicker } from "@mui/x-date-pickers/MobileTimePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { supabase } from "../../config/supabase";
-import axios from "axios";
-import { API_URL } from "../../Constants";
+import Cookies from "js-cookie";
 
+import pdf_image from "../../assets/pdfImage.svg";
+import Modal from "../../components/Modal";
 
 export default function Anointing() {
-  // TO BE DELETE
-  const occupiedDates = [
-    new Date("2025-11-27"),
-    new Date("2025-11-28"),
-    new Date("2025-11-29"),
-    new Date("2025-11-30"),
-    new Date("2025-12-04"),
-  ];
-
   const [fname, setFname] = useState("");
   const [mname, setMname] = useState("");
   const [lname, setLname] = useState("");
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [attendees, setAttendees] = useState(0);
-  const [email, setEmail] = useState("");
-  const [contactNumber, setContactNumber] = useState("");
+  const [email, setEmail] = useState(Cookies.get("email") || "");
+  const [contactNumber, setContactNumber] = useState(Cookies.get("contact"));
   const [medicalCondition, setMedicalCondition] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  const [showModalMessage, setShowModalMessage] = useState(false);
+  const [modalMessage, setModalMessage] = useState();
+
+  const [errors, setErrors] = useState({});
+
+  const uid = Cookies.get("uid");
+
+  const navigate = useNavigate();
 
   const inputText = [
     {
@@ -61,6 +65,7 @@ export default function Anointing() {
       type: "email",
       onChange: setEmail,
       value: email,
+      readOnly: true,
     },
     {
       key: "date",
@@ -91,6 +96,7 @@ export default function Anointing() {
       onChange: (value) => setContactNumber(value.replace(/\D/g, "")),
       value: contactNumber,
       maxLength: 11,
+      readOnly: true,
     },
     {
       key: "medical_condition",
@@ -141,6 +147,27 @@ export default function Anointing() {
   }
 
   async function handleSubmit() {
+    const newErrors = {};
+
+    if (!fname.trim()) newErrors.first_name = true;
+    if (!mname.trim()) newErrors.middle_name = true;
+    if (!lname.trim()) newErrors.last_name = true;
+    if (!email.trim()) newErrors.email = true;
+    if (!contactNumber.trim()) newErrors.contact_number = true;
+
+    if (!date) newErrors.date = true;
+    if (!time) newErrors.time = true;
+    if (attendees <= 0) newErrors.attendees = true;
+
+    if (!medicalCertificateFile) newErrors.med_cert = true;
+
+    setErrors(newErrors);
+
+    if (Object.keys(newErrors).length > 0) {
+      setShowModalMessage(true);
+      setModalMessage("Please fill in all required fields.");
+      return;
+    }
     const uploaded = {};
     setIsLoading(true);
     try {
@@ -151,10 +178,10 @@ export default function Anointing() {
         date.trim() === "" ||
         time.trim() === "" ||
         attendees <= 0 ||
-        contactNumber.trim() === "" ||
-        medicalCondition.trim() === ""
+        contactNumber.trim() === ""
       ) {
-        alert("Please fill in all required fields.");
+        setShowModalMessage(true);
+        setModalMessage("Please fill in all required fields.");
         setIsLoading(false);
         return;
       }
@@ -162,7 +189,8 @@ export default function Anointing() {
         contactNumber.trim().length !== 11 ||
         !contactNumber.startsWith("09")
       ) {
-        alert("Please enter a valid contact number.");
+        setShowModalMessage(true);
+        setModalMessage("Please enter a valid contact number.");
         setIsLoading(false);
         return;
       }
@@ -170,15 +198,16 @@ export default function Anointing() {
       if (medicalCertificateFile) {
         uploaded.medical_certificate = await uploadImage(
           medicalCertificateFile,
-          "medical_certificate"
+          "medical_certificate",
         );
       } else {
-        alert("Please upload medical certificate.");
+        setShowModalMessage(true);
+        setModalMessage("Please upload medical certificate.");
         setIsLoading(false);
         return;
       }
       const payload = {
-        uid: "123123123",
+        uid: uid,
         full_name: `${fname} ${mname} ${lname}`,
         transaction_id: generateTransactionID(),
         email: email,
@@ -186,12 +215,14 @@ export default function Anointing() {
         time: time,
         attendees: attendees,
         contact_number: contactNumber,
-        medical_condition: medicalCondition,
+        medical_condition: medicalCondition || "N/A",
         medical_certificate: uploaded.medical_certificate,
       };
 
-      const res = await axios.post(`${API_URL}/createAnointing`, payload);
-      alert("Anointing booking submitted successfully!");
+      const res = await axios.post(`${API_URL}/createAnointingWeb`, payload);
+
+      setShowModalMessage(true);
+      setModalMessage("Anointing booking submitted successfully!");
       console.log("Saved:", res.data);
       setIsLoading(false);
 
@@ -204,22 +235,40 @@ export default function Anointing() {
       setAttendees(0);
       setContactNumber("");
       setMedicalCondition("");
-      fileInputRef.current.value = "";
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+
+      navigate("/");
     } catch (err) {
       console.error("UPLOAD ERROR:", err);
-      alert("Failed to submit confession booking");
+      setShowModalMessage(true);
+      setModalMessage("Failed to submit anointing booking");
       setIsLoading(false);
-
     }
   }
 
-  const patientInputs = inputText.filter(i => ["first_name", "middle_name", "last_name", "email", "contact_number", "medical_condition"].includes(i.key));
-  const scheduleInputs = inputText.filter(i => ["date", "time", "attendees"].includes(i.key));
+  const patientInputs = inputText.filter((i) =>
+    [
+      "first_name",
+      "middle_name",
+      "last_name",
+      "email",
+      "contact_number",
+      "medical_condition",
+    ].includes(i.key),
+  );
+  const scheduleInputs = inputText.filter((i) =>
+    ["date", "time", "attendees"].includes(i.key),
+  );
+
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  tomorrow.setHours(0, 0, 0, 0);
 
   return (
     <div className="main-holder">
       <div className="form-wrapper">
-
         {/* SECTION 1: PATIENT & REQUESTER INFORMATION */}
         <div className="form-section">
           <h2 className="section-title">1. Patient Information</h2>
@@ -229,11 +278,21 @@ export default function Anointing() {
                 <h1>{elem.title}</h1>
                 <input
                   type={elem.type}
-                  className="input-text"
-                  onChange={(e) => elem.onChange(e.target.value)}
+                  className={`input-text ${errors[elem.key] ? "input-error" : ""}`}
+                  onChange={(e) => {
+                    elem.onChange(e.target.value);
+                    if (errors[elem.key] && e.target.value.trim()) {
+                      setErrors((prev) => ({ ...prev, [elem.key]: false }));
+                    }
+                  }}
+                  readOnly={elem.readOnly}
                   value={elem.value}
                   maxLength={elem.maxLength}
-                  placeholder={`Enter ${elem.title.toLowerCase()}`}
+                  placeholder={
+                    elem.title === "Medical Condition"
+                      ? "Leave blank if none"
+                      : `Enter ${elem.title.toLowerCase()}`
+                  }
                 />
               </div>
             ))}
@@ -250,29 +309,48 @@ export default function Anointing() {
                 {elem.type === "date" ? (
                   <DatePicker
                     selected={elem.value ? new Date(elem.value) : null}
-                    onChange={(v) => elem.onChange(v ? v.toISOString() : "")}
-                    className="input-text"
+                    onChange={(v) => {
+                      elem.onChange(v ? v.toISOString() : "");
+                      if (errors[elem.key])
+                        setErrors((prev) => ({ ...prev, [elem.key]: false }));
+                    }}
+                    className={`input-text ${errors[elem.key] ? "input-error" : ""}`}
                     dateFormat="yyyy-MM-dd"
-                    excludeDates={occupiedDates}
                     showYearDropdown
+                    minDate={tomorrow}
                     dropdownMode="select"
                     placeholderText="Select preferred date"
                     onKeyDown={(e) => e.preventDefault()}
                   />
                 ) : elem.type === "time" ? (
-                  <div className="time-container" style={{ border: '1.5px solid #e0e0e0', borderRadius: '6px', height: '45px', overflow: 'hidden' }}>
+                  <div
+                    className="time-container"
+                    style={{
+                      border: errors["time"]
+                        ? "2px solid red"
+                        : "1.5px solid #e0e0e0",
+                      borderRadius: "6px",
+                      height: "45px",
+                      overflow: "hidden",
+                    }}
+                  >
                     <LocalizationProvider dateAdapter={AdapterDayjs}>
                       <MobileTimePicker
                         value={time ? dayjs(`2000-01-01 ${time}`) : null}
-                        onChange={(v) => setTime(v ? dayjs(v).format("HH:mm") : "")}
+                        onChange={(v) => {
+                          const formatted = v ? dayjs(v).format("HH:mm") : "";
+                          setTime(formatted);
+                          if (errors["time"])
+                            setErrors((prev) => ({ ...prev, time: false }));
+                        }}
                         slotProps={{
                           textField: {
                             variant: "standard",
                             fullWidth: true,
                             InputProps: {
                               disableUnderline: true,
-                              sx: { px: 2, height: '45px', fontSize: '0.9rem' }
-                            }
+                              sx: { px: 2, height: "45px", fontSize: "0.9rem" },
+                            },
                           },
                         }}
                       />
@@ -281,9 +359,16 @@ export default function Anointing() {
                 ) : (
                   <input
                     type={elem.type}
-                    className="input-text"
-                    onChange={(e) => elem.onChange(e.target.value)}
+                    className={`input-text ${errors[elem.key] ? "input-error" : ""}`}
+                    onChange={(e) => {
+                      elem.onChange(e.target.value);
+                      if (errors[elem.key] && e.target.value.trim()) {
+                        setErrors((prev) => ({ ...prev, [elem.key]: false }));
+                      }
+                    }}
                     value={elem.value}
+                    maxLength={elem.maxLength}
+                    placeholder={`Enter ${elem.title.toLowerCase()}`}
                   />
                 )}
               </div>
@@ -296,23 +381,49 @@ export default function Anointing() {
           <h2 className="section-title">3. Medical Documents</h2>
           <div className="upload-grid">
             {uploadFiles.map((elem) => (
-              <div key={elem.key} className="per-grid-container" style={{ padding: '15px', border: '1px solid #eee', borderRadius: '8px' }}>
-                <h1 style={{ fontSize: '0.85rem', marginBottom: '10px', color: '#424242', fontWeight: 'bold' }}>
+              <div
+                key={elem.key}
+                className="per-grid-container"
+                style={{
+                  padding: "15px",
+                  border: "1px solid #eee",
+                  borderRadius: "8px",
+                }}
+              >
+                <h1
+                  style={{
+                    fontSize: "0.85rem",
+                    marginBottom: "10px",
+                    color: "#424242",
+                    fontWeight: "bold",
+                  }}
+                >
                   {elem.title}
                 </h1>
                 <input
                   type="file"
                   accept="image/*,application/pdf"
-                  className="inputFile-properties"
+                  className={`inputFile-properties ${errors[elem.key] ? "input-error" : ""}`}
                   onChange={(e) => {
                     const file = e.target.files[0];
                     if (!file) return;
                     elem.fileSetter(file);
                     elem.previewSetter(URL.createObjectURL(file));
+
+                    if (errors[elem.key])
+                      setErrors((prev) => ({ ...prev, [elem.key]: false }));
                   }}
                 />
                 {elem.preview && (
-                  <img src={elem.preview} className="image-preview" alt="preview" />
+                  <img
+                    src={
+                      medicalCertificateFile?.type === "application/pdf"
+                        ? pdf_image
+                        : elem.preview
+                    }
+                    className="image-preview"
+                    alt="preview"
+                  />
                 )}
               </div>
             ))}
@@ -325,13 +436,18 @@ export default function Anointing() {
             className="submit-button"
             onClick={handleSubmit}
             disabled={isLoading}
-            style={{ opacity: isLoading ? 0.7 : 1, cursor: isLoading ? 'not-allowed' : 'pointer' }}
+            style={{
+              opacity: isLoading ? 0.7 : 1,
+              cursor: isLoading ? "not-allowed" : "pointer",
+            }}
           >
             {isLoading ? "Processing Request..." : "Confirm Anointing Booking"}
           </button>
         </div>
-
       </div>
+      {showModalMessage && (
+        <Modal message={modalMessage} setShowModal={setShowModalMessage} />
+      )}
     </div>
   );
 }

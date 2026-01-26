@@ -1,22 +1,64 @@
 import { useState } from "react";
-import { NavbarContext } from "../../context/AllContext";
 import "../../styles/booking/wedding.css";
+import { supabase } from "../../config/supabase";
+import axios from "axios";
+import { API_URL } from "../../Constants";
+import { useNavigate } from "react-router-dom";
+
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import dayjs from "dayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { MobileTimePicker } from "@mui/x-date-pickers/MobileTimePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { supabase } from "../../config/supabase";
-import axios from "axios";
-import { API_URL } from "../../Constants";
+
 import Cookies from "js-cookie";
+
+import pdf_image from "../../assets/pdfImage.svg";
+import Modal from "../../components/Modal";
 
 export default function Burial() {
   const [showModalMessage, setShowModalMessage] = useState(false);
   const [modalMessage, setModalMessage] = useState();
 
   const [isLoading, setIsLoading] = useState(false);
+
+  const [errors, setErrors] = useState({});
+
+  const [checkboxError, setCheckboxError] = useState(false);
+
+  const navigate = useNavigate();
+
+  function validate() {
+    const newErrors = {};
+
+    inputText.forEach((i) => {
+      if (
+        !i.value &&
+        i.type !== "email" &&
+        i.key !== "middle_name" &&
+        i.key !== "deceased_mname"
+      ) {
+        newErrors[i.key] = true;
+      }
+    });
+
+    if (!date) newErrors.date = true;
+    if (!time) newErrors.time = true;
+
+    uploadFiles.forEach((f) => {
+      if (!f.preview) newErrors[f.key] = true;
+    });
+
+    if (!deathAnniv && !funeralMass && !funeralBlessing && !tombBlessing) {
+      setCheckboxError(true);
+    } else {
+      setCheckboxError(false);
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0 && !checkboxError;
+  }
 
   const uid = Cookies.get("uid");
   const today = new Date();
@@ -28,8 +70,10 @@ export default function Burial() {
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [attendees, setAttendees] = useState(0);
-  const [email, setEmail] = useState(Cookies.get("email"));
-  const [contactNumber, setContactNumber] = useState("");
+  const [email, setEmail] = useState(Cookies.get("email") || "");
+  const [contactNumber, setContactNumber] = useState(
+    Cookies.get("contact") || "",
+  );
   const [deceasedFname, setDeceasedFname] = useState("");
   const [deceasedMname, setDeceasedMname] = useState("");
   const [deceasedLname, setDeceasedLname] = useState("");
@@ -68,6 +112,7 @@ export default function Burial() {
       type: "email",
       onChange: setEmail,
       value: email,
+      readOnly: true,
     },
     {
       key: "date",
@@ -150,6 +195,7 @@ export default function Burial() {
       onChange: setContactNumber,
       value: contactNumber,
       maxLength: 11,
+      readOnly: true,
     },
 
     {
@@ -251,6 +297,12 @@ export default function Burial() {
   }
 
   async function handleSubmit() {
+    if (!validate()) {
+      setShowModalMessage(true);
+      setModalMessage("Please fill in all required fields.");
+      return;
+    }
+
     setIsLoading(true);
     try {
       const isValidPHNumber = /^09\d{9}$/.test(contactNumber);
@@ -308,6 +360,8 @@ export default function Burial() {
       setShowModalMessage(true);
       setModalMessage("Burial booking submitted successfully!");
       setIsLoading(false);
+
+      navigate("/");
       console.log("Saved:", res.data);
     } catch (err) {
       console.error("UPLOAD ERROR:", err);
@@ -350,9 +404,15 @@ export default function Burial() {
                 <h1>{elem.title}</h1>
                 <input
                   type={elem.type}
-                  className="input-text"
-                  onChange={(e) => elem.onChange(e.target.value)}
+                  className={`input-text ${errors[elem.key] ? "input-error" : ""}`}
                   value={elem.value}
+                  onChange={(e) => {
+                    elem.onChange(e.target.value);
+                    if (errors[elem.key]) {
+                      setErrors((prev) => ({ ...prev, [elem.key]: false }));
+                    }
+                  }}
+                  readOnly={elem.readOnly}
                 />
               </div>
             ))}
@@ -368,9 +428,14 @@ export default function Burial() {
                 <h1>{elem.title}</h1>
                 <input
                   type={elem.type}
-                  className="input-text"
-                  onChange={(e) => elem.onChange(e.target.value)}
+                  className={`input-text ${errors[elem.key] ? "input-error" : ""}`}
                   value={elem.value}
+                  onChange={(e) => {
+                    elem.onChange(e.target.value);
+                    if (errors[elem.key]) {
+                      setErrors((prev) => ({ ...prev, [elem.key]: false }));
+                    }
+                  }}
                 />
               </div>
             ))}
@@ -386,9 +451,13 @@ export default function Burial() {
                 <h1>{elem.title}</h1>
                 {elem.type === "date" ? (
                   <DatePicker
-                    selected={elem.value ? new Date(elem.value) : null}
-                    onChange={(v) => elem.onChange(v ? v.toISOString() : "")}
-                    className="input-text"
+                    selected={date ? new Date(date) : null}
+                    onChange={(v) => {
+                      setDate(v ? v.toISOString() : "");
+                      if (errors.date)
+                        setErrors((prev) => ({ ...prev, date: false }));
+                    }}
+                    className={`input-text ${errors.date ? "input-error" : ""}`}
                     dateFormat="yyyy-MM-dd"
                     showYearDropdown
                     dropdownMode="select"
@@ -397,9 +466,8 @@ export default function Burial() {
                   />
                 ) : elem.type === "time" ? (
                   <div
-                    className="time-container"
+                    className={`time-container ${errors.time ? "input-error" : ""}`}
                     style={{
-                      border: "1.5px solid #e0e0e0",
                       borderRadius: "6px",
                       height: "45px",
                       overflow: "hidden",
@@ -408,16 +476,18 @@ export default function Burial() {
                     <LocalizationProvider dateAdapter={AdapterDayjs}>
                       <MobileTimePicker
                         value={time ? dayjs(`2000-01-01 ${time}`) : null}
-                        onChange={(v) =>
-                          setTime(v ? dayjs(v).format("HH:mm") : "")
-                        }
+                        onChange={(v) => {
+                          setTime(v ? dayjs(v).format("HH:mm") : "");
+                          if (errors.time)
+                            setErrors((prev) => ({ ...prev, time: false }));
+                        }}
                         slotProps={{
                           textField: {
                             variant: "standard",
                             fullWidth: true,
                             InputProps: {
                               disableUnderline: true,
-                              sx: { px: 2, height: "45px" },
+                              sx: { px: 2, height: "45px", fontSize: "0.9rem" },
                             },
                           },
                         }}
@@ -427,10 +497,14 @@ export default function Burial() {
                 ) : (
                   <input
                     type={elem.type}
-                    className="input-text"
-                    onChange={(e) => elem.onChange(e.target.value)}
+                    className={`input-text ${errors[elem.key] ? "input-error" : ""}`}
                     value={elem.value}
-                    maxLength={elem.maxLength}
+                    onChange={(e) => {
+                      elem.onChange(e.target.value);
+                      if (errors[elem.key]) {
+                        setErrors((prev) => ({ ...prev, [elem.key]: false }));
+                      }
+                    }}
                   />
                 )}
               </div>
@@ -443,6 +517,7 @@ export default function Burial() {
               background: "#f9f9f9",
               padding: "15px",
               borderRadius: "8px",
+              border: `2px solid ${checkboxError ? "red" : "#000"}`,
             }}
           >
             <h1
@@ -472,7 +547,18 @@ export default function Burial() {
                     type="checkbox"
                     style={{ accentColor: "#FFC942" }}
                     checked={elem.value}
-                    onChange={(e) => elem.onChange(e.target.checked)}
+                    onChange={(e) => {
+                      elem.onChange(e.target.checked);
+
+                      if (e.target.checked) setCheckboxError(false);
+                      else if (
+                        !deathAnniv &&
+                        !funeralMass &&
+                        !funeralBlessing &&
+                        !tombBlessing
+                      )
+                        setCheckboxError(true);
+                    }}
                   />
                   <span>{elem.title}</span>
                 </label>
@@ -490,9 +576,14 @@ export default function Burial() {
                 <h1>{elem.title}</h1>
                 <input
                   type="text"
-                  className="input-text"
+                  className={`input-text ${errors[elem.key] ? "input-error" : ""}`}
                   value={elem.value}
-                  onChange={(e) => elem.onChange(e.target.value)}
+                  onChange={(e) => {
+                    elem.onChange(e.target.value);
+                    if (errors[elem.key]) {
+                      setErrors((prev) => ({ ...prev, [elem.key]: false }));
+                    }
+                  }}
                 />
               </div>
             ))}
@@ -517,14 +608,25 @@ export default function Burial() {
                 <input
                   type="file"
                   accept="image/*,application/pdf"
-                  className="inputFile-properties"
+                  className={`inputFile-properties ${errors[elem.key] ? "input-error" : ""}`}
                   onChange={(e) => {
                     const file = e.target.files[0];
                     if (!file) return;
+
                     elem.fileSetter(file);
-                    elem.previewSetter(URL.createObjectURL(file));
+
+                    if (file.type === "application/pdf") {
+                      elem.previewSetter(pdf_image);
+                    } else {
+                      elem.previewSetter(URL.createObjectURL(file));
+                    }
+
+                    if (errors[elem.key]) {
+                      setErrors((prev) => ({ ...prev, [elem.key]: false }));
+                    }
                   }}
                 />
+
                 {elem.preview && (
                   <img
                     src={elem.preview}
@@ -538,7 +640,11 @@ export default function Burial() {
         </div>
 
         <div className="submit-btn-container">
-          <button className="submit-button" onClick={handleSubmit}>
+          <button
+            className="submit-button"
+            onClick={handleSubmit}
+            disabled={isLoading}
+          >
             {isLoading ? "Submitting" : "Confirm & Book Burial Service"}
           </button>
         </div>

@@ -14,6 +14,9 @@
 .input-error {
   @apply focus:outline-none border border-red-600!;
 }
+.choice-box.input-error {
+   @apply focus:outline-none border border-red-600!;
+}
 
 .main-holder {
     background-color: var(--bg-soft);

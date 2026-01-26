@@ -3,7 +3,7 @@ import "../../styles/booking/wedding.css";
 import { API_URL } from "../../Constants";
 import { supabase } from "../../config/supabase";
 import axios from "axios";
-import pdf_image from "../../assets/pdfImage.svg";
+import { useNavigate } from "react-router-dom";
 
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { MobileTimePicker } from "@mui/x-date-pickers/MobileTimePicker";
@@ -15,8 +15,14 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import Cookies from "js-cookie";
 
 import Modal from "../../components/Modal";
+import pdf_image from "../../assets/pdfImage.svg";
+
 
 export default function Wedding() {
+
+  const navigate = useNavigate();
+
+  
   const [groomFname, setGroomFname] = useState("");
   const [groomMname, setGroomMname] = useState("");
   const [groomLname, setGroomLname] = useState("");
@@ -25,7 +31,7 @@ export default function Wedding() {
   const [brideLname, setBrideLname] = useState("");
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
-  const [contact, setContact] = useState("");
+  const [contact, setContact] = useState(Cookies.get("contact"));
   const [attendees, setAttendees] = useState(0);
   const [email, setEmail] = useState(Cookies.get("email"));
   const [isLoading, setIsLoading] = useState(false);
@@ -34,11 +40,17 @@ export default function Wedding() {
   const [modalMessage, setModalMessage] = useState();
 
   const fileInputRefs = useRef([]);
+  const [fileErrors, setFileErrors] = useState({});
+  const fileInputClass = (key) =>
+    `inputFile-properties ${fileErrors[key] ? "input-error" : ""}`;
 
   const uid = Cookies.get("uid");
 
   const [errors, setErrors] = useState({});
   const inputClass = (key) => `input-text ${errors[key] ? "input-error" : ""}`;
+
+
+  
 
   const inputText = [
     {
@@ -115,6 +127,7 @@ export default function Wedding() {
       onChange: (value) => setContact(value.replace(/\D/g, "")),
       value: contact,
       maxLength: 11,
+      readOnly: true,
     },
     {
       key: "attendees",
@@ -283,6 +296,44 @@ export default function Wedding() {
     return `WD-${timestamp}-${random}`;
   }
 
+  function validateForm() {
+    const textErrors = {};
+    const fileErrors = {};
+
+    if (!date) textErrors.date = true;
+    if (!time) textErrors.time = true;
+    if (!email) textErrors.email = true;
+
+    if (!/^09\d{9}$/.test(contact)) textErrors.contact_number = true;
+    if (attendees <= 0) textErrors.attendees = true;
+
+    if (!groomFname.trim()) textErrors.groom_first = true;
+    if (!groomLname.trim()) textErrors.groom_last = true;
+
+    if (!brideFname.trim()) textErrors.bride_first = true;
+    if (!brideLname.trim()) textErrors.bride_last = true;
+
+    if (!isCivil) textErrors.civil = true;
+
+    if (!groomFile) fileErrors.groom_1x1 = true;
+    if (!groomBapFile) fileErrors.groom_baptismal = true;
+    if (!groomConfFile) fileErrors.groom_confirmation = true;
+    if (!groomCenomarFile) fileErrors.groom_cenomar = true;
+    if (!groomPermFile) fileErrors.groom_permission = true;
+
+    if (!brideFile) fileErrors.bride_1x1 = true;
+    if (!brideBapFile) fileErrors.bride_baptismal = true;
+    if (!brideConfFile) fileErrors.bride_confirmation = true;
+    if (!brideCenomarFile) fileErrors.bride_cenomar = true;
+    if (!bridePermFile) fileErrors.bride_permission = true;
+
+    if (isCivil === "Yes" && !marriageDocuFile) {
+      fileErrors.marriage_docu = true;
+    }
+
+    return { textErrors, fileErrors };
+  }
+
   function resetAllFiles() {
     Object.values(fileInputRefs.current).forEach((input) => {
       if (input) input.value = "";
@@ -327,128 +378,48 @@ export default function Wedding() {
     setBrideLname("");
 
     setErrors({});
+    setFileErrors({});
   }
 
   async function handleUpload() {
-    const newErrors = {};
+    const { textErrors, fileErrors } = validateForm();
 
-    if (!date) newErrors.date = true;
-    if (!time) newErrors.time = true;
-    if (!email) newErrors.email = true;
+    setErrors(textErrors);
+    setFileErrors(fileErrors);
 
-    if (!contact.trim() || !/^09\d{9}$/.test(contact))
-      newErrors.contact_number = true;
-
-    if (attendees <= 0) newErrors.attendees = true;
-
-    if (!groomFname.trim()) newErrors.groom_first = true;
-    if (!groomLname.trim()) newErrors.groom_last = true;
-
-    if (!brideFname.trim()) newErrors.bride_first = true;
-    if (!brideLname.trim()) newErrors.bride_last = true;
-
-    if (!isCivil) newErrors.civil = true;
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
+    if (
+      Object.keys(textErrors).length > 0 ||
+      Object.keys(fileErrors).length > 0
+    ) {
       setShowModalMessage(true);
-      setModalMessage("Please correct the highlighted fields.");
-      setIsLoading(false);
+      setModalMessage("Please complete all required fields.");
       return;
     }
+
     setIsLoading(true);
+
     try {
-      const isValidPHNumber = /^09\d{9}$/.test(contact);
-
-      if (!isValidPHNumber) {
-        setShowModalMessage(true);
-        setModalMessage(
-          "Please enter a valid contact number (e.g. 09XXXXXXXXX)",
-        );
-        setIsLoading(false);
-        return;
-      }
-
-      if (
-        !date ||
-        !time ||
-        attendees <= 0 ||
-        !contact.trim() ||
-        !groomFname.trim() ||
-        !groomLname.trim() ||
-        !brideFname.trim() ||
-        !brideLname.trim()
-      ) {
-        setShowModalMessage(true);
-        setModalMessage("Please fill all input fields.");
-        setIsLoading(false);
-        return;
-      }
-
       const uploaded = {};
 
-      if (groomFile)
-        uploaded.groomPhoto = await uploadImage(groomFile, "groom_photo");
+      const uploadIfExists = async (file, key) => {
+        if (!file) return;
+        uploaded[key] = await uploadImage(file, key);
+      };
 
-      if (brideFile)
-        uploaded.bridePhoto = await uploadImage(brideFile, "bride_photo");
-
-      if (groomBapFile)
-        uploaded.groomBaptismal = await uploadImage(
-          groomBapFile,
-          "groom_baptismal",
-        );
-
-      if (brideBapFile)
-        uploaded.brideBaptismal = await uploadImage(
-          brideBapFile,
-          "bride_baptismal",
-        );
-
-      if (groomConfFile)
-        uploaded.groomConfirmation = await uploadImage(
-          groomConfFile,
-          "groom_confirmation",
-        );
-
-      if (brideConfFile)
-        uploaded.brideConfirmation = await uploadImage(
-          brideConfFile,
-          "bride_confirmation",
-        );
-
-      if (groomCenomarFile)
-        uploaded.groomCenomar = await uploadImage(
-          groomCenomarFile,
-          "groom_cenomar",
-        );
-
-      if (brideCenomarFile)
-        uploaded.brideCenomar = await uploadImage(
-          brideCenomarFile,
-          "bride_cenomar",
-        );
-
-      if (groomPermFile)
-        uploaded.groomPermission = await uploadImage(
-          groomPermFile,
-          "groom_permission",
-        );
-
-      if (bridePermFile)
-        uploaded.bridePermission = await uploadImage(
-          bridePermFile,
-          "bride_permission",
-        );
-
-      if (marriageDocuFile)
-        uploaded.marriageDocu = await uploadImage(
-          marriageDocuFile,
-          "marriage_docu",
-        );
+      await uploadIfExists(groomFile, "groom_photo");
+      await uploadIfExists(brideFile, "bride_photo");
+      await uploadIfExists(groomBapFile, "groom_baptismal");
+      await uploadIfExists(brideBapFile, "bride_baptismal");
+      await uploadIfExists(groomConfFile, "groom_confirmation");
+      await uploadIfExists(brideConfFile, "bride_confirmation");
+      await uploadIfExists(groomCenomarFile, "groom_cenomar");
+      await uploadIfExists(brideCenomarFile, "bride_cenomar");
+      await uploadIfExists(groomPermFile, "groom_permission");
+      await uploadIfExists(bridePermFile, "bride_permission");
+      await uploadIfExists(marriageDocuFile, "marriage_docu");
 
       await axios.post(`${API_URL}/createWeddingBooking`, {
-        uid: uid,
+        uid,
         email,
         transaction_id: generateTransactionID(),
         date,
@@ -459,34 +430,25 @@ export default function Wedding() {
         groom_first_name: groomFname,
         groom_middle_name: groomMname,
         groom_last_name: groomLname,
-        groom_pic: uploaded.groomPhoto,
+        groom_pic: uploaded.groom_photo,
 
         bride_first_name: brideFname,
         bride_middle_name: brideMname,
         bride_last_name: brideLname,
-        bride_pic: uploaded.bridePhoto,
+        bride_pic: uploaded.bride_photo,
 
-        marriage_docu: uploaded.marriageDocu,
-        groom_cenomar: uploaded.groomCenomar,
-        bride_cenomar: uploaded.brideCenomar,
-        groom_baptismal_cert: uploaded.groomBaptismal,
-        bride_baptismal_cert: uploaded.brideBaptismal,
-        groom_confirmation_cert: uploaded.groomConfirmation,
-        bride_confirmation_cert: uploaded.brideConfirmation,
-        groom_permission: uploaded.groomPermission,
-        bride_permission: uploaded.bridePermission,
+        ...uploaded,
       });
 
-      setShowModalMessage(true);
       setModalMessage("Booking submitted successfully!");
-
+      setShowModalMessage(true);
       resetAllFiles();
-      setIsLoading(false);
+
+      navigate("/");
     } catch (err) {
       console.error(err);
-      setShowModalMessage(true);
       setModalMessage("Something went wrong during upload.");
-      setIsLoading(false);
+      setShowModalMessage(true);
     } finally {
       setIsLoading(false);
     }
@@ -586,6 +548,7 @@ export default function Wedding() {
                     }}
                     maxLength={elem.maxLength}
                     disabled={elem.disabled}
+                    readOnly={elem.readOnly}
                   />
                 )}
               </div>
@@ -625,19 +588,23 @@ export default function Wedding() {
                 <h1>{elem.title}</h1>
                 <input
                   type="file"
+                  className={fileInputClass(elem.key)}
                   accept="image/*,application/pdf"
                   ref={(el) => (fileInputRefs.current[elem.key] = el)}
-                  className="inputFile-properties"
                   onChange={(e) => {
                     const file = e.target.files[0];
                     elem.fileSetter(file);
 
                     if (file) {
-                      // Check if the file is a PDF
+                      setFileErrors((prev) => ({
+                        ...prev,
+                        [elem.key]: false,
+                      }));
+
                       if (file.type === "application/pdf") {
-                        elem.previewSetter(pdf_image); // show default PDF image
+                        elem.previewSetter(pdf_image);
                       } else {
-                        elem.previewSetter(URL.createObjectURL(file)); // show image preview
+                        elem.previewSetter(URL.createObjectURL(file));
                       }
                     }
                   }}
@@ -686,19 +653,23 @@ export default function Wedding() {
                 <h1>{elem.title}</h1>
                 <input
                   type="file"
+                  className={fileInputClass(elem.key)}
                   accept="image/*,application/pdf"
-                  className="inputFile-properties"
                   ref={(el) => (fileInputRefs.current[elem.key] = el)}
                   onChange={(e) => {
                     const file = e.target.files[0];
                     elem.fileSetter(file);
 
                     if (file) {
-                      // Check if the file is a PDF
+                      setFileErrors((prev) => ({
+                        ...prev,
+                        [elem.key]: false,
+                      }));
+
                       if (file.type === "application/pdf") {
-                        elem.previewSetter(pdf_image); // show default PDF image
+                        elem.previewSetter(pdf_image);
                       } else {
-                        elem.previewSetter(URL.createObjectURL(file)); // show image preview
+                        elem.previewSetter(URL.createObjectURL(file));
                       }
                     }
                   }}
@@ -750,20 +721,23 @@ export default function Wedding() {
               <input
                 type="file"
                 accept="image/*,application/pdf"
-                className="inputFile-properties"
+                className={fileInputClass("marriage_docu")}
                 ref={(el) => (fileInputRefs.current["marriage_docu"] = el)}
                 onChange={(e) => {
                   const file = e.target.files[0];
                   uploadMarriageDocu[0].fileSetter(file);
 
                   if (file) {
-                    if (file.type === "application/pdf") {
-                      uploadMarriageDocu[0].previewSetter(pdf_image);
-                    } else {
-                      uploadMarriageDocu[0].previewSetter(
-                        URL.createObjectURL(file),
-                      );
-                    }
+                    setFileErrors((prev) => ({
+                      ...prev,
+                      marriage_docu: false,
+                    }));
+
+                    uploadMarriageDocu[0].previewSetter(
+                      file.type === "application/pdf"
+                        ? pdf_image
+                        : URL.createObjectURL(file),
+                    );
                   }
                 }}
               />

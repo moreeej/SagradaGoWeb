@@ -1,5 +1,4 @@
 import { useRef, useState } from "react";
-
 import "../../styles/booking/wedding.css";
 import { supabase } from "../../config/supabase";
 import axios from "axios";
@@ -12,16 +11,21 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { MobileTimePicker } from "@mui/x-date-pickers/MobileTimePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import Cookies from "js-cookie";
-
-import Modal from "../../components/Modal";
 import { useNavigate } from "react-router-dom";
 
+import Modal from "../../components/Modal";
+import pdf_image from "../../assets/pdfImage.svg";
+
 export default function Baptism() {
-
-
   const navigate = useNavigate();
 
-  //-------------------
+  const [errors, setErrors] = useState({});
+  const [fileErrors, setFileErrors] = useState({});
+
+  const inputClass = (key) => `input-text ${errors[key] ? "input-error" : ""}`;
+
+  const fileInputClass = (key) =>
+    `inputFile-properties ${fileErrors[key] ? "input-error" : ""}`;
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -36,7 +40,7 @@ export default function Baptism() {
   const [candidateBday, setCandidateBday] = useState("");
   const [candidateBplace, setCandidateBplace] = useState("");
 
-  const [contact, setContact] = useState("");
+  const [contact, setContact] = useState(Cookies.get("contact") || "");
   const [attendees, setAttendees] = useState(0);
   const [address, setAddress] = useState("");
 
@@ -126,6 +130,7 @@ export default function Baptism() {
       onChange: (value) => setContact(value.replace(/\D/g, "")),
       value: contact,
       maxLength: 11,
+      readOnly: true,
     },
     {
       key: "attendees",
@@ -358,18 +363,15 @@ export default function Baptism() {
   }
 
   function resetAllFiles() {
-    // Clear all file inputs (DOM)
     Object.values(fileInputRefs.current).forEach((input) => {
       if (input) input.value = "";
     });
 
-    // Clear file states
     setBirthCertificateFile("");
     setMarriageCertFile("");
     setGodparentConfirmationFile("");
     setBaptismalSeminarFile("");
 
-    // Clear previews
     setBirthCertificatePreview("");
     setMarriageCertPreview("");
     setGodparentConfirmationPreview("");
@@ -405,15 +407,69 @@ export default function Baptism() {
     setMainGodMotherMname("");
     setMainGodMotherLname("");
     setAdditionalGodParents([]);
-    birthCertRef.current.value = "";
-    parentMarriageCert.current.value = "";
-    godParentConf.current.value = "";
-    baptismalSeminar.current.value = "";
+    if (birthCertRef.current) birthCertRef.current.value = "";
+    if (parentMarriageCert.current) parentMarriageCert.current.value = "";
+    if (godParentConf.current) godParentConf.current.value = "";
+    if (baptismalSeminar.current) baptismalSeminar.current.value = "";
   }
 
-
-
   async function handleUpload() {
+    const newErrors = {};
+    const newFileErrors = {};
+
+    if (!fullname.trim()) newErrors.fullname = true;
+    if (!email.trim()) newErrors.email = true;
+    if (!date) newErrors.date = true;
+    if (!time) newErrors.time = true;
+
+    if (!candidateFname.trim()) newErrors.candidate_fname = true;
+    if (!candidateMname.trim()) newErrors.candidate_mname = true;
+    if (!candidateLname.trim()) newErrors.candidate_lname = true;
+    if (!candidateBday) newErrors.candidate_bday = true;
+    if (!candidateBplace.trim()) newErrors.candidate_bplace = true;
+
+    if (!/^09\d{9}$/.test(contact)) newErrors.contact_number = true;
+    if (attendees <= 0) newErrors.attendees = true;
+    if (!address.trim()) newErrors.address = true;
+
+    if (!motherFname.trim()) newErrors.mother_fname = true;
+
+    if (!motherLname.trim()) newErrors.mother_lname = true;
+    if (!motherBirthPlace.trim()) newErrors.mother_bplace = true;
+
+    if (!fatherFname.trim()) newErrors.father_fname = true;
+
+    if (!fatherLname.trim()) newErrors.father_lname = true;
+    if (!fatherBirthPlace.trim()) newErrors.father_bplace = true;
+
+    if (!marriageType) newErrors.marriage_type = true;
+
+    if (!mainGodFatherFname.trim()) newErrors.main_godfather_fname = true;
+
+    if (!mainGodFatherLname.trim()) newErrors.main_godfather_lname = true;
+    if (!mainGodMotherFname.trim()) newErrors.main_godmother_fname = true;
+
+    if (!mainGodMotherLname.trim()) newErrors.main_godmother_lname = true;
+
+    if (additionalGodParents.length === 0)
+      newErrors.additional_godparents = true;
+
+    if (!birthCertificateFile) newFileErrors.birthcert = true;
+    if (!marriageCertFile) newFileErrors.parent_marriagecert = true;
+    if (!godparentConfirmationFile) newFileErrors.godparent_confirmation = true;
+    if (!baptismalSeminarFile) newFileErrors.baptismal_seminar = true;
+
+    setErrors(newErrors);
+    setFileErrors(newFileErrors);
+
+    if (
+      Object.keys(newErrors).length > 0 ||
+      Object.keys(newFileErrors).length > 0
+    ) {
+      setShowModalMessage(true);
+      setModalMessage("Please complete all required fields.");
+      return;
+    }
     setIsLoading(true);
     try {
       const isValidPHNumber = /^09\d{9}$/.test(contact);
@@ -427,14 +483,12 @@ export default function Baptism() {
         return;
       }
 
-
       if (
         fullname.trim() === "" ||
         email.trim() === "" ||
         date.trim() === "" ||
         time.trim() === "" ||
         candidateFname.trim() === "" ||
-        candidateMname.trim() === "" ||
         candidateLname.trim() === "" ||
         candidateBday.trim() === "" ||
         candidateBplace.trim() === "" ||
@@ -442,19 +496,15 @@ export default function Baptism() {
         attendees <= 0 ||
         address.trim() === "" ||
         motherFname.trim() === "" ||
-        motherMname.trim() === "" ||
         motherLname.trim() === "" ||
         motherBirthPlace.trim() === "" ||
         fatherFname.trim() === "" ||
-        fatherMname.trim() === "" ||
         fatherLname.trim() === "" ||
         fatherBirthPlace.trim() === "" ||
         marriageType.trim() === "" ||
         mainGodFatherFname.trim() === "" ||
-        mainGodFatherMname.trim() === "" ||
         mainGodFatherLname.trim() === "" ||
         mainGodMotherFname.trim() === "" ||
-        mainGodMotherMname.trim() === "" ||
         mainGodMotherLname.trim() === "" ||
         additionalGodParents.length === 0
       ) {
@@ -564,8 +614,7 @@ export default function Baptism() {
       setIsLoading(false);
 
       resetAllFiles();
-      navigate("/")
-
+      navigate("/");
     } catch (err) {
       console.error("UPLOAD ERROR:", err);
       setShowModalMessage(true);
@@ -587,8 +636,11 @@ export default function Baptism() {
                 {elem.type === "date" ? (
                   <DatePicker
                     selected={elem.value ? new Date(elem.value) : null}
-                    onChange={(v) => elem.onChange(v ? v.toISOString() : "")}
-                    className="input-text"
+                    onChange={(v) => {
+                      elem.onChange(v ? v.toISOString() : "");
+                      setErrors((prev) => ({ ...prev, [elem.key]: false }));
+                    }}
+                    className={inputClass(elem.key)}
                     dateFormat="yyyy-MM-dd"
                     minDate={elem.minDate}
                     maxDate={elem.maxDate}
@@ -602,14 +654,18 @@ export default function Baptism() {
                     <LocalizationProvider dateAdapter={AdapterDayjs}>
                       <MobileTimePicker
                         value={time ? dayjs(`2000-01-01 ${time}`) : null}
-                        onChange={(v) =>
-                          setTime(v ? dayjs(v).format("HH:mm") : "")
-                        }
+                        onChange={(v) => {
+                          setTime(v ? dayjs(v).format("HH:mm") : "");
+                          setErrors((prev) => ({ ...prev, time: false }));
+                        }}
                         slotProps={{
                           textField: {
                             variant: "standard",
                             fullWidth: true,
-                            InputProps: { disableUnderline: true },
+                            InputProps: {
+                              disableUnderline: true,
+                              className: inputClass("time"),
+                            },
                           },
                         }}
                       />
@@ -618,11 +674,14 @@ export default function Baptism() {
                 ) : (
                   <input
                     type={elem.type}
-                    className="input-text"
-                    onChange={(e) => elem.onChange(e.target.value)}
+                    className={inputClass(elem.key)}
                     value={elem.value}
                     readOnly={elem.readOnly}
                     maxLength={elem.maxLength}
+                    onChange={(e) => {
+                      elem.onChange(e.target.value);
+                      setErrors((prev) => ({ ...prev, [elem.key]: false }));
+                    }}
                   />
                 )}
               </div>
@@ -639,10 +698,12 @@ export default function Baptism() {
                 <h1>{elem.title}</h1>
                 <input
                   type={elem.type}
-                  className="input-text"
-                  onChange={(e) => elem.onChange(e.target.value)}
-                  ref={(el) => (fileInputRefs.current[elem.key] = el)}
+                  className={inputClass(elem.key)}
                   value={elem.value}
+                  onChange={(e) => {
+                    elem.onChange(e.target.value);
+                    setErrors((prev) => ({ ...prev, [elem.key]: false }));
+                  }}
                 />
               </div>
             ))}
@@ -651,8 +712,11 @@ export default function Baptism() {
               <h1>Parents Marriage Type</h1>
               <select
                 value={marriageType}
-                onChange={(e) => setMarriageType(e.target.value)}
-                className="input-text"
+                onChange={(e) => {
+                  setMarriageType(e.target.value);
+                  setErrors((prev) => ({ ...prev, marriage_type: false }));
+                }}
+                className={inputClass("marriage_type")}
               >
                 <option value="" disabled hidden>
                   Select marriage type
@@ -675,9 +739,12 @@ export default function Baptism() {
                 <h1>{elem.title}</h1>
                 <input
                   type="text"
-                  className="input-text"
-                  onChange={(e) => elem.onChange(e.target.value)}
+                  className={inputClass(elem.key)}
                   value={elem.value}
+                  onChange={(e) => {
+                    elem.onChange(e.target.value);
+                    setErrors((prev) => ({ ...prev, [elem.key]: false }));
+                  }}
                 />
               </div>
             ))}
@@ -687,11 +754,18 @@ export default function Baptism() {
               <div style={{ display: "flex", gap: "10px" }}>
                 <input
                   type="text"
-                  className="input-text"
+                  className={inputClass("additional_godparents")}
                   value={godParentName}
-                  onChange={(e) => setGodParentName(e.target.value)}
+                  onChange={(e) => {
+                    setGodParentName(e.target.value);
+                    setErrors((prev) => ({
+                      ...prev,
+                      additional_godparents: false,
+                    }));
+                  }}
                   placeholder="Enter full name"
                 />
+
                 <button
                   type="button"
                   onClick={addGodParent}
@@ -726,15 +800,27 @@ export default function Baptism() {
                 <input
                   type="file"
                   accept="image/*,application/pdf"
-                  className="inputFile-properties"
+                  className={fileInputClass(elem.key)}
                   ref={(el) => (fileInputRefs.current[elem.key] = el)}
                   onChange={(e) => {
                     const file = e.target.files[0];
                     if (!file) return;
+
                     elem.fileSetter(file);
-                    elem.previewSetter(URL.createObjectURL(file));
+
+                    if (file.type === "application/pdf") {
+                      elem.previewSetter(pdf_image);
+                    } else {
+                      elem.previewSetter(URL.createObjectURL(file));
+                    }
+
+                    setFileErrors((prev) => ({
+                      ...prev,
+                      [elem.key]: false,
+                    }));
                   }}
                 />
+
                 {elem.preview && (
                   <img
                     src={elem.preview}
