@@ -24,10 +24,11 @@ export default function AdminSidebar() {
   useEffect(() => {
     fetchNotificationUnreadCount();
     fetchChatUnreadCount();
+    
     const interval = setInterval(() => {
       fetchNotificationUnreadCount();
       fetchChatUnreadCount();
-    }, 30000);
+    }, 5000);
     return () => clearInterval(interval);
   }, []);
 
