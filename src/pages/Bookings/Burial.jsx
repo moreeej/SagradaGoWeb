@@ -626,6 +626,7 @@ export default function Burial() {
                     }
                   }}
                 />
+                
 
                 {elem.preview && (
                   <img
