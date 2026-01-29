@@ -26,7 +26,7 @@ export default function Notifications() {
 
   const user = JSON.parse(localStorage.getItem("currentUser")) || null;
 
-  useEffect(() => {
+  useEffect(() => {c
     window.scrollTo(0, 0);
     fetchNotifications();
     const interval = setInterval(fetchNotifications, 30000);
@@ -94,7 +94,8 @@ export default function Notifications() {
       setNotifications(prev =>
         prev.map((n) => (n.id === notificationId ? { ...n, read: true } : n))
       );
-      setUnreadCount(Math.max(0, unreadCount - 1));
+      // setUnreadCount(Math.max(0, unreadCount - 1));
+      setUnreadCount(prev => Math.max(0, prev - 1));
 
     } catch (error) {
       console.error("Error marking as read:", error);

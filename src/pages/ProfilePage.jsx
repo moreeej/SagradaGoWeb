@@ -268,7 +268,11 @@ export default function ProfilePage({ user, onLogout, updateUser }) {
         }
       }
 
-      const response = await axios.put(`${API_URL}/updateUser`, {
+      const endpoint = currentUser.is_admin
+      ? `${API_URL}/updateAdmin`
+      : `${API_URL}/updateUser`;
+
+      const response = await axios.put(endpoint, {
         uid: currentUser.uid,
         first_name: formData.first_name,
         middle_name: formData.middle_name,

@@ -109,6 +109,14 @@ export default function AccountManagement() {
     confirmPassword: "",
   });
 
+  const [passwordRules, setPasswordRules] = useState({
+    length: false,
+    uppercase: false,
+    lowercase: false,
+    number: false,
+    specialChar: false,
+  });
+
   useEffect(() => {
     fetchUsers();
   }, []);
@@ -209,6 +217,16 @@ export default function AccountManagement() {
     }
 
     setFilteredUsers(filtered);
+  };
+
+  const getPasswordRules = (password) => {
+    return {
+      length: password.length >= 8,
+      uppercase: /[A-Z]/.test(password),
+      lowercase: /[a-z]/.test(password),
+      number: /[0-9]/.test(password),
+      specialChar: /[!@#$%^&*(),.?":{}|<>]/.test(password),
+    };
   };
 
   const formatDateInput = (value) => {
@@ -323,26 +341,18 @@ export default function AccountManagement() {
   };
 
   const validatePassword = (password) => {
-    if (!password) {
-      return "Password is required";
-    }
-
-    if (password.length < 6) {
-      return "Password must be at least 6 characters";
-    }
-
+    if (!password) return "Password is required";
+    if (password.length < 8) return "Password must be at least 8 characters";
+    if (!/[A-Z]/.test(password)) return "Password must contain at least one uppercase letter";
+    if (!/[a-z]/.test(password)) return "Password must contain at least one lowercase letter";
+    if (!/[0-9]/.test(password)) return "Password must contain at least one number";
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) return "Password must contain at least one special character";
     return "";
   };
 
   const validatePasswordMatch = (password, confirmPassword) => {
-    if (!confirmPassword) {
-      return "Please confirm your password";
-    }
-
-    if (password !== confirmPassword) {
-      return "Passwords do not match";
-    }
-
+    if (!confirmPassword) return "Confirm password is required";
+    if (password !== confirmPassword) return "Passwords do not match";
     return "";
   };
 
@@ -370,6 +380,12 @@ export default function AccountManagement() {
     if (!formData.last_name) newErrors.last_name = "Last name is required";
     if (!formData.email) newErrors.email = "Email is required";
 
+    const passwordError = validatePassword(formData.password);
+    if (passwordError) newErrors.password = passwordError;
+  
+    const confirmError = validatePasswordMatch(formData.password, formData.confirmPassword);
+    if (confirmError) newErrors.confirmPassword = confirmError;
+
     const contactError = validateContactNumber(formData.contact_number);
     if (contactError) {
       newErrors.contact_number = contactError;
@@ -380,15 +396,24 @@ export default function AccountManagement() {
       newErrors.birthday = birthdayError;
     }
 
-    const passwordError = validatePassword(formData.password);
-    if (passwordError) {
-      newErrors.password = passwordError;
-    }
+    // const passwordError = validatePassword(formData.password);
+    // if (passwordError) {
+    //   newErrors.password = passwordError;
+    // }
 
-    const confirmPasswordError = validatePasswordMatch(formData.password, formData.confirmPassword);
-    if (confirmPasswordError) {
-      newErrors.confirmPassword = confirmPasswordError;
-    }
+    // const confirmPasswordError = validatePasswordMatch(formData.password, formData.confirmPassword);
+    // if (confirmPasswordError) {
+    //   newErrors.confirmPassword = confirmPasswordError;
+    // }
+
+    // if (passwordError || confirmError) {
+    //   setErrors(prev => ({
+    //     ...prev,
+    //     password: passwordError,
+    //     confirmPassword: confirmError
+    //   }));
+    //   return;
+    // }
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -1952,6 +1977,8 @@ export default function AccountManagement() {
                     onChange={(e) => {
                       const newPassword = e.target.value;
                       setFormData({ ...formData, password: newPassword });
+                      setPasswordRules(getPasswordRules(newPassword));
+                      
                       // Clear password error when typing
                       if (errors.password) {
                         setErrors((prev) => ({ ...prev, password: "" }));
@@ -1978,6 +2005,25 @@ export default function AccountManagement() {
                       visible ? <EyeOutlined /> : <EyeInvisibleOutlined />
                     }
                   />
+
+                  <div style={{ marginTop: 8, fontSize: 12 }}>
+                    <div style={{ color: passwordRules.length ? "green" : "red" }}>
+                      • At least 8 characters
+                    </div>
+                    <div style={{ color: passwordRules.uppercase ? "green" : "red" }}>
+                      • At least 1 uppercase letter
+                    </div>
+                    <div style={{ color: passwordRules.lowercase ? "green" : "red" }}>
+                      • At least 1 lowercase letter
+                    </div>
+                    <div style={{ color: passwordRules.number ? "green" : "red" }}>
+                      • At least 1 number
+                    </div>
+                    <div style={{ color: passwordRules.specialChar ? "green" : "red" }}>
+                      • At least 1 special character
+                    </div>
+                  </div>
+        
                 </Form.Item>
               </Col>
               <Col xs={24} sm={12}>
@@ -2002,9 +2048,10 @@ export default function AccountManagement() {
                       // Validate match if password exists
                       if (formData.password) {
                         const error = validatePasswordMatch(formData.password, newConfirmPassword);
-                        if (error) {
-                          setErrors((prev) => ({ ...prev, confirmPassword: error }));
-                        }
+                        // if (error) {
+                        //   setErrors((prev) => ({ ...prev, confirmPassword: error }));
+                        // }
+                        setErrors(prev => ({ ...prev, confirmPassword: error }));
                       }
                     }}
                     onBlur={() => {
