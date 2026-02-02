@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import "../../styles/booking/wedding.css";
 import { supabase } from "../../config/supabase";
 import axios from "axios";
 import { API_URL } from "../../Constants";
 import { useNavigate } from "react-router-dom";
+import { NavbarContext } from "../../context/AllContext";
 
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -16,7 +17,11 @@ import Cookies from "js-cookie";
 import pdf_image from "../../assets/pdfImage.svg";
 import Modal from "../../components/Modal";
 
+
+
 export default function Communion() {
+  const { setSelectedNavbar } = useContext(NavbarContext);
+
   const [fname, setFname] = useState("");
   const [mname, setMname] = useState("");
   const [lname, setLname] = useState("");
@@ -179,6 +184,12 @@ export default function Communion() {
     const timestamp = Date.now().toString().slice(-6);
     return `COM-${timestamp}-${random}`;
   }
+
+    const handleModalClose = () => {
+      setShowModalMessage(false);
+      setSelectedNavbar("Home")
+      navigate("/");
+    };
 
   async function handleSubmit() {
     if (!validate()) {
@@ -441,7 +452,7 @@ export default function Communion() {
         </div>
       </div>
       {showModalMessage && (
-        <Modal message={modalMessage} setShowModal={setShowModalMessage} />
+        <Modal message={modalMessage} setShowModal={setShowModalMessage} onOk={handleModalClose} />
       )}
     </div>
   );

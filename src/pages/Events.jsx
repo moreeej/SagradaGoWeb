@@ -14,7 +14,7 @@ import banner1 from "../assets/SAGRADA-FAMILIA-PARISH.jpg";
 import banner2 from "../assets/christmas.jpg";
 import banner3 from "../assets/dyd.jpg";
 import noImage from "../assets/blank-image.jpg";
-import { Modal } from 'antd';
+import { Modal } from "antd";
 
 import {
   SearchOutlined,
@@ -45,7 +45,7 @@ export default function Events() {
   const [registrationData, setRegistrationData] = useState({
     role: "",
     eventId: "",
-    eventTitle: ""
+    eventTitle: "",
   });
 
   async function fetchEvents() {
@@ -81,13 +81,11 @@ export default function Events() {
   useEffect(() => {
     let filtered = [...events];
 
-    filtered = filtered.filter((e) => e.type === "event");
-
     if (searchText) {
       filtered = filtered.filter(
         (e) =>
           e.title.toLowerCase().includes(searchText.toLowerCase()) ||
-          e.description.toLowerCase().includes(searchText.toLowerCase())
+          e.description.toLowerCase().includes(searchText.toLowerCase()),
       );
     }
 
@@ -105,7 +103,6 @@ export default function Events() {
   const contact = Cookies.get("contact");
 
   async function handleRegisterEvent(eventId, eventTitle) {
-
     if (!uid || !fullName || !contact) {
       setShowSignInAlert(true);
       return;
@@ -277,7 +274,7 @@ export default function Events() {
                           id: event._id,
                           title: event.title,
                           location: event.location,
-                          date: event.date
+                          date: event.date,
                         });
                       }
                     }}
@@ -335,7 +332,7 @@ export default function Events() {
               <hr className="eventmodal-divider" />
               <p className="eventmodal-description-full">
                 {selectedEvent.description &&
-                  selectedEvent.description.trim() !== ""
+                selectedEvent.description.trim() !== ""
                   ? selectedEvent.description
                   : "No description displayed."}
               </p>
@@ -353,19 +350,44 @@ export default function Events() {
         centered
         width={400}
       >
-        <div className="choicesmodal-header" style={{ textAlign: 'center', marginBottom: '24px' }}>
-          <span className="choicesmodal-label" style={{ display: 'block', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '2px', color: '#a0a0a0', marginBottom: '8px' }}>
+        <div
+          className="choicesmodal-header"
+          style={{ textAlign: "center", marginBottom: "24px" }}
+        >
+          <span
+            className="choicesmodal-label"
+            style={{
+              display: "block",
+              fontSize: "11px",
+              textTransform: "uppercase",
+              letterSpacing: "2px",
+              color: "#a0a0a0",
+              marginBottom: "8px",
+            }}
+          >
             Event Selection
           </span>
-          <h2 className="choicesmodal-title" style={{ fontSize: '1.25rem', fontWeight: '500', margin: '0 0 8px 0' }}>
+          <h2
+            className="choicesmodal-title"
+            style={{
+              fontSize: "1.25rem",
+              fontWeight: "500",
+              margin: "0 0 8px 0",
+            }}
+          >
             {showChoicesModal?.title}
           </h2>
-          <p style={{ fontSize: '13px', color: '#666', margin: 0 }}>
-            {showChoicesModal?.location} • {showChoicesModal?.date && new Date(showChoicesModal.date).toLocaleDateString()}
+          <p style={{ fontSize: "13px", color: "#666", margin: 0 }}>
+            {showChoicesModal?.location} •{" "}
+            {showChoicesModal?.date &&
+              new Date(showChoicesModal.date).toLocaleDateString()}
           </p>
         </div>
 
-        <div className="choicesmodal-actions" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div
+          className="choicesmodal-actions"
+          style={{ display: "flex", flexDirection: "column", gap: "12px" }}
+        >
           <button
             className="border-btn"
             onClick={() => {
@@ -374,7 +396,7 @@ export default function Events() {
                 eventId: showChoicesModal.id,
                 eventTitle: showChoicesModal.title,
                 location: showChoicesModal.location,
-                date: showChoicesModal.date
+                date: showChoicesModal.date,
               });
               setShowChoicesModal(null);
               setShowDetailsModal(true);
@@ -391,7 +413,7 @@ export default function Events() {
                 eventId: showChoicesModal.id,
                 eventTitle: showChoicesModal.title,
                 location: showChoicesModal.location,
-                date: showChoicesModal.date
+                date: showChoicesModal.date,
               });
               setShowChoicesModal(null);
               setShowDetailsModal(true);
@@ -410,49 +432,109 @@ export default function Events() {
         centered
         width={450}
       >
-        <div style={{ padding: '10px 0' }}>
-          <p style={{ fontSize: '12px', color: '#888', marginBottom: '20px' }}>
-            Please review your details before submitting for <strong>{registrationData.eventTitle}</strong>.
+        <div style={{ padding: "10px 0" }}>
+          <p style={{ fontSize: "12px", color: "#888", marginBottom: "20px" }}>
+            Please review your details before submitting for{" "}
+            <strong>{registrationData.eventTitle}</strong>.
           </p>
 
-          <div style={{ marginBottom: '20px', padding: '12px', borderLeft: '4px solid #FFC942', background: '#fafafa' }}>
-            <div style={{ fontSize: '13px' }}><strong>Place:</strong> {registrationData.location}</div>
-            <div style={{ fontSize: '13px' }}><strong>Time:</strong> {registrationData.date && new Date(registrationData.date).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</div>
+          <div
+            style={{
+              marginBottom: "20px",
+              padding: "12px",
+              borderLeft: "4px solid #FFC942",
+              background: "#fafafa",
+            }}
+          >
+            <div style={{ fontSize: "13px" }}>
+              <strong>Place:</strong> {registrationData.location}
+            </div>
+            <div style={{ fontSize: "13px" }}>
+              <strong>Time:</strong>{" "}
+              {registrationData.date &&
+                new Date(registrationData.date).toLocaleString([], {
+                  dateStyle: "medium",
+                  timeStyle: "short",
+                })}
+            </div>
           </div>
 
-          <div className="detail-item" style={{ marginBottom: '15px' }}>
-            <label style={{ fontWeight: '600', display: 'block', fontSize: '13px' }}>Full Name</label>
-            <div style={{ padding: '8px', background: '#f5f5f5', borderRadius: '4px' }}>{fullName || "N/A"}</div>
+          <div className="detail-item" style={{ marginBottom: "15px" }}>
+            <label
+              style={{ fontWeight: "600", display: "block", fontSize: "13px" }}
+            >
+              Full Name
+            </label>
+            <div
+              style={{
+                padding: "8px",
+                background: "#f5f5f5",
+                borderRadius: "4px",
+              }}
+            >
+              {fullName || "N/A"}
+            </div>
           </div>
 
-          <div className="detail-item" style={{ marginBottom: '15px' }}>
-            <label style={{ fontWeight: '600', display: 'block', fontSize: '13px' }}>Contact Number</label>
-            <div style={{ padding: '8px', background: '#f5f5f5', borderRadius: '4px' }}>{contact || "N/A"}</div>
+          <div className="detail-item" style={{ marginBottom: "15px" }}>
+            <label
+              style={{ fontWeight: "600", display: "block", fontSize: "13px" }}
+            >
+              Contact Number
+            </label>
+            <div
+              style={{
+                padding: "8px",
+                background: "#f5f5f5",
+                borderRadius: "4px",
+              }}
+            >
+              {contact || "N/A"}
+            </div>
           </div>
 
-          <div className="detail-item" style={{ marginBottom: '15px' }}>
-            <label style={{ fontWeight: '600', display: 'block', fontSize: '13px' }}>Selected Role</label>
-            <div style={{
-              padding: '8px',
-              background: '#ffc9422f',
-              border: '1px solid #FFC942',
-              borderRadius: '4px',
-              textTransform: 'capitalize',
-              color: '#d0a63b'
-            }}>
+          <div className="detail-item" style={{ marginBottom: "15px" }}>
+            <label
+              style={{ fontWeight: "600", display: "block", fontSize: "13px" }}
+            >
+              Selected Role
+            </label>
+            <div
+              style={{
+                padding: "8px",
+                background: "#ffc9422f",
+                border: "1px solid #FFC942",
+                borderRadius: "4px",
+                textTransform: "capitalize",
+                color: "#d0a63b",
+              }}
+            >
               {registrationData.role}
             </div>
           </div>
 
-          <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <div
+            style={{
+              marginTop: "20px",
+              display: "flex",
+              flexDirection: "column",
+              gap: "10px",
+            }}
+          >
             <button
               className="border-btn"
-              style={{ padding: '8px' }}
+              style={{ padding: "8px" }}
               onClick={() => {
                 if (registrationData.role === "attendee") {
-                  handleRegisterEvent(registrationData.eventId, registrationData.eventTitle);
+                  handleRegisterEvent(
+                    registrationData.eventId,
+                    registrationData.eventTitle,
+                  );
                 } else {
-                  handleVolunteerEvent(registrationData.eventId, registrationData.eventTitle);
+                  handleVolunteerEvent(
+                    registrationData.eventId,
+                    registrationData.eventTitle,
+                  );
                 }
                 setShowDetailsModal(false);
               }}

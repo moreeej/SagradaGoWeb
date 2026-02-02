@@ -1,9 +1,11 @@
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import "../../styles/booking/wedding.css";
 import { API_URL } from "../../Constants";
 import { supabase } from "../../config/supabase";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { NavbarContext } from "../../context/AllContext";
+
 
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { MobileTimePicker } from "@mui/x-date-pickers/MobileTimePicker";
@@ -19,10 +21,10 @@ import pdf_image from "../../assets/pdfImage.svg";
 
 
 export default function Wedding() {
-
   const navigate = useNavigate();
 
-  
+  const { setSelectedNavbar } = useContext(NavbarContext);
+
   const [groomFname, setGroomFname] = useState("");
   const [groomMname, setGroomMname] = useState("");
   const [groomLname, setGroomLname] = useState("");
@@ -48,9 +50,6 @@ export default function Wedding() {
 
   const [errors, setErrors] = useState({});
   const inputClass = (key) => `input-text ${errors[key] ? "input-error" : ""}`;
-
-
-  
 
   const inputText = [
     {
@@ -187,14 +186,14 @@ export default function Wedding() {
 
   const uploadBaptismal = [
     {
-      key: "groom_baptismal",
+      key: "groom_baptismal_cert",
       title: "Groom Baptismal Certificate",
       fileSetter: setGroomBapFile,
       preview: groomBapPreview,
       previewSetter: setGroomBapPreview,
     },
     {
-      key: "bride_baptismal",
+      key: "bride_baptismal_cert",
       title: "Bride Baptismal Certificate",
       fileSetter: setBrideBapFile,
       preview: brideBapPreview,
@@ -210,14 +209,14 @@ export default function Wedding() {
 
   const uploadConfirmation = [
     {
-      key: "groom_confirmation",
+      key: "groom_confirmation_cert",
       title: "Groom Confirmation Certificate",
       fileSetter: setGroomConfFile,
       preview: groomConfPreview,
       previewSetter: setGroomConfPreview,
     },
     {
-      key: "bride_confirmation",
+      key: "bride_confirmation_cert",
       title: "Bride Confirmation Certificate",
       fileSetter: setBrideConfFile,
       preview: brideConfPreview,
@@ -381,6 +380,13 @@ export default function Wedding() {
     setFileErrors({});
   }
 
+  const handleModalClose = () => {
+    setShowModalMessage(false);
+    setSelectedNavbar("Home")
+    navigate("/");
+  };
+
+
   async function handleUpload() {
     const { textErrors, fileErrors } = validateForm();
 
@@ -408,15 +414,18 @@ export default function Wedding() {
 
       await uploadIfExists(groomFile, "groom_photo");
       await uploadIfExists(brideFile, "bride_photo");
-      await uploadIfExists(groomBapFile, "groom_baptismal");
-      await uploadIfExists(brideBapFile, "bride_baptismal");
-      await uploadIfExists(groomConfFile, "groom_confirmation");
-      await uploadIfExists(brideConfFile, "bride_confirmation");
+      await uploadIfExists(groomBapFile, "groom_baptismal_cert");
+      await uploadIfExists(brideBapFile, "bride_baptismal_cert");
+      await uploadIfExists(groomConfFile, "groom_confirmation_cert");
+      await uploadIfExists(brideConfFile, "bride_confirmation_cert");
       await uploadIfExists(groomCenomarFile, "groom_cenomar");
       await uploadIfExists(brideCenomarFile, "bride_cenomar");
       await uploadIfExists(groomPermFile, "groom_permission");
       await uploadIfExists(bridePermFile, "bride_permission");
       await uploadIfExists(marriageDocuFile, "marriage_docu");
+
+
+      
 
       await axios.post(`${API_URL}/createWeddingBooking`, {
         uid,
@@ -439,12 +448,12 @@ export default function Wedding() {
 
         ...uploaded,
       });
-
-      setModalMessage("Booking submitted successfully!");
       setShowModalMessage(true);
+      setModalMessage("Booking submitted successfully!");
+
       resetAllFiles();
 
-      navigate("/");
+      
     } catch (err) {
       console.error(err);
       setModalMessage("Something went wrong during upload.");
@@ -744,7 +753,7 @@ export default function Wedding() {
 
               {uploadMarriageDocu[0].preview && (
                 <img
-                  src={pdf_image}
+                  src={uploadMarriageDocu[0].preview}
                   className="image-preview"
                   alt="preview"
                   style={{ marginTop: "10px", maxWidth: "200px" }}
@@ -766,7 +775,11 @@ export default function Wedding() {
       </div>
 
       {showModalMessage && (
-        <Modal message={modalMessage} setShowModal={setShowModalMessage} />
+        <Modal 
+          message={modalMessage} 
+          setShowModal={setShowModalMessage} 
+          onOk={handleModalClose}
+        />
       )}
     </div>
   );

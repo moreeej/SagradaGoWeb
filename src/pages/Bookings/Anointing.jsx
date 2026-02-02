@@ -1,9 +1,10 @@
-import { useRef, useState } from "react";
+import { useContext, useRef, useState } from "react";
 import { API_URL } from "../../Constants";
 import "../../styles/booking/wedding.css";
 import axios from "axios";
 import { supabase } from "../../config/supabase";
 import { useNavigate } from "react-router-dom";
+import { NavbarContext } from "../../context/AllContext";
 
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -16,7 +17,11 @@ import Cookies from "js-cookie";
 import pdf_image from "../../assets/pdfImage.svg";
 import Modal from "../../components/Modal";
 
+
+
 export default function Anointing() {
+  const { setSelectedNavbar } = useContext(NavbarContext);
+
   const [fname, setFname] = useState("");
   const [mname, setMname] = useState("");
   const [lname, setLname] = useState("");
@@ -146,6 +151,12 @@ export default function Anointing() {
     return `ANO-${timestamp}-${random}`;
   }
 
+    const handleModalClose = () => {
+    setShowModalMessage(false);
+    setSelectedNavbar("Home")
+    navigate("/");
+  };
+
   async function handleSubmit() {
     const newErrors = {};
 
@@ -239,7 +250,6 @@ export default function Anointing() {
         fileInputRef.current.value = "";
       }
 
-      navigate("/");
     } catch (err) {
       console.error("UPLOAD ERROR:", err);
       setShowModalMessage(true);
@@ -452,7 +462,7 @@ export default function Anointing() {
         </div>
       </div>
       {showModalMessage && (
-        <Modal message={modalMessage} setShowModal={setShowModalMessage} />
+        <Modal message={modalMessage} setShowModal={setShowModalMessage} onOk={handleModalClose} />
       )}
     </div>
   );

@@ -13,7 +13,7 @@ import { EyeInvisibleOutlined, EyeTwoTone } from "@ant-design/icons";
 import Modal from "../components/Modal";
 
 export default function SignUpPage() {
-  const { setShowSignup, setShowSignin } = useContext(NavbarContext);
+  const { setShowSignup, setShowSignin, setSelectedNavbar } = useContext(NavbarContext);
 
   const [showModalMessage, setShowModalMessage] = useState(false);
   const [modalMessage, setModalMessage] = useState();
@@ -150,6 +150,13 @@ export default function SignUpPage() {
     return "";
   };
 
+
+    const handleModalClose = () => {
+      setShowModalMessage(false);
+      setSelectedNavbar("Home")
+      setShowSignup(false);
+    };
+
   async function handleSignup() {
     setSubmitted(true);
 
@@ -184,21 +191,20 @@ export default function SignUpPage() {
       await sendEmailVerification(user);
 
       await axios.post(`${API_URL}/createUser`, {
+        uid: user.uid,
+        email: inputEmail,
+        password: inputPassword,
         first_name: inputFname,
         middle_name: inputMname,
         last_name: inputLname,
         contact_number: inputContactNumber,
         birthday: inputBirthday,
-        email: inputEmail,
-        password: inputPassword,
-        uid: user.uid,
-        is_priest: false,
       });
 
       setModalMessage("Account created! Please verify your email.");
       setShowModalMessage(true);
 
-      setShowSignup(false);
+
     } catch (err) {
       setModalMessage(err.message || "Signup failed.");
       setShowModalMessage(true);
@@ -385,7 +391,7 @@ export default function SignUpPage() {
       </div>
 
       {showModalMessage && (
-        <Modal message={modalMessage} setShowModal={setShowModalMessage} />
+        <Modal message={modalMessage} setShowModal={setShowModalMessage} onOk={handleModalClose} />
       )}
     </div>
   );

@@ -1,8 +1,9 @@
-import { useRef, useState } from "react";
+import { useContext, useRef, useState } from "react";
 import "../../styles/booking/wedding.css";
 import { supabase } from "../../config/supabase";
 import axios from "axios";
 import { API_URL } from "../../Constants";
+import { NavbarContext } from "../../context/AllContext";
 
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -16,8 +17,12 @@ import { useNavigate } from "react-router-dom";
 import Modal from "../../components/Modal";
 import pdf_image from "../../assets/pdfImage.svg";
 
+
+
 export default function Baptism() {
   const navigate = useNavigate();
+
+  const { setSelectedNavbar } = useContext(NavbarContext);
 
   const [errors, setErrors] = useState({});
   const [fileErrors, setFileErrors] = useState({});
@@ -419,6 +424,12 @@ aWeekAfter.setDate(aWeekAfter.getDate() + 7);
     if (baptismalSeminar.current) baptismalSeminar.current.value = "";
   }
 
+    const handleModalClose = () => {
+      setShowModalMessage(false);
+      setSelectedNavbar("Home")
+      navigate("/");
+    };
+
   async function handleUpload() {
     const newErrors = {};
     const newFileErrors = {};
@@ -615,12 +626,14 @@ aWeekAfter.setDate(aWeekAfter.getDate() + 7);
 
       const res = await axios.post(`${API_URL}/addBaptismalWeb`, payload);
 
-      alert("Baptismal booking submitted successfully!");
+      
       console.log("Saved:", res.data);
       setIsLoading(false);
 
+      setShowModalMessage(true);
+      setModalMessage("Baptismal booking submitted successfully!");
       resetAllFiles();
-      navigate("/");
+
     } catch (err) {
       console.error("UPLOAD ERROR:", err);
       setShowModalMessage(true);
@@ -851,7 +864,7 @@ aWeekAfter.setDate(aWeekAfter.getDate() + 7);
         </div>
       </div>
       {showModalMessage && (
-        <Modal message={modalMessage} setShowModal={setShowModalMessage} />
+        <Modal message={modalMessage} setShowModal={setShowModalMessage} onOk={handleModalClose} />
       )}
     </div>
   );

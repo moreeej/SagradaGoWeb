@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import axios from "axios";
 import { API_URL } from "../../Constants";
 import { useNavigate } from "react-router-dom";
 import "../../styles/booking/wedding.css";
+import { NavbarContext } from "../../context/AllContext";
+
 
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -12,9 +14,14 @@ import { MobileTimePicker } from "@mui/x-date-pickers/MobileTimePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import Cookies from "js-cookie";
 
+
 import Modal from "../../components/Modal";
 
+
 export default function Confession() {
+  const { setSelectedNavbar } = useContext(NavbarContext);
+
+
   const [fname, setFname] = useState("");
   const [mname, setMname] = useState("");
   const [lname, setLname] = useState("");
@@ -86,6 +93,12 @@ export default function Confession() {
     },
   ];
 
+    const handleModalClose = () => {
+      setShowModalMessage(false);
+      setSelectedNavbar("Home")
+      navigate("/");
+    };
+
   async function handleSubmit() {
     const newErrors = {};
 
@@ -129,7 +142,7 @@ export default function Confession() {
       setTime("");
       setAttendees(0);
 
-      navigate("/");
+
     } catch (err) {
       console.error("UPLOAD ERROR:", err);
 
@@ -260,7 +273,7 @@ export default function Confession() {
         </div>
       </div>
       {showModalMessage && (
-        <Modal message={modalMessage} setShowModal={setShowModalMessage} />
+        <Modal message={modalMessage} setShowModal={setShowModalMessage} onOk={handleModalClose} />
       )}
     </div>
   );

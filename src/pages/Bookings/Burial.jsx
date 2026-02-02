@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import "../../styles/booking/wedding.css";
 import { supabase } from "../../config/supabase";
 import axios from "axios";
 import { API_URL } from "../../Constants";
 import { useNavigate } from "react-router-dom";
+import { NavbarContext } from "../../context/AllContext";
+
 
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -17,7 +19,11 @@ import Cookies from "js-cookie";
 import pdf_image from "../../assets/pdfImage.svg";
 import Modal from "../../components/Modal";
 
+
 export default function Burial() {
+
+  const { setSelectedNavbar } = useContext(NavbarContext);
+
   const [showModalMessage, setShowModalMessage] = useState(false);
   const [modalMessage, setModalMessage] = useState();
 
@@ -295,6 +301,12 @@ export default function Burial() {
     const timestamp = Date.now().toString().slice(-6);
     return `BUR-${timestamp}-${random}`;
   }
+
+    const handleModalClose = () => {
+    setShowModalMessage(false);
+    setSelectedNavbar("Home")
+    navigate("/");
+  };
 
   async function handleSubmit() {
     if (!validate()) {
@@ -651,7 +663,7 @@ export default function Burial() {
         </div>
       </div>
       {showModalMessage && (
-        <Modal message={modalMessage} setShowModal={setShowModalMessage} />
+        <Modal message={modalMessage} setShowModal={setShowModalMessage} onOk={handleModalClose} />
       )}
     </div>
   );

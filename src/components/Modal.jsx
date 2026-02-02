@@ -1,16 +1,18 @@
 import { Modal as AntModal } from "antd";
 
-export default function Modal({ message, setShowModal }) {
+export default function Modal({ message, setShowModal, onOk }) {
 
     const handleClose = () => {
         setShowModal(false);
     };
 
+
+
     return (
         <AntModal
             open={true}
             title="Notice"
-            onOk={handleClose}
+            onOk={onOk || handleClose}
             onCancel={handleClose}
             centered
             okButtonProps={{ className: "bg-blue-500" }}
