@@ -77,8 +77,8 @@ export default function SignInPage() {
         const firebaseToken = await user.getIdToken();
 
         const loginResponse = await axios.post(`${API_URL}/login`, {
-          email: inputEmail,
-          password: inputPassword,
+          // email: inputEmail,
+          // password: inputPassword,
           firebaseToken: firebaseToken, 
         });
         console.log("user", loginResponse);
