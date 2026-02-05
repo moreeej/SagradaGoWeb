@@ -26,7 +26,7 @@ export default function Notifications() {
 
   const user = JSON.parse(localStorage.getItem("currentUser")) || null;
 
-  useEffect(() => {c
+  useEffect(() => {
     window.scrollTo(0, 0);
     fetchNotifications();
     const interval = setInterval(fetchNotifications, 30000);
