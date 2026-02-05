@@ -33,6 +33,8 @@ export default function Burial() {
 
   const [checkboxError, setCheckboxError] = useState(false);
 
+  const [bookComplete, setBookComplete] = useState(false);
+
   const navigate = useNavigate();
 
   function validate() {
@@ -369,6 +371,8 @@ export default function Burial() {
 
       const res = await axios.post(`${API_URL}/createBurialWeb`, payload);
 
+      setBookComplete(true);
+
       setShowModalMessage(true);
       setModalMessage("Burial booking submitted successfully!");
       setIsLoading(false);
@@ -663,7 +667,7 @@ export default function Burial() {
         </div>
       </div>
       {showModalMessage && (
-        <Modal message={modalMessage} setShowModal={setShowModalMessage} onOk={handleModalClose} />
+        <Modal message={modalMessage} setShowModal={setShowModalMessage} onOk={handleModalClose} bookComplete={bookComplete} />
       )}
     </div>
   );

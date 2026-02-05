@@ -39,6 +39,8 @@ export default function Communion() {
 
   const uid = Cookies.get("uid");
 
+  const [bookComplete, setBookComplete] = useState(false);
+
   const [showModalMessage, setShowModalMessage] = useState(false);
   const [modalMessage, setModalMessage] = useState();
 
@@ -236,6 +238,9 @@ export default function Communion() {
       };
 
       const res = await axios.post(`${API_URL}/createCommunionWeb`, payload);
+
+      setBookComplete(true);
+
       setShowModalMessage(true);
       setModalMessage("Communion booking submitted successfully!");
       setLoading(false);
@@ -452,7 +457,7 @@ export default function Communion() {
         </div>
       </div>
       {showModalMessage && (
-        <Modal message={modalMessage} setShowModal={setShowModalMessage} onOk={handleModalClose} />
+        <Modal message={modalMessage} setShowModal={setShowModalMessage} onOk={handleModalClose} bookComplete={bookComplete} />
       )}
     </div>
   );

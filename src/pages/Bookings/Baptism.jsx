@@ -52,6 +52,8 @@ export default function Baptism() {
   const [showModalMessage, setShowModalMessage] = useState(false);
   const [modalMessage, setModalMessage] = useState();
 
+  const [bookComplete, setBookComplete] = useState(false);
+
   const uid = Cookies.get("uid");
   const fileInputRefs = useRef([]);
 
@@ -630,6 +632,8 @@ aWeekAfter.setDate(aWeekAfter.getDate() + 7);
       console.log("Saved:", res.data);
       setIsLoading(false);
 
+      setBookComplete(true);
+
       setShowModalMessage(true);
       setModalMessage("Baptismal booking submitted successfully!");
       resetAllFiles();
@@ -864,7 +868,7 @@ aWeekAfter.setDate(aWeekAfter.getDate() + 7);
         </div>
       </div>
       {showModalMessage && (
-        <Modal message={modalMessage} setShowModal={setShowModalMessage} onOk={handleModalClose} />
+        <Modal message={modalMessage} setShowModal={setShowModalMessage} onOk={handleModalClose} bookComplete={bookComplete} />
       )}
     </div>
   );

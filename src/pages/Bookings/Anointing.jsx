@@ -36,6 +36,8 @@ export default function Anointing() {
   const [showModalMessage, setShowModalMessage] = useState(false);
   const [modalMessage, setModalMessage] = useState();
 
+  const [bookComplete, setBookComplete] = useState(false);
+
   const [errors, setErrors] = useState({});
 
   const uid = Cookies.get("uid");
@@ -231,6 +233,8 @@ export default function Anointing() {
       };
 
       const res = await axios.post(`${API_URL}/createAnointingWeb`, payload);
+
+      setBookComplete(true);
 
       setShowModalMessage(true);
       setModalMessage("Anointing booking submitted successfully!");
@@ -462,7 +466,7 @@ export default function Anointing() {
         </div>
       </div>
       {showModalMessage && (
-        <Modal message={modalMessage} setShowModal={setShowModalMessage} onOk={handleModalClose} />
+        <Modal message={modalMessage} setShowModal={setShowModalMessage} onOk={handleModalClose} bookComplete={bookComplete} />
       )}
     </div>
   );

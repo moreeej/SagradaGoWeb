@@ -214,7 +214,7 @@ export default function SignUpPage() {
   }
 
   const inputClass = (value, error) => {
-    if (!submitted) return "modal-input"; // always black before submit
+    if (!submitted) return "modal-input";
     if (error || !value) return "modal-input input-error";
     return "modal-input";
   };

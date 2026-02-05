@@ -30,6 +30,8 @@ export default function Confession() {
   const [attendees, setAttendees] = useState(0);
   const [email, setEmail] = useState(Cookies.get("email") || "");
 
+  const [bookComplete, setBookComplete] = useState(false);
+
   const [showModalMessage, setShowModalMessage] = useState(false);
   const [modalMessage, setModalMessage] = useState();
 
@@ -129,6 +131,8 @@ export default function Confession() {
       };
 
       const res = await axios.post(`${API_URL}/createConfession`, payload);
+
+      setBookComplete(true);
 
       setShowModalMessage(true);
       setModalMessage("Confession booking submitted successfully!");
@@ -273,7 +277,7 @@ export default function Confession() {
         </div>
       </div>
       {showModalMessage && (
-        <Modal message={modalMessage} setShowModal={setShowModalMessage} onOk={handleModalClose} />
+        <Modal message={modalMessage} setShowModal={setShowModalMessage} onOk={handleModalClose} bookComplete={bookComplete} />
       )}
     </div>
   );

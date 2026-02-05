@@ -41,6 +41,8 @@ export default function Wedding() {
   const [showModalMessage, setShowModalMessage] = useState(false);
   const [modalMessage, setModalMessage] = useState();
 
+  const [bookComplete, setBookComplete] = useState(false);
+
   const fileInputRefs = useRef([]);
   const [fileErrors, setFileErrors] = useState({});
   const fileInputClass = (key) =>
@@ -448,6 +450,7 @@ export default function Wedding() {
 
         ...uploaded,
       });
+      setBookComplete(true);
       setShowModalMessage(true);
       setModalMessage("Booking submitted successfully!");
 
@@ -779,6 +782,7 @@ export default function Wedding() {
           message={modalMessage} 
           setShowModal={setShowModalMessage} 
           onOk={handleModalClose}
+          bookComplete={bookComplete}
         />
       )}
     </div>
