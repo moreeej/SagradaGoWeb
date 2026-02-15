@@ -22,17 +22,24 @@ After redeploy, the backend will start without the "Cannot find module './fireba
 
 ---
 
-## 2. AI Chat on Render
+## 2. AI Chat on Render (works everywhere)
 
-The AI chatbot uses **Google Gemini**. It works locally because `GEMINI_API_KEY` is in your `.env`. On Render it will only work if the same key is set there.
+The AI chatbot now calls **Gemini from the user’s browser** when the frontend has a Gemini API key. The request comes from the user’s location, so it works on Render (and anywhere) even when the backend is in a blocked region.
 
-### What you need to do on Render
+### What you need to do
 
-1. In the same **SagradaGoAPI** service on Render, go to **Environment**.
-2. Add (or ensure you have):
-   - **Key:** `GEMINI_API_KEY`
-   - **Value:** Your Google AI / Gemini API key (same one you use locally).
+1. **Frontend (SagradaGoWeb)**  
+   Add the Gemini API key to the **web app** env so the browser can call Gemini:
+   - **Local:** In `.env` add:  
+     `VITE_GEMINI_API_KEY=your_gemini_api_key_here`
+   - **Render (or Vercel, etc.):** In your **SagradaGoWeb** (frontend) service → **Environment**, add:
+     - **Key:** `VITE_GEMINI_API_KEY`
+     - **Value:** Your Google AI / Gemini API key (same key you use for the backend).
 
-3. **Save** and **redeploy** if you added or changed it.
+2. **Redeploy the frontend**  
+   Rebuild and deploy SagradaGoWeb so the new env is baked in.
 
-After that, the AI chat (SagradaBot) will work on Render the same way as locally.
+3. **(Optional) Restrict the key in Google Cloud**  
+   In [Google AI Studio](https://aistudio.google.com/) or Google Cloud Console, restrict this API key by **HTTP referrer** to your frontend URLs (e.g. `https://yoursite.onrender.com/*`, `http://localhost:*`) so only your app can use it.
+
+When `VITE_GEMINI_API_KEY` is set, the chat uses the browser → Gemini flow and saves the exchange via your backend. If it’s not set, the app falls back to the backend calling Gemini (works on localhost, can fail on Render due to region).

@@ -4,6 +4,24 @@ import { API_URL } from "../Constants";
 import Cookies from "js-cookie";
 import { message } from "antd";
 
+// Same as backend AIService SYSTEM_PROMPT - used when calling Gemini from browser (works on Render)
+const SAGRADABOT_SYSTEM_PROMPT = `You are SagradaBot, a helpful AI assistant for the Sagrada Familia Parish Information System. You help parishioners with information about the parish and its services.
+
+**SACRAMENTS AND BOOKING INFORMATION:**
+1. Wedding - Min booking: Oct 17, 2025. Requirements: Marriage license, Baptismal/Confirmation certs, Pre-marriage seminar, Parental consent if applicable.
+2. Baptism - Min booking: Nov 1, 2025. Requirements: Birth cert, Parent marriage cert, Godparent confirmation cert, Baptismal seminar.
+3. Confession - Min booking: Sep 19, 2025. Requirements: Contrite heart, examination of conscience.
+4. Anointing of the Sick - Min booking: Sep 18, 2025. Requirements: Medical cert if applicable, family/guardian present.
+5. First Communion - Min booking: Nov 16, 2025. Requirements: Baptismal cert, preparation completion, parent consent, catechism attendance.
+6. Burial - Min booking: Sep 20, 2025. Requirements: Death cert, Baptismal cert of deceased, family contact, preferred date/time.
+7. Confirmation - Min booking: Nov 16, 2025. Requirements: Baptismal, First Communion cert, preparation, sponsor confirmation cert, catechism attendance.
+
+**OTHER:** Donations/Events/Volunteering in app; Virtual Tour 360° in app.
+**GUIDELINES:** Friendly, respectful, Christian tone. Accurate info. If unsure, direct to parish office or "Chat with Admin". Concise. 🙏 sparingly.`;
+
+const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+const GEMINI_MODEL = "gemini-2.0-flash";
+
 export default function ChatBot({ isOpen, onClose }) {
   const [messages, setMessages] = useState([]);
   const [inputBot, setInputBot] = useState("");
@@ -23,18 +41,22 @@ export default function ChatBot({ isOpen, onClose }) {
   const fullname = Cookies.get("fullname");
 
   async function fetchAdminChatHistory() {
+    if (!uid || !API_URL) return;
     try {
       const res = await axios.get(`${API_URL}/chat/getChatByUserId/${uid}`);
-      console.log(res.data.chat.messages);
-      setChatAdminHistory(res.data.chat.messages);
+      setChatAdminHistory(res.data?.chat?.messages ?? []);
     } catch (err) {
-      console.error(err.response?.data || err.message);
+      if (err.response?.status === 404) {
+        setChatAdminHistory([]);
+      } else {
+        console.error(err.response?.data || err.message);
+      }
     }
   }
 
   useEffect(() => {
     fetchAdminChatHistory();
-  }, []);
+  }, [uid]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -74,22 +96,35 @@ export default function ChatBot({ isOpen, onClose }) {
       message.warning("Please sign in to use the AI chat.");
       return;
     }
-    if (!API_URL) {
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "ai",
-          text: "Chat service is not configured. Please try again later.",
-        },
-      ]);
-      return;
-    }
     const userMessage = { role: "user", text: inputBot.trim() };
     setMessages((prev) => [...prev, userMessage]);
     setInputBot("");
     setLoading(true);
 
     try {
+      if (GEMINI_API_KEY) {
+        const history = await fetchAIChatHistory();
+        const fullPrompt = buildPromptForGemini(history, userMessage.text);
+        const aiText = await callGeminiFromBrowser(fullPrompt);
+        if (API_URL) {
+          await axios.post(`${API_URL}/chat/ai/response`, {
+            userId: uid,
+            message: userMessage.text,
+            response: aiText,
+          });
+        }
+        setMessages((prev) => [...prev, { role: "ai", text: aiText }]);
+        return;
+      }
+
+      if (!API_URL) {
+        setMessages((prev) => [
+          ...prev,
+          { role: "ai", text: "Chat service is not configured. Please try again later." },
+        ]);
+        return;
+      }
+
       const res = await axios.post(`${API_URL}/chat/ai/response`, {
         userId: uid,
         message: userMessage.text,
@@ -97,20 +132,61 @@ export default function ChatBot({ isOpen, onClose }) {
       const aiMessage = { role: "ai", text: res.data?.message ?? "No response." };
       setMessages((prev) => [...prev, aiMessage]);
     } catch (error) {
-      const is404 = error.response?.status === 404;
+      const status = error.response?.status;
+      const is404 = status === 404;
+      const is500 = status === 500;
       const isNetwork = error.code === "ERR_NETWORK";
-      const friendlyMsg =
-        is404 || isNetwork
-          ? "Chat service is temporarily unavailable. Please try again in a few moments."
-          : "I'm having trouble connecting. Please try again later.";
-      setMessages((prev) => [
-        ...prev,
-        { role: "ai", text: friendlyMsg },
-      ]);
+      let friendlyMsg = "I'm having trouble connecting. Please try again later.";
+      if (is404 || isNetwork) {
+        friendlyMsg = "Chat service is temporarily unavailable. Please try again in a few moments.";
+      } else if (is500) {
+        friendlyMsg = "AI service is temporarily unavailable. Please try again later or use Chat with Admin.";
+      }
+      setMessages((prev) => [...prev, { role: "ai", text: friendlyMsg }]);
     } finally {
       setLoading(false);
     }
   };
+
+  async function fetchAIChatHistory() {
+    if (!API_URL || !uid) return [];
+    try {
+      const res = await axios.post(`${API_URL}/chat/ai/history`, { userId: uid });
+      return res.data?.history ?? [];
+    } catch {
+      return [];
+    }
+  }
+
+  function buildPromptForGemini(history, newMessage) {
+    let full = SAGRADABOT_SYSTEM_PROMPT + "\n\n";
+    (history || []).slice(-10).forEach((msg) => {
+      if (msg.role === "user") full += `User: ${msg.content}\n`;
+      else if (msg.role === "assistant") full += `Assistant: ${msg.content}\n`;
+    });
+    full += `User: ${newMessage}\nAssistant:`;
+    return full;
+  }
+
+  async function callGeminiFromBrowser(fullPrompt) {
+    const url = `https://generativelanguage.googleapis.com/v1/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: fullPrompt }] }],
+      }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      const errMsg = err?.error?.message || res.statusText || "AI request failed";
+      throw new Error(errMsg);
+    }
+    const data = await res.json();
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!text) throw new Error("No response from AI");
+    return text;
+  }
 
   async function sendAdminMessage() {
     if (!inputAdmin.trim() || loading) return;
