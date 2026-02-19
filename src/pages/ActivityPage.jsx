@@ -17,9 +17,6 @@ export default function ActivityPage() {
         }
     };
 
-    // const storedUser = getStoredUser();
-    // const currentUser = contextUser || storedUser;
-
     const normalizeUser = (u) => ({
         ...u,
         uid: u?.uid || u?.user_id || u?.id,
@@ -109,7 +106,6 @@ export default function ActivityPage() {
 
             } catch (error) {
                 console.error("Error fetching history:", error);
-                
             } finally {
                 setLoading(false);
             }
@@ -289,65 +285,79 @@ export default function ActivityPage() {
                                 </Select>
                             </div>
 
-                            <List
-                                className="history-list"
-                                dataSource={filteredBookings}
-                                renderItem={(item) => (
-                                    <List.Item
-                                        actions={
-                                            item.status !== "cancelled" // only allow cancel if not already cancelled
-                                                ? [
-                                                    <Button
-                                                        type="link"
-                                                        danger
-                                                        onClick={() => setSelectedBooking(item)}
-                                                    >
-                                                        Cancel
-                                                    </Button>,
-                                                ]
-                                                : []
-                                        }
-                                    >
-                                        <List.Item.Meta
-                                            title={
-                                                <div style={{ display: "flex", justifyContent: "space-between" }}>
-                                                    <span style={{ fontWeight: 600 }}>{item.sacrament}</span>
-                                                    <Tag
-                                                        color={
-                                                            item.status === "approved"
-                                                                ? "green"
-                                                                : item.status === "pending"
-                                                                    ? "orange"
-                                                                    : "red"
-                                                        }
-                                                    >
-                                                        {item.status.toUpperCase()}
-                                                    </Tag>
-                                                </div>
+                            {/* FIX: wrap in scrollable container with overflow control */}
+                            <div style={{ maxHeight: "530px", overflowY: "auto", paddingRight: "10px" }}>
+                                <List
+                                    className="history-list"
+                                    dataSource={filteredBookings}
+                                    renderItem={(item) => (
+                                        <List.Item
+                                            /* FIX: prevent list item row from overflowing */
+                                            style={{ flexWrap: "nowrap", alignItems: "flex-start", overflow: "hidden" }}
+                                            actions={
+                                                item.status !== "cancelled"
+                                                    ? [
+                                                        <Button
+                                                            type="link"
+                                                            danger
+                                                            onClick={() => setSelectedBooking(item)}
+                                                        >
+                                                            Cancel
+                                                        </Button>,
+                                                    ]
+                                                    : []
                                             }
-                                            description={
-                                                <>
-                                                    <div style={{ color: "#8c8c8c" }}>
-                                                        {new Date(item.date).toLocaleDateString()} • {item.time}
+                                        >
+                                            <List.Item.Meta
+                                                /* FIX: allow meta to shrink and not overflow */
+                                                style={{ minWidth: 0, overflow: "hidden" }}
+                                                title={
+                                                    <div style={{
+                                                        display: "flex",
+                                                        justifyContent: "space-between",
+                                                        alignItems: "center",
+                                                        gap: 8,
+                                                        flexWrap: "wrap",   /* FIX: wrap tag below name on small widths */
+                                                    }}>
+                                                        <span style={{ fontWeight: 600 }}>{item.sacrament}</span>
+                                                        <Tag
+                                                            color={
+                                                                item.status === "approved"
+                                                                    ? "green"
+                                                                    : item.status === "pending"
+                                                                        ? "orange"
+                                                                        : "red"
+                                                            }
+                                                            style={{ marginRight: 0, flexShrink: 0 }}  /* FIX: tag never shrinks */
+                                                        >
+                                                            {item.status.toUpperCase()}
+                                                        </Tag>
                                                     </div>
-                                                    <div style={{ fontSize: 12, color: "#bfbfbf" }}>
-                                                        Booked on {new Date(item.createdAt).toLocaleDateString()}
-                                                    </div>
-                                                    {item.amount && (
-                                                        <div style={{ marginTop: 4 }}>
-                                                            ₱{Number(item.amount).toLocaleString()} •{" "}
-                                                            {item.payment_method === "gcash" ? "GCash" : "In-Person"}
+                                                }
+                                                description={
+                                                    <>
+                                                        <div style={{ color: "#8c8c8c" }}>
+                                                            {new Date(item.date).toLocaleDateString()} • {item.time}
                                                         </div>
-                                                    )}
-                                                </>
-                                            }
-                                        />
-                                    </List.Item>
-                                )}
-                                locale={{
-                                    emptyText: <div className="history-empty">No bookings found.</div>,
-                                }}
-                            />
+                                                        <div style={{ fontSize: 12, color: "#bfbfbf" }}>
+                                                            Booked on {new Date(item.createdAt).toLocaleDateString()}
+                                                        </div>
+                                                        {item.amount && (
+                                                            <div style={{ marginTop: 4 }}>
+                                                                ₱{Number(item.amount).toLocaleString()} •{" "}
+                                                                {item.payment_method === "gcash" ? "GCash" : "In-Person"}
+                                                            </div>
+                                                        )}
+                                                    </>
+                                                }
+                                            />
+                                        </List.Item>
+                                    )}
+                                    locale={{
+                                        emptyText: <div className="history-empty">No bookings found.</div>,
+                                    }}
+                                />
+                            </div>
 
                             {/* Cancel Confirmation Modal */}
                             <Modal
