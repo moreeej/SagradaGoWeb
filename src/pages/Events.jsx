@@ -81,6 +81,15 @@ export default function Events() {
   useEffect(() => {
     let filtered = [...events];
 
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    filtered = filtered.filter((e) => {
+      const eventDate = new Date(e.date);
+      return eventDate >= today;
+    });
+
     if (searchText) {
       filtered = filtered.filter(
         (e) =>
@@ -332,7 +341,7 @@ export default function Events() {
               <hr className="eventmodal-divider" />
               <p className="eventmodal-description-full">
                 {selectedEvent.description &&
-                selectedEvent.description.trim() !== ""
+                  selectedEvent.description.trim() !== ""
                   ? selectedEvent.description
                   : "No description displayed."}
               </p>
