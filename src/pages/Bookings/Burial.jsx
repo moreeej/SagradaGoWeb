@@ -22,7 +22,8 @@ import Modal from "../../components/Modal";
 
 export default function Burial() {
 
-  const { setSelectedNavbar } = useContext(NavbarContext);
+  const { setSelectedNavbar, setTotalAmount } = useContext(NavbarContext);
+  
 
   const [showModalMessage, setShowModalMessage] = useState(false);
   const [modalMessage, setModalMessage] = useState();
@@ -373,8 +374,7 @@ export default function Burial() {
     setShowModalMessage(false);
 
     if (bookComplete) {
-      setSelectedNavbar("Home");
-      navigate("/");
+      navigate("/payment-method");
     }
   };
 
@@ -440,12 +440,13 @@ export default function Burial() {
       const res = await axios.post(`${API_URL}/createBurialWeb`, payload);
 
       setBookComplete(true);
+      setTotalAmount(1000)
 
       setShowModalMessage(true);
       setModalMessage("Burial booking submitted successfully!");
       setIsLoading(false);
 
-      navigate("/");
+      navigate("/payment-method");
       console.log("Saved:", res.data);
     } catch (err) {
       console.error("UPLOAD ERROR:", err);
@@ -800,7 +801,7 @@ export default function Burial() {
             onClick={handleSubmit}
             disabled={isLoading}
           >
-            {isLoading ? "Submitting" : "Confirm & Book Burial Service"}
+            {isLoading ? "Processing Booking..." : "Submit Booking"}
           </button>
         </div>
       </div>

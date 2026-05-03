@@ -22,7 +22,8 @@ import pdf_image from "../../assets/pdfImage.svg";
 export default function Baptism() {
   const navigate = useNavigate();
 
-  const { setSelectedNavbar } = useContext(NavbarContext);
+  const { setSelectedNavbar, setTotalAmount } = useContext(NavbarContext);
+  
 
   const [errors, setErrors] = useState({});
   const [fileErrors, setFileErrors] = useState({});
@@ -484,8 +485,7 @@ aWeekAfter.setDate(aWeekAfter.getDate() + 7);
     setShowModalMessage(false);
 
     if (bookComplete) {
-      setSelectedNavbar("Home");
-      navigate("/");
+      navigate("/payment-method");
     }
   };
 
@@ -687,11 +687,12 @@ aWeekAfter.setDate(aWeekAfter.getDate() + 7);
       
       console.log("Saved:", res.data);
       setIsLoading(false);
+      setTotalAmount(2000)
 
       setBookComplete(true);
 
       setShowModalMessage(true);
-      setModalMessage("Baptismal booking submitted successfully!");
+      setModalMessage("Baptismal booking submitted successfully. Proceed to payment.");
       resetAllFiles();
 
     } catch (err) {
@@ -1022,7 +1023,7 @@ aWeekAfter.setDate(aWeekAfter.getDate() + 7);
             onClick={handleUpload}
             disabled={isLoading}
           >
-            {isLoading ? "Submitting..." : "Submit Booking"}
+            {isLoading ? "Processing Booking..." : "Submit Booking"}
           </button>
         </div>
       </div>

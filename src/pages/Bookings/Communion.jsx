@@ -20,7 +20,8 @@ import Modal from "../../components/Modal";
 
 
 export default function Communion() {
-  const { setSelectedNavbar } = useContext(NavbarContext);
+  const { setSelectedNavbar, setTotalAmount} = useContext(NavbarContext);
+  
 
   const [fname, setFname] = useState("");
   const [mname, setMname] = useState("");
@@ -220,8 +221,7 @@ export default function Communion() {
     setShowModalMessage(false);
 
     if (bookComplete) {
-      setSelectedNavbar("Home");
-      navigate("/");
+      navigate("/payment-method");
     }
   };
 
@@ -272,6 +272,7 @@ export default function Communion() {
       const res = await axios.post(`${API_URL}/createCommunionWeb`, payload);
 
       setBookComplete(true);
+      setTotalAmount(500);
 
       setShowModalMessage(true);
       setModalMessage("Communion booking submitted successfully!");
@@ -294,7 +295,6 @@ export default function Communion() {
       setParentConsentPreview(null);
       setErrors({});
 
-      navigate("/");
     } catch (err) {
       console.error("UPLOAD ERROR:", err);
 
@@ -744,7 +744,7 @@ export default function Communion() {
             onClick={handleSubmit}
             disabled={loading}
           >
-            {loading ? "Submitting..." : "Confirm Communion Schedule"}
+            {loading ? "Processing Booking..." : "Submit Booking"}
           </button>
         </div>
       </div>

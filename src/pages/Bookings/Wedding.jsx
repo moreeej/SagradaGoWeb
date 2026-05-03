@@ -23,7 +23,8 @@ import pdf_image from "../../assets/pdfImage.svg";
 export default function Wedding() {
   const navigate = useNavigate();
 
-  const { setSelectedNavbar } = useContext(NavbarContext);
+  const { setSelectedNavbar, setTotalAmount } = useContext(NavbarContext);
+  
 
   const [groomFname, setGroomFname] = useState("");
   const [groomMname, setGroomMname] = useState("");
@@ -413,8 +414,7 @@ export default function Wedding() {
     setShowModalMessage(false);
 
     if (bookComplete) {
-      setSelectedNavbar("Home");
-      navigate("/");
+      navigate("/payment-method");
     }
   };
 
@@ -482,6 +482,7 @@ export default function Wedding() {
       setBookComplete(true);
       setShowModalMessage(true);
       setModalMessage("Booking submitted successfully!");
+      setTotalAmount(5000)
 
       resetAllFiles();
 
@@ -931,7 +932,7 @@ export default function Wedding() {
             onClick={handleUpload}
             disabled={isLoading}
           >
-            {isLoading ? "Processing..." : "Confirm & Book Wedding"}
+            {isLoading ? "Processing Booking..." : "Submit Booking"}
           </button>
         </div>
       </div>

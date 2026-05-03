@@ -9,6 +9,7 @@ import LandingPage from "./pages/LandingPage";
 import SignUpPage from "./pages/SignUpPage";
 import SignInPage from "./pages/SignInPage";
 import BookService from "./pages/BookService";
+import PaymentMethod from "./pages/Bookings/PaymentMethod";
 import Events from "./pages/Events";
 import BeVolunteer from "./pages/BeVolunteer";
 import Donate from "./pages/Donate";
@@ -37,7 +38,6 @@ function AppContent() {
 
   const isAdminRoute = location.pathname.startsWith("/admin");
 
-  // Redirect admin users from landing page to admin dashboard
   useEffect(() => {
     if (location.pathname === "/") {
       const storedUser = localStorage.getItem("currentUser");
@@ -93,6 +93,7 @@ function AppContent() {
         <Route path="/sign-up" element={<SignUpPage />} />
         <Route path="/sign-in" element={<SignInPage />} />
         <Route path="/book-service" element={<BookService />} />
+        <Route path="/payment-method" element={<PaymentMethod />} />
         <Route path="/events" element={<Events />} />
         <Route path="/be-volunteer" element={<BeVolunteer />} />
         <Route path="/donate" element={<Donate />} />
@@ -105,6 +106,7 @@ function AppContent() {
 }
 
 function App() {
+  const [getTotalAmount, setTotalAmount] = useState(0);
   const [selectedNavbar, setSelectedNavbar] = useState("Home");
   const [showSignin, setShowSignin] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
@@ -191,6 +193,8 @@ function App() {
         setActiveDropdown,
         bookingSelected,
         setBookingSelected,
+        getTotalAmount,
+        setTotalAmount
       }}
     >
       <BrowserRouter>
