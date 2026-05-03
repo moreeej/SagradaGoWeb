@@ -3,6 +3,8 @@ import { NavbarContext } from "../../context/AllContext";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../config/supabase";
 import qr1 from "../../assets/qr-codes/qr-1.png";
+import PaymentModal from "../../components/PaymentModal";
+
 
 export default function PaymentMethod() {
   const navigate = useNavigate();
@@ -47,60 +49,102 @@ export default function PaymentMethod() {
   };
 
 
+  const [showModal, setShowModal] = useState(false);
+
   function handleConfirmPayment() {
-    alert("Payment confirmed! Thank you for your payment.");
-    navigate("/");
+    setShowModal(true);
   }
 
   return (
-    <div className="w-full py-7! px-4! bg-red-400 flex flex-col items-center gap-3">
+    <div className="w-full py-7! px-4! flex flex-col items-center gap-3 mt-20! justify-center">
+      <div className="bg-red-300 p-7! flex flex-col items-center gap-4">
 
-      <select
-        className="p-2 rounded border border-black w-40"
-        value={paymentMethod}
-        onChange={(e) => setPaymentMethod(e.target.value)}
-      >
-        <option value="" hidden>Select Payment</option>
-        <option value="cash">Cash</option>
-        <option value="gcash">GCash</option>
-        <option value="paymaya">PayMaya</option>
-      </select>
 
-      <h1>Amount to pay: {getTotalAmount}</h1>
 
-      {paymentMethod === "gcash" && (
-        <div className="w-40 h-40 bg-green-300 flex items-center justify-center">
-          GCash QR
-        </div>
-      )}
+        <select
+          value={paymentMethod}
+          onChange={(e) => {
+            const value = e.target.value;
+            setPaymentMethod(value);
 
-      {paymentMethod === "paymaya" && (
-        <div className="w-40 h-40 bg-blue-300 flex items-center justify-center">
-          <img src={qr1} alt="PayMaya QR" className="w-full h-full object-contain" />
-        </div>
-      )}
+            if (value === "cash") {
+              setPaymentProof(null);
+            }
+          }}
+          className="
+    w-64 px-4 py-2
+    text-sm text-gray-700
+    bg-white border border-gray-300 rounded-lg
+    shadow-sm cursor-pointer
+    focus:outline-none focus:ring-2 focus:ring-blue-400
+  "
+        >
+          <option value="" hidden>Select Payment</option>
+          <option value="cash">Cash</option>
+          <option value="gcash">GCash</option>
+          <option value="paymaya">PayMaya</option>
+        </select>
 
-      {(paymentMethod === "gcash" || paymentMethod === "paymaya") && (
-        <input
-          type="file"
-          accept="image/*"
-          className="border p-2"
-          onChange={handleFileUpload}
+        <h1 className="text-black text-lg">Amount to pay: {getTotalAmount}</h1>
+
+        {paymentMethod === "gcash" && (
+          <div className="w-40 h-40 bg-blue-300 flex items-center justify-center">
+            <img src={qr1} alt="PayMaya QR" className="w-full h-full object-contain" />
+          </div>
+        )}
+
+        {paymentMethod === "paymaya" && (
+          <div className="w-40 h-40 bg-blue-300 flex items-center justify-center">
+            <img src={qr1} alt="PayMaya QR" className="w-full h-full object-contain" />
+          </div>
+        )}
+
+        {(paymentMethod === "gcash" || paymentMethod === "paymaya") && (
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleFileUpload}
+            disabled={uploading}
+            className="
+    w-64 text-sm text-gray-700
+    border border-gray-300 rounded-lg! cursor-pointer bg-white
+    file:mr-4! file:py-2! file:px-4!
+    file:rounded-lg file:border-0
+    file:text-sm file:font-medium
+    file:bg-blue-500 file:text-white
+    hover:file:bg-blue-600
+    disabled:opacity-50 disabled:cursor-not-allowed
+  "
+          />
+        )}
+
+        {paymentProof && (
+          <img src={paymentProof} alt="Proof" className="w-40 mt-2" />
+        )}
+
+        <button
           disabled={uploading}
-        />
-      )}
-
-      {paymentProof && (
-        <img src={paymentProof} alt="Proof" className="w-40 mt-2" />
-      )}
-
-      <button
-        className="p-4! bg-white rounded-xl hover:bg-gray-400"
-        disabled={uploading}
-        onClick={handleConfirmPayment}
-      >
-        {uploading ? "Uploading..." : "Confirm Payment"}
-      </button>
+          onClick={handleConfirmPayment}
+          className="
+    w-64! px-4! py-2!
+    text-sm font-medium text-white
+    bg-blue-500 rounded-lg
+    shadow-sm
+    hover:bg-blue-600
+    focus:outline-none focus:ring-2 focus:ring-blue-400
+    disabled:opacity-50 disabled:cursor-not-allowed
+  "
+        >
+          {uploading ? "Uploading..." : "Confirm Payment"}
+        </button>
+      </div>
+      <PaymentModal
+        isOpen={showModal}
+        onClose={() => {
+          setShowModal(false);
+          navigate("/");
+        }}
+      />
     </div>
   );
 }
