@@ -10,6 +10,7 @@ import Burial from "./Bookings/Burial";
 import Footer from "../components/Footer";
 import Cookies from "js-cookie";
 import SignInAlert from "../components/SignInAlert";
+import Confirmation from "./Bookings/Confirmation";
 
 import {
   HeartOutlined,
@@ -60,6 +61,11 @@ export default function BookService() {
       title: "Funeral & Burial Services",
       desc: "Arrange a respectful Catholic send-off for your loved ones.",
       icon: <EnvironmentOutlined />,
+    },
+    confirmation: {
+      title: "Confirmation",
+      desc: "Arrange a respectful Catholic send-off for your loved ones.",
+      icon: <SafetyCertificateOutlined />,
     },
   };
 
@@ -228,6 +234,7 @@ export default function BookService() {
             {bookingSelected === "anointing" && <Anointing />}
             {bookingSelected === "communion" && <Communion />}
             {bookingSelected === "burial" && <Burial />}
+            {bookingSelected === "confirmation" && <Confirmation />}
           </div>
         </div>
       )}
